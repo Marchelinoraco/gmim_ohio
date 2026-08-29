@@ -1097,6 +1097,284 @@ git commit -m "Tambah koneksi Neon + Drizzle (node-postgres) + validasi env"
 
 ---
 
+## Task 8b: Dark mode + revisi palet (ungu/putih) + theme toggle
+
+> **DITAMBAHKAN (controller, 2026-08-30) — user directive.** Menggantikan spec
+> §6.3 "situs publik light-mode saja saat rilis" dan palet cokelat/biru/krem
+> dari Task 3. Sekarang: **light = ungu + putih**, **dark = ungu-hitam**, dengan
+> toggle. Nama token TIDAK berubah (Button/Card Task 4 tetap jalan) — hanya
+> NILAI token + blok dark ditambahkan.
+
+**Files:**
+- Modify: `src/styles/app.css` (tulis ulang seluruh blok token: light + dark)
+- Create: `src/components/layout/theme-toggle.tsx`, `src/lib/theme.ts` (konstanta + snippet anti-flash)
+- Modify: `src/routes/__root.tsx` (inline anti-flash script di `<head>`, mount `<ThemeToggle>` di header via SiteHeader), `src/components/layout/site-header.tsx` (+ `<ThemeToggle>`), `src/routes/_dev.tokens.tsx` (tampilkan kedua mode)
+- Create test: `tests/e2e/theme.spec.ts`
+- Modify: `messages/id.json` + `messages/en.json` (+ key `theme_toggle_label`, `theme_light`, `theme_dark`, `theme_system`)
+
+**Interfaces:**
+- Produces: `<ThemeToggle />`; `THEME_STORAGE_KEY = 'gmim-theme'`; `THEME_INIT_SCRIPT` (string, inline no-flash). Theme state: `'light' | 'dark' | 'system'` in `localStorage`; resolved theme sets `data-theme="light|dark"` on `<html>` (omit attr = follow `prefers-color-scheme`).
+
+- [ ] **Step 1: Palet token — `src/styles/app.css`**
+
+Ganti isi blok `:root` + isi blok dark yang sebelumnya di-comment. Target: nilai di bawah adalah TITIK AWAL — implementer WAJIB menghitung kontras tiap pasangan teks/latar dan menyesuaikan sampai **semua ≥ WCAG AA** (4.5:1 teks normal, 3:1 teks besar/UI). Catat rasio tiap pasangan kunci di report.
+
+```css
+:root {
+  /* LIGHT — ungu + putih */
+  --color-primary: #6d28d9;          /* tombol utama, link (putih di atasnya ~7.5:1) */
+  --color-primary-hover: #5b21b6;
+  --color-secondary: #7c3aed;         /* tombol sekunder */
+  --color-secondary-hover: #6d28d9;
+  --color-accent: #9333ea;            /* badge "live", highlight (hemat) */
+
+  --color-surface: #ffffff;
+  --color-surface-2: #f5f3ff;         /* section selang-seling, ungu sangat muda */
+  --color-border: #e9e5f7;
+  --color-ink: #1c1a26;               /* teks utama (~16:1 di putih) */
+  --color-muted: #6a6577;             /* teks sekunder (~5.3:1 di putih) */
+
+  /* Badge 6 kategori ibadah — nilai awal, implementer validasi AA (putih di atasnya) di LIGHT & DARK */
+  --color-cat-jemaat: #5b21b6;
+  --color-cat-bapa: #1d4ed8;
+  --color-cat-ibu: #a21caf;
+  --color-cat-pemuda: #0f766e;
+  --color-cat-sekolah-minggu: #b45309;
+  --color-cat-kolom: #7c3aed;
+
+  --radius: 0.625rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    /* DARK — ungu-hitam */
+    --color-primary: #7c3aed;         /* tombol; putih di atasnya ~5.9:1 */
+    --color-primary-hover: #6d28d9;
+    --color-secondary: #8b5cf6;
+    --color-secondary-hover: #7c3aed;
+    --color-accent: #a78bfa;
+
+    --color-surface: #161221;
+    --color-surface-2: #1f1830;
+    --color-border: #332b47;
+    --color-ink: #f1eef8;             /* ~16:1 di #161221 */
+    --color-muted: #a79fb8;           /* ~7.5:1 di #161221 */
+
+    --color-cat-jemaat: #a78bfa;
+    --color-cat-bapa: #60a5fa;
+    --color-cat-ibu: #e879f9;
+    --color-cat-pemuda: #2dd4bf;
+    --color-cat-sekolah-minggu: #fbbf24;
+    --color-cat-kolom: #c4b5fd;
+  }
+}
+
+:root[data-theme='dark'] {
+  /* sama persis dengan blok DARK di atas — implementer DRY via CSS custom-prop
+     indirection atau duplikasi eksplisit; JANGAN sampai drift */
+  --color-primary: #7c3aed;
+  --color-primary-hover: #6d28d9;
+  --color-secondary: #8b5cf6;
+  --color-secondary-hover: #7c3aed;
+  --color-accent: #a78bfa;
+  --color-surface: #161221;
+  --color-surface-2: #1f1830;
+  --color-border: #332b47;
+  --color-ink: #f1eef8;
+  --color-muted: #a79fb8;
+  --color-cat-jemaat: #a78bfa;
+  --color-cat-bapa: #60a5fa;
+  --color-cat-ibu: #e879f9;
+  --color-cat-pemuda: #2dd4bf;
+  --color-cat-sekolah-minggu: #fbbf24;
+  --color-cat-kolom: #c4b5fd;
+}
+```
+
+> **DRY the dark values.** Duplikasi blok `@media` dan `[data-theme='dark']` di
+> atas rawan drift. Implementer boleh restrukturisasi: definisikan dark values
+> sekali (mis. di `:root` sebagai `--dark-color-*`, lalu `--color-*: var(--dark-color-*)`
+> di kedua selector dark), asalkan hasil akhirnya identik. Uji kedua jalur
+> (OS dark tanpa `data-theme`, dan `data-theme="dark"` eksplisit).
+
+Blok `@theme inline` yang memetakan `--color-*` → utility Tailwind TIDAK berubah
+(nama token sama). Pastikan `bg-primary`, `text-ink`, dll. tetap resolve.
+
+`body` background/color tetap pakai `var(--color-surface)` / `var(--color-ink)` →
+otomatis ikut tema.
+
+- [ ] **Step 2: `src/lib/theme.ts`**
+
+```ts
+export const THEME_STORAGE_KEY = 'gmim-theme'
+export type ThemePref = 'light' | 'dark' | 'system'
+
+// Inline <script> — jalan SEBELUM paint, set data-theme dari localStorage.
+// Tanpa ini: flash putih saat load untuk user yang pilih dark.
+export const THEME_INIT_SCRIPT = `
+(function(){try{
+  var p = localStorage.getItem('${THEME_STORAGE_KEY}');
+  if (p === 'light' || p === 'dark') document.documentElement.setAttribute('data-theme', p);
+}catch(e){}})();
+`
+```
+
+- [ ] **Step 3: Anti-flash script di `__root.tsx`**
+
+Di `createRootRoute({ head: () => ({ scripts: [{ children: THEME_INIT_SCRIPT }] , ... }) })`
+ATAU render `<script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />` sebagai
+elemen PERTAMA di `<head>` (sebelum stylesheet). Verifikasi via view-source bahwa
+script muncul inline & sebelum CSS. `<html>` TIDAK di-hardcode `data-theme` di SSR
+(server tak tahu preferensi) — script yang set sebelum paint.
+
+- [ ] **Step 4: `<ThemeToggle>`**
+
+`src/components/layout/theme-toggle.tsx` — client component:
+- Baca `localStorage[THEME_STORAGE_KEY]` (default `'system'`), state React.
+- 3 opsi (system / light / dark) — dropdown atau siklus tombol. Ikon: matahari / bulan / monitor (inline SVG, tanpa lib ikon).
+- On change: tulis `localStorage`, lalu set/hapus `data-theme` di `document.documentElement` (`'system'` → `removeAttribute`).
+- Dengarkan `window.matchMedia('(prefers-color-scheme: dark)')` change saat mode `'system'` (opsional — CSS `@media` sudah handle; JS listener hanya kalau ikon perlu update).
+- Aksesibel: `<button>` dengan `aria-label={m.theme_toggle_label()}`, `aria-pressed` atau menu dgn `aria-expanded`. Target sentuh ≥ 44px.
+- SSR-safe: jangan baca `localStorage`/`window` saat render server — pakai `useEffect` untuk sinkronisasi state awal, atau `useSyncExternalStore`.
+
+- [ ] **Step 5: Mount di header**
+
+`src/components/layout/site-header.tsx` — tambah `<ThemeToggle />` di sebelah `<LanguageSwitcher />` (desktop cluster + mobile panel).
+
+- [ ] **Step 6: Pesan i18n**
+
+Tambah ke BOTH `messages/id.json` & `messages/en.json`:
+`theme_toggle_label` (id "Ganti tema" / en "Toggle theme"), `theme_light` ("Terang"/"Light"),
+`theme_dark` ("Gelap"/"Dark"), `theme_system` ("Ikuti sistem"/"System").
+
+- [ ] **Step 7: `_dev.tokens.tsx`**
+
+Update supaya menampilkan swatch + Button/Card. Tambah tombol kecil untuk toggle `data-theme` di halaman itu agar reviewer bisa lihat kedua mode. (Halaman ini dihapus di Rencana 4.)
+
+- [ ] **Step 8: e2e `tests/e2e/theme.spec.ts`**
+
+```ts
+import { test, expect } from '@playwright/test'
+
+test('default mengikuti prefers-color-scheme', async ({ browser }) => {
+  const dark = await browser.newContext({ colorScheme: 'dark' })
+  const p1 = await dark.newPage()
+  await p1.goto('/')
+  await expect(p1.locator('html')).not.toHaveAttribute('data-theme', 'light')
+  const bg = await p1.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  expect(bg).toBe('rgb(22, 18, 33)') // #161221
+  await dark.close()
+})
+
+test('tombol dark disimpan & bertahan reload', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /tema|theme/i }).click()
+  // pilih "Gelap" — sesuaikan selektor dgn implementasi (menu item atau siklus)
+  await page.getByRole('menuitem', { name: /gelap|dark/i }).click().catch(() => {})
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+})
+```
+
+(Implementer sesuaikan selektor tombol/menu dengan UI final; inti test: default
+ikut OS, pilihan manual tersimpan & bertahan reload, tak ada flash.)
+
+- [ ] **Step 9: Verifikasi**
+
+- `pnpm dev` — cek `/`, `/tokens`, `/en`, `/tidak-ada` (404) di light & dark (via OS setting DAN via toggle). Tidak ada flash putih saat reload dalam dark.
+- Kontras: jalankan cek AA untuk semua pasangan token di KEDUA mode; catat rasio di report. Sesuaikan hex bila ada yang < AA.
+- `pnpm typecheck` + `pnpm lint` + `pnpm test` + `pnpm test:e2e` + `pnpm build` semua hijau.
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add -A
+git commit -m "Tambah dark mode + revisi palet ungu/putih + theme toggle"
+```
+
+---
+
+## Task 8c: Halaman coming-soon (`/`)
+
+> **DITAMBAHKAN (controller, 2026-08-30) — user directive.** Situs di-deploy ke
+> `gmimmusafir.org` sebagai coming-soon SEBELUM Rencana 2. `/` jadi halaman
+> "segera hadir" yang layak tayang; nav 7-menu disembunyikan (halamannya belum
+> ada).
+
+**Files:**
+- Modify: `src/routes/index.tsx` (jadi halaman coming-soon)
+- Create: `src/config/site.ts` (flag `COMING_SOON` + data statis: alamat, koordinat maps, sosial)
+- Modify: `src/components/layout/site-header.tsx` (sembunyikan nav bila `COMING_SOON`), `src/components/layout/site-footer.tsx` (isi link sosial dari `site.ts`)
+- Modify: `messages/id.json` + `messages/en.json` (+ key coming-soon)
+- Create: `public/hero-poster.jpg` (placeholder/gradient) — video asli menyusul dari user
+- Create test: `tests/e2e/coming-soon.spec.ts`
+
+**Interfaces:**
+- Produces: `SITE` config obyek dari `@/config/site` — `{ comingSoon: boolean, address, mapsUrl, facebookUrl, ... }`.
+
+- [ ] **Step 1: `src/config/site.ts`**
+
+```ts
+export const SITE = {
+  comingSoon: true, // Rencana 2 set false
+  name: 'GMIM Musafir Columbus Ohio',
+  address: '895 Old Diley Road, Columbus, Ohio',
+  mapsUrl: 'https://www.google.com/maps/search/?api=1&query=895+Old+Diley+Road+Columbus+Ohio',
+  facebookUrl: '', // user provides — leave '' → button hidden until set
+  hero: {
+    // video files disediakan user; ditaruh di /public/hero/ atau Vercel Blob.
+    // Sementara: poster + gradient fallback.
+    poster: '/hero-poster.jpg',
+    sources: [] as { src: string; type: string }[], // e.g. [{ src:'/hero/1.mp4', type:'video/mp4' }]
+  },
+} as const
+```
+
+- [ ] **Step 2: `index.tsx` — coming-soon**
+
+Layout:
+- `<section>` hero full-viewport-height:
+  - Background: `<video autoPlay loop muted playsInline poster={SITE.hero.poster>` merender `SITE.hero.sources` bila ada; bila `sources` kosong → gradient ungu (light: ungu muda → putih; dark: ungu-hitam) sebagai fallback. `<video>` selalu di belakang scrim.
+  - Scrim overlay: gradient gelap semi-transparan supaya teks kebaca di kedua tema (dark: lebih pekat). `pointer-events-none`.
+  - Konten tengah: `<Logo variant="full" />` (di medali terang bila dark), `<h1>` `SITE.name`, `<p>` tagline (`m.coming_soon_tagline()`), `<p>` `m.coming_soon_body()` ("Website resmi sedang dalam pembangunan — segera hadir."), alamat + link Maps, tombol Facebook (bila `SITE.facebookUrl` != '').
+- Reduced-motion: `@media (prefers-reduced-motion: reduce)` → jangan autoplay video, tampilkan poster saja.
+- Meta: `<title>` + OG description "segera hadir".
+- Semua teks via `m.*` (id/en).
+
+- [ ] **Step 3: Header coming-soon mode**
+
+`site-header.tsx` — bila `SITE.comingSoon`: render hanya `<Logo>` + `<LanguageSwitcher>` + `<ThemeToggle>`. Sembunyikan 7 nav link + CTA. Bila `false` (Rencana 2): perilaku penuh seperti sekarang.
+
+- [ ] **Step 4: Footer**
+
+`site-footer.tsx` — isi link sosial dari `SITE.facebookUrl` (sembunyikan bila kosong). Alamat dari `SITE.address`.
+
+- [ ] **Step 5: Pesan i18n**
+
+`coming_soon_tagline`, `coming_soon_body`, `coming_soon_facebook` (id "Ikuti kami di Facebook" / en "Follow us on Facebook"), `coming_soon_maps` (id "Lihat peta" / en "View map"). Tagline: pakai placeholder yang wajar (id: "Bertumbuh bersama dalam kasih Kristus di perantauan." / en: "Growing together in the love of Christ.") — user bisa ganti nanti.
+
+- [ ] **Step 6: e2e `tests/e2e/coming-soon.spec.ts`**
+
+- `/` menampilkan `SITE.name` di `<h1>`, alamat, pesan coming-soon.
+- Nav 7-menu TIDAK terlihat (`getByRole('link', { name: /jadwal|pelayanan/i })` → not visible).
+- `<video>` ada atau fallback gradient ada.
+- `/en` → versi Inggris.
+- Update `smoke.spec.ts` bila asersinya bentrok dgn nav yang kini disembunyikan.
+
+- [ ] **Step 7: Verifikasi**
+
+`pnpm dev` cek `/` + `/en` di light & dark, mobile & desktop. `pnpm build` + semua command hijau. Lighthouse cepat (video tidak boleh bikin LCP parah — poster + `preload="none"` bila perlu).
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add -A
+git commit -m "Halaman coming-soon + sembunyikan nav (SITE.comingSoon)"
+```
+
+---
+
 ## Task 9: better-auth + schema auth
 
 **Files:**

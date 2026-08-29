@@ -1,0 +1,31 @@
+# Build & framework output
+.output/
+.nitro/
+.tanstack/
+.vercel/
+dist/
+
+# Generated code (owns its own formatting)
+src/paraglide/
+**/routeTree.gen.ts
+drizzle/
+
+# Test & coverage artifacts
+coverage/
+playwright-report/
+test-results/
+
+# SDD artifacts & docs — prose, not code; leave authors' formatting alone
+.superpowers/
+docs/
+
+# inlang / Paraglide project — tool-managed
+project.inlang/
+messages/
+
+# Upstream shadcn/ui files — kept in upstream style (double-quote, semicolons)
+# so `pnpm dlx shadcn diff` stays meaningful. See task-7-report.md.
+src/components/ui/
+
+# Lockfile
+pnpm-lock.yaml

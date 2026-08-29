@@ -4,9 +4,9 @@
 
 **Goal:** Menyiapkan aplikasi TanStack Start yang ter-deploy di Vercel, dengan i18n dwibahasa, koneksi Neon + Drizzle, skeleton auth better-auth, seluruh schema database + seed, token desain GMIM, dan pipeline CI.
 
-**Architecture:** Satu aplikasi TanStack Start (React 19, Vite, Nitro untuk Vercel). Halaman publik SSR; nanti `/admin` client-only. Database Neon Postgres diakses lewat Drizzle ORM (driver `neon-serverless` agar mendukung transaksi). Auth lewat better-auth + Drizzle adapter. i18n lewat Paraglide JS (locale `id` default tanpa prefix URL, `en` di prefix `/en`). Styling Tailwind CSS v4 + registry komponen (TypeUI, fallback shadcn/ui).
+**Architecture:** Satu aplikasi TanStack Start (React 19, Vite, Nitro untuk Vercel). Halaman publik SSR; nanti `/admin` client-only. Database Neon Postgres diakses lewat Drizzle ORM dengan driver `node-postgres` (`pg`) + `@vercel/functions` `attachDatabasePool` (rekomendasi Neon untuk Vercel Fluid Compute — koneksi TCP di-reuse antar invokasi warm; transaksi didukung penuh). Auth lewat better-auth + Drizzle adapter. i18n lewat Paraglide JS (locale `id` default tanpa prefix URL, `en` di prefix `/en`). Styling Tailwind CSS v4 + registry komponen (TypeUI, fallback shadcn/ui).
 
-**Tech Stack:** TanStack Start · TanStack Router · Vite · Nitro · React 19 · Tailwind CSS v4 · Paraglide JS (@inlang/paraglide-js) · Drizzle ORM · drizzle-kit · @neondatabase/serverless · better-auth · Vitest · Playwright · pnpm · GitHub Actions · Vercel.
+**Tech Stack:** TanStack Start · TanStack Router · Vite · Nitro · React 19 · Tailwind CSS v4 · Paraglide JS (@inlang/paraglide-js) · Drizzle ORM · drizzle-kit · pg (node-postgres) · @vercel/functions · better-auth · Vitest · Playwright · pnpm · GitHub Actions · Vercel.
 
 **Spec:** `docs/superpowers/specs/2026-08-29-gmim-musafir-website-design.md`
 
@@ -94,7 +94,7 @@ Setiap task otomatis tunduk pada berikut (nilai disalin verbatim dari spec):
     └── e2e/
         ├── smoke.spec.ts                # halaman utama render (id & en)
         └── i18n.spec.ts                 # language switcher
-```
+```      
 
 **Catatan boundary:**
 - `src/lib/datetime.ts` = satu-satunya tempat konversi zona waktu. Tidak ada `new Date(...)` manipulasi TZ di file lain.
@@ -378,7 +378,7 @@ git commit -m "Tambah Nitro untuk deploy Vercel"
 
 ---
 
-## Task 3: Tailwind v4 + token desain GMIM + font
+## Task 3: Tailwind v4 + token desain GMIM + font 
 
 **Files:**
 - Modify: `vite.config.ts`, `src/styles/app.css`, `src/routes/__root.tsx`, `package.json`
@@ -993,18 +993,31 @@ git commit -m "Setup tooling: ESLint, Prettier, Vitest, Playwright"
 
 ## Task 8: Koneksi Neon + Drizzle + validasi env
 
+> **REVISI (controller, 2026-08-30):** Neon sudah di-setup manual di luar SDD —
+> `neon` CLI ter-auth, project `gmim-musafir` (late-night-27741746) di org
+> `yunita` ter-link, branch **`dev`** aktif, `.env` sudah berisi `DATABASE_URL`
+> (pooled) + `DATABASE_URL_UNPOOLED` (direct) + `BETTER_AUTH_SECRET` +
+> `BETTER_AUTH_URL` + placeholder lain + `NEON_AI_GATEWAY_*` (tak dipakai).
+> `.env.example` sudah di-commit (`02cc440`). `.env` & `.neon` git-ignored.
+> **Driver: pakai `pg` (node-postgres) + `@vercel/functions` `attachDatabasePool`**,
+> BUKAN `@neondatabase/serverless` — ini rekomendasi Neon untuk TanStack Start di
+> Vercel Fluid Compute (functions tetap warm → reuse koneksi TCP). Ref:
+> <https://neon.com/docs/guides/vercel-connection-methods.md>.
+> Jadi Step 5 & 6 (bikin `.env.example` / `.env`) **sudah selesai** — skip.
+
 **Files:**
-- Create: `src/lib/env.ts`, `src/db/index.ts`, `drizzle.config.ts`, `.env.example`
-- Modify: `package.json` (deps), `.gitignore` (pastikan `.env` ada)
+- Create: `src/lib/env.ts`, `src/db/index.ts`, `src/db/schema/index.ts` (stub), `drizzle.config.ts`
+- Modify: `package.json` (deps)
+- Already done (skip): `.env.example`, `.env`, `.gitignore`
 
 **Interfaces:**
-- Produces: `env` (obyek tervalidasi) dari `@/lib/env`; `db` (instance Drizzle) dari `@/db`.
+- Produces: `env` (obyek tervalidasi) dari `@/lib/env`; `db` (instance Drizzle `node-postgres`) dari `@/db`.
 
 - [ ] **Step 1: Install**
 
 ```bash
-pnpm add drizzle-orm @neondatabase/serverless
-pnpm add -D drizzle-kit tsx dotenv
+pnpm add pg drizzle-orm @vercel/functions zod
+pnpm add -D drizzle-kit tsx dotenv @types/pg
 ```
 
 - [ ] **Step 2: `src/lib/env.ts`**
@@ -1022,22 +1035,22 @@ const schema = z.object({
   CONTACT_NOTIFICATION_EMAIL: z.string().email().optional(),
 })
 
+// Zod strips unknown keys by default — extra Neon vars (NEON_AI_GATEWAY_*, NEON_BRANCH) are harmless.
 export const env = schema.parse(process.env)
 ```
 
-```bash
-pnpm add zod
-```
-
-- [ ] **Step 3: `src/db/index.ts` (driver serverless — mendukung transaksi)**
+- [ ] **Step 3: `src/db/index.ts` (node-postgres + Vercel Fluid Compute pool reuse)**
 
 ```ts
-import { Pool } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-serverless'
+import { attachDatabasePool } from '@vercel/functions'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
 import { env } from '@/lib/env'
 import * as schema from './schema'
 
 const pool = new Pool({ connectionString: env.DATABASE_URL })
+attachDatabasePool(pool) // no-ops outside Vercel; on Vercel it reuses the TCP connection across warm invocations
+
 export const db = drizzle({ client: pool, schema })
 ```
 
@@ -1046,7 +1059,7 @@ export const db = drizzle({ client: pool, schema })
 - [ ] **Step 4: `drizzle.config.ts`**
 
 ```ts
-import 'dotenv/config'
+import 'dotenv/config' // loads .env
 import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({
@@ -1054,57 +1067,317 @@ export default defineConfig({
   schema: './src/db/schema/index.ts',
   dialect: 'postgresql',
   dbCredentials: {
+    // migrations MUST use the direct (unpooled) connection
     url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL!,
   },
 })
 ```
 
-- [ ] **Step 5: `.env.example`**
-
-```
-# Neon (Project Settings → Connection string)
-DATABASE_URL="postgresql://USER:PASS@ep-xxx-pooler.REGION.aws.neon.tech/neondb?sslmode=require"
-DATABASE_URL_UNPOOLED="postgresql://USER:PASS@ep-xxx.REGION.aws.neon.tech/neondb?sslmode=require"
-
-# better-auth
-BETTER_AUTH_SECRET="ganti-dengan-string-acak-min-32-char"
-BETTER_AUTH_URL="http://localhost:3000"
-
-# Vercel Blob (diisi saat Rencana 3)
-BLOB_READ_WRITE_TOKEN=""
-
-# Email notifikasi form kontak (opsional, Rencana 2/3)
-RESEND_API_KEY=""
-CONTACT_NOTIFICATION_EMAIL=""
-
-# Seed admin (dipakai pnpm seed:admin)
-SEED_ADMIN_EMAIL="admin@example.com"
-SEED_ADMIN_PASSWORD="ubah-ini"
-```
-
-- [ ] **Step 6: Buat `.env` lokal**
-
-Salin `.env.example` → `.env`, isi `DATABASE_URL` & `DATABASE_URL_UNPOOLED` dari Neon (prasyarat manual #1), buat `BETTER_AUTH_SECRET` acak (`openssl rand -base64 32`).
-
-- [ ] **Step 7: Verifikasi koneksi**
+- [ ] **Step 5: Verifikasi koneksi**
 
 Buat file sementara `scripts/check-db.ts`:
 ```ts
 import 'dotenv/config'
-import { Pool } from '@neondatabase/serverless'
+import { Pool } from 'pg'
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-const r = await pool.query('select now()')
+const r = await pool.query('select now() as now, current_database() as db, version() as version')
 console.log('DB OK:', r.rows[0])
 await pool.end()
 ```
 Run: `pnpm tsx scripts/check-db.ts`
-Expected: mencetak `DB OK: { now: ... }`. Hapus `scripts/check-db.ts` sesudah lolos.
+Expected: mencetak `DB OK: { now: ..., db: 'neondb', version: 'PostgreSQL 17...' }`. Hapus `scripts/check-db.ts` setelah lolos.
+Juga pastikan `pnpm typecheck` + `pnpm lint` + `pnpm build` tetap hijau.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add -A
+git commit -m "Tambah koneksi Neon + Drizzle (node-postgres) + validasi env"
+```
+
+---
+
+## Task 8b: Dark mode + revisi palet (ungu/putih) + theme toggle
+
+> **DITAMBAHKAN (controller, 2026-08-30) — user directive.** Menggantikan spec
+> §6.3 "situs publik light-mode saja saat rilis" dan palet cokelat/biru/krem
+> dari Task 3. Sekarang: **light = ungu + putih**, **dark = ungu-hitam**, dengan
+> toggle. Nama token TIDAK berubah (Button/Card Task 4 tetap jalan) — hanya
+> NILAI token + blok dark ditambahkan.
+
+**Files:**
+- Modify: `src/styles/app.css` (tulis ulang seluruh blok token: light + dark)
+- Create: `src/components/layout/theme-toggle.tsx`, `src/lib/theme.ts` (konstanta + snippet anti-flash)
+- Modify: `src/routes/__root.tsx` (inline anti-flash script di `<head>`, mount `<ThemeToggle>` di header via SiteHeader), `src/components/layout/site-header.tsx` (+ `<ThemeToggle>`), `src/routes/_dev.tokens.tsx` (tampilkan kedua mode)
+- Create test: `tests/e2e/theme.spec.ts`
+- Modify: `messages/id.json` + `messages/en.json` (+ key `theme_toggle_label`, `theme_light`, `theme_dark`, `theme_system`)
+
+**Interfaces:**
+- Produces: `<ThemeToggle />`; `THEME_STORAGE_KEY = 'gmim-theme'`; `THEME_INIT_SCRIPT` (string, inline no-flash). Theme state: `'light' | 'dark' | 'system'` in `localStorage`; resolved theme sets `data-theme="light|dark"` on `<html>` (omit attr = follow `prefers-color-scheme`).
+
+- [ ] **Step 1: Palet token — `src/styles/app.css`**
+
+Ganti isi blok `:root` + isi blok dark yang sebelumnya di-comment. Target: nilai di bawah adalah TITIK AWAL — implementer WAJIB menghitung kontras tiap pasangan teks/latar dan menyesuaikan sampai **semua ≥ WCAG AA** (4.5:1 teks normal, 3:1 teks besar/UI). Catat rasio tiap pasangan kunci di report.
+
+```css
+:root {
+  /* LIGHT — ungu + putih */
+  --color-primary: #6d28d9;          /* tombol utama, link (putih di atasnya ~7.5:1) */
+  --color-primary-hover: #5b21b6;
+  --color-secondary: #7c3aed;         /* tombol sekunder */
+  --color-secondary-hover: #6d28d9;
+  --color-accent: #9333ea;            /* badge "live", highlight (hemat) */
+
+  --color-surface: #ffffff;
+  --color-surface-2: #f5f3ff;         /* section selang-seling, ungu sangat muda */
+  --color-border: #e9e5f7;
+  --color-ink: #1c1a26;               /* teks utama (~16:1 di putih) */
+  --color-muted: #6a6577;             /* teks sekunder (~5.3:1 di putih) */
+
+  /* Badge 6 kategori ibadah — nilai awal, implementer validasi AA (putih di atasnya) di LIGHT & DARK */
+  --color-cat-jemaat: #5b21b6;
+  --color-cat-bapa: #1d4ed8;
+  --color-cat-ibu: #a21caf;
+  --color-cat-pemuda: #0f766e;
+  --color-cat-sekolah-minggu: #b45309;
+  --color-cat-kolom: #7c3aed;
+
+  --radius: 0.625rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    /* DARK — ungu-hitam */
+    --color-primary: #7c3aed;         /* tombol; putih di atasnya ~5.9:1 */
+    --color-primary-hover: #6d28d9;
+    --color-secondary: #8b5cf6;
+    --color-secondary-hover: #7c3aed;
+    --color-accent: #a78bfa;
+
+    --color-surface: #161221;
+    --color-surface-2: #1f1830;
+    --color-border: #332b47;
+    --color-ink: #f1eef8;             /* ~16:1 di #161221 */
+    --color-muted: #a79fb8;           /* ~7.5:1 di #161221 */
+
+    --color-cat-jemaat: #a78bfa;
+    --color-cat-bapa: #60a5fa;
+    --color-cat-ibu: #e879f9;
+    --color-cat-pemuda: #2dd4bf;
+    --color-cat-sekolah-minggu: #fbbf24;
+    --color-cat-kolom: #c4b5fd;
+  }
+}
+
+:root[data-theme='dark'] {
+  /* sama persis dengan blok DARK di atas — implementer DRY via CSS custom-prop
+     indirection atau duplikasi eksplisit; JANGAN sampai drift */
+  --color-primary: #7c3aed;
+  --color-primary-hover: #6d28d9;
+  --color-secondary: #8b5cf6;
+  --color-secondary-hover: #7c3aed;
+  --color-accent: #a78bfa;
+  --color-surface: #161221;
+  --color-surface-2: #1f1830;
+  --color-border: #332b47;
+  --color-ink: #f1eef8;
+  --color-muted: #a79fb8;
+  --color-cat-jemaat: #a78bfa;
+  --color-cat-bapa: #60a5fa;
+  --color-cat-ibu: #e879f9;
+  --color-cat-pemuda: #2dd4bf;
+  --color-cat-sekolah-minggu: #fbbf24;
+  --color-cat-kolom: #c4b5fd;
+}
+```
+
+> **DRY the dark values.** Duplikasi blok `@media` dan `[data-theme='dark']` di
+> atas rawan drift. Implementer boleh restrukturisasi: definisikan dark values
+> sekali (mis. di `:root` sebagai `--dark-color-*`, lalu `--color-*: var(--dark-color-*)`
+> di kedua selector dark), asalkan hasil akhirnya identik. Uji kedua jalur
+> (OS dark tanpa `data-theme`, dan `data-theme="dark"` eksplisit).
+
+Blok `@theme inline` yang memetakan `--color-*` → utility Tailwind TIDAK berubah
+(nama token sama). Pastikan `bg-primary`, `text-ink`, dll. tetap resolve.
+
+`body` background/color tetap pakai `var(--color-surface)` / `var(--color-ink)` →
+otomatis ikut tema.
+
+- [ ] **Step 2: `src/lib/theme.ts`**
+
+```ts
+export const THEME_STORAGE_KEY = 'gmim-theme'
+export type ThemePref = 'light' | 'dark' | 'system'
+
+// Inline <script> — jalan SEBELUM paint, set data-theme dari localStorage.
+// Tanpa ini: flash putih saat load untuk user yang pilih dark.
+export const THEME_INIT_SCRIPT = `
+(function(){try{
+  var p = localStorage.getItem('${THEME_STORAGE_KEY}');
+  if (p === 'light' || p === 'dark') document.documentElement.setAttribute('data-theme', p);
+}catch(e){}})();
+`
+```
+
+- [ ] **Step 3: Anti-flash script di `__root.tsx`**
+
+Di `createRootRoute({ head: () => ({ scripts: [{ children: THEME_INIT_SCRIPT }] , ... }) })`
+ATAU render `<script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />` sebagai
+elemen PERTAMA di `<head>` (sebelum stylesheet). Verifikasi via view-source bahwa
+script muncul inline & sebelum CSS. `<html>` TIDAK di-hardcode `data-theme` di SSR
+(server tak tahu preferensi) — script yang set sebelum paint.
+
+- [ ] **Step 4: `<ThemeToggle>`**
+
+`src/components/layout/theme-toggle.tsx` — client component:
+- Baca `localStorage[THEME_STORAGE_KEY]` (default `'system'`), state React.
+- 3 opsi (system / light / dark) — dropdown atau siklus tombol. Ikon: matahari / bulan / monitor (inline SVG, tanpa lib ikon).
+- On change: tulis `localStorage`, lalu set/hapus `data-theme` di `document.documentElement` (`'system'` → `removeAttribute`).
+- Dengarkan `window.matchMedia('(prefers-color-scheme: dark)')` change saat mode `'system'` (opsional — CSS `@media` sudah handle; JS listener hanya kalau ikon perlu update).
+- Aksesibel: `<button>` dengan `aria-label={m.theme_toggle_label()}`, `aria-pressed` atau menu dgn `aria-expanded`. Target sentuh ≥ 44px.
+- SSR-safe: jangan baca `localStorage`/`window` saat render server — pakai `useEffect` untuk sinkronisasi state awal, atau `useSyncExternalStore`.
+
+- [ ] **Step 5: Mount di header**
+
+`src/components/layout/site-header.tsx` — tambah `<ThemeToggle />` di sebelah `<LanguageSwitcher />` (desktop cluster + mobile panel).
+
+- [ ] **Step 6: Pesan i18n**
+
+Tambah ke BOTH `messages/id.json` & `messages/en.json`:
+`theme_toggle_label` (id "Ganti tema" / en "Toggle theme"), `theme_light` ("Terang"/"Light"),
+`theme_dark` ("Gelap"/"Dark"), `theme_system` ("Ikuti sistem"/"System").
+
+- [ ] **Step 7: `_dev.tokens.tsx`**
+
+Update supaya menampilkan swatch + Button/Card. Tambah tombol kecil untuk toggle `data-theme` di halaman itu agar reviewer bisa lihat kedua mode. (Halaman ini dihapus di Rencana 4.)
+
+- [ ] **Step 8: e2e `tests/e2e/theme.spec.ts`**
+
+```ts
+import { test, expect } from '@playwright/test'
+
+test('default mengikuti prefers-color-scheme', async ({ browser }) => {
+  const dark = await browser.newContext({ colorScheme: 'dark' })
+  const p1 = await dark.newPage()
+  await p1.goto('/')
+  await expect(p1.locator('html')).not.toHaveAttribute('data-theme', 'light')
+  const bg = await p1.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  expect(bg).toBe('rgb(22, 18, 33)') // #161221
+  await dark.close()
+})
+
+test('tombol dark disimpan & bertahan reload', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /tema|theme/i }).click()
+  // pilih "Gelap" — sesuaikan selektor dgn implementasi (menu item atau siklus)
+  await page.getByRole('menuitem', { name: /gelap|dark/i }).click().catch(() => {})
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+})
+```
+
+(Implementer sesuaikan selektor tombol/menu dengan UI final; inti test: default
+ikut OS, pilihan manual tersimpan & bertahan reload, tak ada flash.)
+
+- [ ] **Step 9: Verifikasi**
+
+- `pnpm dev` — cek `/`, `/tokens`, `/en`, `/tidak-ada` (404) di light & dark (via OS setting DAN via toggle). Tidak ada flash putih saat reload dalam dark.
+- Kontras: jalankan cek AA untuk semua pasangan token di KEDUA mode; catat rasio di report. Sesuaikan hex bila ada yang < AA.
+- `pnpm typecheck` + `pnpm lint` + `pnpm test` + `pnpm test:e2e` + `pnpm build` semua hijau.
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add -A
+git commit -m "Tambah dark mode + revisi palet ungu/putih + theme toggle"
+```
+
+---
+
+## Task 8c: Halaman coming-soon (`/`)
+
+> **DITAMBAHKAN (controller, 2026-08-30) — user directive.** Situs di-deploy ke
+> `gmimmusafir.org` sebagai coming-soon SEBELUM Rencana 2. `/` jadi halaman
+> "segera hadir" yang layak tayang; nav 7-menu disembunyikan (halamannya belum
+> ada).
+
+**Files:**
+- Modify: `src/routes/index.tsx` (jadi halaman coming-soon)
+- Create: `src/config/site.ts` (flag `COMING_SOON` + data statis: alamat, koordinat maps, sosial)
+- Modify: `src/components/layout/site-header.tsx` (sembunyikan nav bila `COMING_SOON`), `src/components/layout/site-footer.tsx` (isi link sosial dari `site.ts`)
+- Modify: `messages/id.json` + `messages/en.json` (+ key coming-soon)
+- Create: `public/hero-poster.jpg` (placeholder/gradient) — video asli menyusul dari user
+- Create test: `tests/e2e/coming-soon.spec.ts`
+
+**Interfaces:**
+- Produces: `SITE` config obyek dari `@/config/site` — `{ comingSoon: boolean, address, mapsUrl, facebookUrl, ... }`.
+
+- [ ] **Step 1: `src/config/site.ts`**
+
+```ts
+export const SITE = {
+  comingSoon: true, // Rencana 2 set false
+  name: 'GMIM Musafir Columbus Ohio',
+  address: '895 Old Diley Road, Columbus, Ohio',
+  mapsUrl: 'https://www.google.com/maps/search/?api=1&query=895+Old+Diley+Road+Columbus+Ohio',
+  facebookUrl: 'https://www.facebook.com/gmimmusafir.columbus/',
+  hero: {
+    poster: '/hero/hero-poster.jpg',
+    sources: [{ src: '/hero/hero.mp4', type: 'video/mp4' }],
+  },
+} as const
+```
+
+> Video sudah ada & di-commit (`5e7affd`): `public/hero/hero.mp4` (1.9MB, 16s
+> loop, no audio) + `public/hero/hero-poster.jpg`. Fallback gradient tetap
+> dibuat untuk `prefers-reduced-motion` / gagal load.
+
+- [ ] **Step 2: `index.tsx` — coming-soon**
+
+Layout:
+- `<section>` hero full-viewport-height (`min-h-[100svh]`):
+  - Background: `<video ref autoPlay loop muted playsInline preload="metadata" poster={SITE.hero.poster}>` dengan `<source src="/hero/hero.mp4" type="video/mp4">`. `object-cover`, `absolute inset-0`, di belakang scrim. Bila `SITE.hero.sources` kosong (tak akan terjadi sekarang) → gradient ungu fallback.
+  - Scrim overlay: gradient gelap semi-transparan (`pointer-events-none`) supaya teks kebaca di kedua tema (dark lebih pekat).
+  - Konten tengah: `<Logo variant="full" />` (di medali terang bila dark), `<h1>` `SITE.name`, `<p>` tagline (`m.coming_soon_tagline()`), `<p>` `m.coming_soon_body()`, alamat + link Maps, tombol Facebook (bila `SITE.facebookUrl` != '').
+- **Kontrol suara — tombol kanan-bawah hero** (`absolute bottom-4 right-4 z-20`, ≥44px):
+  - Video punya audio track (sudah di-transcode). Autoplay HARUS `muted` (kebijakan browser) — jadi video jalan sebagai background bisu.
+  - Tombol = toggle **suara on/off**: klik → `videoRef.current.muted = !muted` + `setMuted`. Saat unmute, panggil `.play()` (defensif). State `muted` via `useState(true)`.
+  - Ikon inline SVG: speaker-with-waves (suara on) / speaker-muted (suara off). `<button aria-label={m.coming_soon_sound_on()/off()}>` + `aria-pressed={!muted}`.
+  - `prefers-reduced-motion: reduce` → video TIDAK autoplay (render `poster` saja via tidak set `autoPlay`, atau `.pause()` di effect); tombol jadi **play/pause + sound** — klik pertama `.play()` (unmuted, karena ini gestur user). Label ikut menyesuaikan (play ▶ / pause ⏸).
+  - SSR-safe: `videoRef` + `useEffect`; jangan sentuh `window`/`videoRef` saat render server.
+- Meta: `<title>` + OG description "segera hadir".
+- Semua teks via `m.*` (id/en).
+
+- [ ] **Step 3: Header coming-soon mode**
+
+`site-header.tsx` — bila `SITE.comingSoon`: render hanya `<Logo>` + `<LanguageSwitcher>` + `<ThemeToggle>`. Sembunyikan 7 nav link + CTA. Bila `false` (Rencana 2): perilaku penuh seperti sekarang.
+
+- [ ] **Step 4: Footer**
+
+`site-footer.tsx` — isi link sosial dari `SITE.facebookUrl` (sembunyikan bila kosong). Alamat dari `SITE.address`.
+
+- [ ] **Step 5: Pesan i18n**
+
+`coming_soon_tagline`, `coming_soon_body`, `coming_soon_facebook` (id "Ikuti kami di Facebook" / en "Follow us on Facebook"), `coming_soon_maps` (id "Lihat peta" / en "View map"), `coming_soon_sound_on` (id "Nyalakan suara" / en "Unmute"), `coming_soon_sound_off` (id "Matikan suara" / en "Mute"). Tagline: placeholder (id: "Bertumbuh bersama dalam kasih Kristus di perantauan." / en: "Growing together in the love of Christ.") — user bisa ganti nanti. `coming_soon_body`: id "Website resmi jemaat sedang dalam pembangunan. Segera hadir." / en "The congregation's official website is under construction. Coming soon."
+
+- [ ] **Step 6: e2e `tests/e2e/coming-soon.spec.ts`**
+
+- `/` menampilkan `SITE.name` di `<h1>`, alamat, pesan coming-soon.
+- Nav 7-menu TIDAK terlihat (`getByRole('link', { name: /jadwal|pelayanan/i })` → not visible).
+- `<video>` ada atau fallback gradient ada.
+- `/en` → versi Inggris.
+- Update `smoke.spec.ts` bila asersinya bentrok dgn nav yang kini disembunyikan.
+
+- [ ] **Step 7: Verifikasi**
+
+`pnpm dev` cek `/` + `/en` di light & dark, mobile & desktop. `pnpm build` + semua command hijau. Lighthouse cepat (video tidak boleh bikin LCP parah — poster + `preload="none"` bila perlu).
 
 - [ ] **Step 8: Commit**
 
 ```bash
 git add -A
-git commit -m "Tambah koneksi Neon + Drizzle + validasi env"
+git commit -m "Halaman coming-soon + sembunyikan nav (SITE.comingSoon)"
 ```
 
 ---
@@ -1496,7 +1769,7 @@ git commit -m "Migrasi database awal"
 
 ---
 
-## Task 12: Seed data — kategori, kolom, settings, admin
+ ## Task 12: Seed data — kategori, kolom, settings, admin
 
 **Files:**
 - Create: `src/db/seed/categories.ts`, `src/db/seed/kolom.ts`, `src/db/seed/settings.ts`, `src/db/seed/admin.ts`, `src/db/seed/index.ts`

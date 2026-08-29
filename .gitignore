@@ -7,3 +7,19 @@ dist/
 !.env.example
 *.log
 .DS_Store
+
+# TanStack / build
+.nitro/
+.tanstack/
+routeTree.gen.ts
+# Paraglide output
+src/paraglide/
+# test
+playwright-report/
+test-results/
+coverage/
+.neon
+
+# hero video source (transcoded -> public/hero/hero.mp4 + hero-poster.jpg)
+public/hero/*.MOV
+public/hero/*.mov

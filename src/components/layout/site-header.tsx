@@ -24,7 +24,15 @@ const NAV_ITEMS = [
 
 function MenuIcon() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-5">
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      className="size-5"
+    >
       <line x1="4" y1="7" x2="20" y2="7" />
       <line x1="4" y1="12" x2="20" y2="12" />
       <line x1="4" y1="17" x2="20" y2="17" />
@@ -34,7 +42,15 @@ function MenuIcon() {
 
 function CloseIcon() {
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="size-5">
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      className="size-5"
+    >
       <line x1="6" y1="6" x2="18" y2="18" />
       <line x1="18" y1="6" x2="6" y2="18" />
     </svg>
@@ -50,11 +66,11 @@ export function SiteHeader() {
   const giveHref = localizeHref('/persembahan', { locale })
 
   return (
-    <header className="border-b border-border bg-surface">
+    <header className="border-border bg-surface border-b">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <a href={homeHref} className="flex min-h-11 items-center gap-2.5 text-ink">
+        <a href={homeHref} className="text-ink flex min-h-11 items-center gap-2.5">
           <Logo variant="full" />
-          <span className="font-serif text-base font-semibold leading-tight sm:text-lg">
+          <span className="font-serif text-base leading-tight font-semibold sm:text-lg">
             {m.site_name()}
           </span>
         </a>
@@ -65,7 +81,7 @@ export function SiteHeader() {
             <a
               key={item.key}
               href={localizeHref(item.path, { locale })}
-              className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-ink hover:bg-surface-2 hover:text-primary"
+              className="text-ink hover:bg-surface-2 hover:text-primary inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium"
             >
               {item.label()}
             </a>
@@ -84,7 +100,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink hover:bg-surface-2 lg:hidden"
+          className="text-ink hover:bg-surface-2 inline-flex h-11 w-11 items-center justify-center rounded-md lg:hidden"
           aria-expanded={open}
           aria-controls="primary-nav-mobile"
           aria-label={m.nav_toggle_menu()}
@@ -99,7 +115,7 @@ export function SiteHeader() {
         <nav
           id="primary-nav-mobile"
           aria-label={m.nav_menu_label()}
-          className="border-t border-border px-4 py-3 lg:hidden"
+          className="border-border border-t px-4 py-3 lg:hidden"
         >
           <ul className="flex flex-col">
             {NAV_ITEMS.map((item) => (
@@ -107,7 +123,7 @@ export function SiteHeader() {
                 <a
                   href={localizeHref(item.path, { locale })}
                   onClick={() => setOpen(false)}
-                  className="flex min-h-11 items-center border-b border-border text-sm font-medium text-ink last:border-b-0 hover:text-primary"
+                  className="border-border text-ink hover:text-primary flex min-h-11 items-center border-b text-sm font-medium last:border-b-0"
                 >
                   {item.label()}
                 </a>

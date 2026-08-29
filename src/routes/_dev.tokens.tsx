@@ -1,12 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 
 export const Route = createFileRoute('/_dev/tokens')({ component: Tokens })
 
@@ -14,7 +8,7 @@ function Tokens() {
   const swatches = ['primary', 'secondary', 'accent', 'surface-2', 'border', 'ink', 'muted']
   const categories = ['jemaat', 'bapa', 'ibu', 'pemuda', 'sekolah-minggu', 'kolom']
   return (
-    <main className="p-8 space-y-4">
+    <main className="space-y-4 p-8">
       <h1 className="text-3xl">Token Desain</h1>
       <p className="font-sans">Body — Inter</p>
       <h2 className="text-2xl">Heading — Fraunces</h2>
@@ -38,7 +32,7 @@ function Tokens() {
         ))}
       </div>
 
-      <div className="rounded bg-primary p-8 text-surface">
+      <div className="bg-primary text-surface rounded p-8">
         Utility berbasis token: <code>bg-primary</code> + <code>text-surface</code>
       </div>
 

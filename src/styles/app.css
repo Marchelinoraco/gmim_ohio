@@ -7,18 +7,18 @@
 
 :root {
   /* Brand */
-  --color-primary: #4a2e1e;        /* cokelat kayu (Manguni) */
+  --color-primary: #4a2e1e; /* cokelat kayu (Manguni) */
   --color-primary-hover: #3a2417;
-  --color-secondary: #234a8f;      /* biru royal (Mawar Luther) */
+  --color-secondary: #234a8f; /* biru royal (Mawar Luther) */
   --color-secondary-hover: #1b3a72;
-  --color-accent: #a4232b;         /* merah mawar — dipakai hemat */
+  --color-accent: #a4232b; /* merah mawar — dipakai hemat */
 
   /* Netral / permukaan */
   --color-surface: #ffffff;
-  --color-surface-2: #f6f0e6;      /* krem perkamen hangat */
+  --color-surface-2: #f6f0e6; /* krem perkamen hangat */
   --color-border: #e4d9c8;
-  --color-ink: #2a2018;            /* teks utama */
-  --color-muted: #6f6455;          /* teks sekunder */
+  --color-ink: #2a2018; /* teks utama */
+  --color-muted: #6f6455; /* teks sekunder */
 
   /* Badge kategori ibadah (harmonis dgn palet) */
   --color-cat-jemaat: #234a8f;
@@ -67,6 +67,9 @@ body {
   font-family: var(--font-sans);
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-family: var(--font-serif);
 }

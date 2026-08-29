@@ -15,30 +15,30 @@ export function SiteFooter() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="mt-16 border-t border-border bg-surface-2">
+    <footer className="border-border bg-surface-2 mt-16 border-t">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
-          <div className="flex items-center gap-2.5 text-ink">
+          <div className="text-ink flex items-center gap-2.5">
             <Logo variant="mark" />
             <span className="font-serif text-base font-semibold">{m.site_name()}</span>
           </div>
-          <p className="text-sm text-muted">{m.site_tagline()}</p>
+          <p className="text-muted text-sm">{m.site_tagline()}</p>
         </div>
 
         <div className="space-y-2">
-          <h2 className="font-serif text-sm font-semibold text-ink">{m.nav_visit()}</h2>
-          <address className="text-sm not-italic text-ink">{m.footer_address()}</address>
+          <h2 className="text-ink font-serif text-sm font-semibold">{m.nav_visit()}</h2>
+          <address className="text-ink text-sm not-italic">{m.footer_address()}</address>
         </div>
 
         <div className="space-y-2">
-          <h2 className="font-serif text-sm font-semibold text-ink">{m.footer_social()}</h2>
+          <h2 className="text-ink font-serif text-sm font-semibold">{m.footer_social()}</h2>
           <ul aria-label={m.footer_social()} className="flex flex-col">
             {SOCIAL_LINKS.map((s) => (
               <li key={s.key}>
                 <a
                   href="#"
                   aria-disabled="true"
-                  className="inline-flex min-h-11 items-center text-sm text-muted hover:text-primary"
+                  className="text-muted hover:text-primary inline-flex min-h-11 items-center text-sm"
                 >
                   {s.label}
                 </a>
@@ -48,13 +48,15 @@ export function SiteFooter() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="font-serif text-sm font-semibold text-ink">{m.lang_id()} / {m.lang_en()}</h2>
+          <h2 className="text-ink font-serif text-sm font-semibold">
+            {m.lang_id()} / {m.lang_en()}
+          </h2>
           <LanguageSwitcher />
         </div>
       </div>
 
-      <div className="border-t border-border px-4 py-4">
-        <p className="mx-auto max-w-6xl text-sm text-muted">
+      <div className="border-border border-t px-4 py-4">
+        <p className="text-muted mx-auto max-w-6xl text-sm">
           &copy; {year} {m.site_name()}. {m.footer_rights()}
         </p>
       </div>

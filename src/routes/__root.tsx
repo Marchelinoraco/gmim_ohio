@@ -38,8 +38,8 @@ function NotFound() {
   const homeHref = localizeHref('/', { locale: getLocale() })
   return (
     <main className="mx-auto flex min-h-[50vh] max-w-2xl flex-col items-center justify-center gap-4 px-4 py-16 text-center">
-      <p className="font-serif text-6xl font-semibold text-primary">404</p>
-      <h1 className="text-2xl font-semibold text-ink">{m.notfound_title()}</h1>
+      <p className="text-primary font-serif text-6xl font-semibold">404</p>
+      <h1 className="text-ink text-2xl font-semibold">{m.notfound_title()}</h1>
       <p className="text-muted">{m.notfound_body()}</p>
       <Button asChild variant="primary" size="md" className="h-11">
         <a href={homeHref}>{m.notfound_home()}</a>

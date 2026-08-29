@@ -1336,11 +1336,16 @@ export const SITE = {
 - [ ] **Step 2: `index.tsx` — coming-soon**
 
 Layout:
-- `<section>` hero full-viewport-height:
-  - Background: `<video autoPlay loop muted playsInline poster={SITE.hero.poster>` merender `SITE.hero.sources` bila ada; bila `sources` kosong → gradient ungu (light: ungu muda → putih; dark: ungu-hitam) sebagai fallback. `<video>` selalu di belakang scrim.
-  - Scrim overlay: gradient gelap semi-transparan supaya teks kebaca di kedua tema (dark: lebih pekat). `pointer-events-none`.
-  - Konten tengah: `<Logo variant="full" />` (di medali terang bila dark), `<h1>` `SITE.name`, `<p>` tagline (`m.coming_soon_tagline()`), `<p>` `m.coming_soon_body()` ("Website resmi sedang dalam pembangunan — segera hadir."), alamat + link Maps, tombol Facebook (bila `SITE.facebookUrl` != '').
-- Reduced-motion: `@media (prefers-reduced-motion: reduce)` → jangan autoplay video, tampilkan poster saja.
+- `<section>` hero full-viewport-height (`min-h-[100svh]`):
+  - Background: `<video ref autoPlay loop muted playsInline preload="metadata" poster={SITE.hero.poster}>` dengan `<source src="/hero/hero.mp4" type="video/mp4">`. `object-cover`, `absolute inset-0`, di belakang scrim. Bila `SITE.hero.sources` kosong (tak akan terjadi sekarang) → gradient ungu fallback.
+  - Scrim overlay: gradient gelap semi-transparan (`pointer-events-none`) supaya teks kebaca di kedua tema (dark lebih pekat).
+  - Konten tengah: `<Logo variant="full" />` (di medali terang bila dark), `<h1>` `SITE.name`, `<p>` tagline (`m.coming_soon_tagline()`), `<p>` `m.coming_soon_body()`, alamat + link Maps, tombol Facebook (bila `SITE.facebookUrl` != '').
+- **Kontrol suara — tombol kanan-bawah hero** (`absolute bottom-4 right-4 z-20`, ≥44px):
+  - Video punya audio track (sudah di-transcode). Autoplay HARUS `muted` (kebijakan browser) — jadi video jalan sebagai background bisu.
+  - Tombol = toggle **suara on/off**: klik → `videoRef.current.muted = !muted` + `setMuted`. Saat unmute, panggil `.play()` (defensif). State `muted` via `useState(true)`.
+  - Ikon inline SVG: speaker-with-waves (suara on) / speaker-muted (suara off). `<button aria-label={m.coming_soon_sound_on()/off()}>` + `aria-pressed={!muted}`.
+  - `prefers-reduced-motion: reduce` → video TIDAK autoplay (render `poster` saja via tidak set `autoPlay`, atau `.pause()` di effect); tombol jadi **play/pause + sound** — klik pertama `.play()` (unmuted, karena ini gestur user). Label ikut menyesuaikan (play ▶ / pause ⏸).
+  - SSR-safe: `videoRef` + `useEffect`; jangan sentuh `window`/`videoRef` saat render server.
 - Meta: `<title>` + OG description "segera hadir".
 - Semua teks via `m.*` (id/en).
 
@@ -1354,7 +1359,7 @@ Layout:
 
 - [ ] **Step 5: Pesan i18n**
 
-`coming_soon_tagline`, `coming_soon_body`, `coming_soon_facebook` (id "Ikuti kami di Facebook" / en "Follow us on Facebook"), `coming_soon_maps` (id "Lihat peta" / en "View map"). Tagline: pakai placeholder yang wajar (id: "Bertumbuh bersama dalam kasih Kristus di perantauan." / en: "Growing together in the love of Christ.") — user bisa ganti nanti.
+`coming_soon_tagline`, `coming_soon_body`, `coming_soon_facebook` (id "Ikuti kami di Facebook" / en "Follow us on Facebook"), `coming_soon_maps` (id "Lihat peta" / en "View map"), `coming_soon_sound_on` (id "Nyalakan suara" / en "Unmute"), `coming_soon_sound_off` (id "Matikan suara" / en "Mute"). Tagline: placeholder (id: "Bertumbuh bersama dalam kasih Kristus di perantauan." / en: "Growing together in the love of Christ.") — user bisa ganti nanti. `coming_soon_body`: id "Website resmi jemaat sedang dalam pembangunan. Segera hadir." / en "The congregation's official website is under construction. Coming soon."
 
 - [ ] **Step 6: e2e `tests/e2e/coming-soon.spec.ts`**
 

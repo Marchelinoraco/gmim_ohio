@@ -13,7 +13,8 @@ test('beranda /en menampilkan teks Inggris', async ({ page }) => {
 
 test('language switcher pindah ke /en', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'English' }).click()
+  // Sejak Task 6 ada LanguageSwitcher di header DAN footer — scope ke header.
+  await page.getByRole('banner').getByRole('link', { name: 'English' }).click()
   await expect(page).toHaveURL(/\/en$/)
   await expect(page.getByText('Site under construction.')).toBeVisible()
 })

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "site_name": "GMIM Musafir Columbus Ohio",
+  "site_tagline": "A GMIM congregation in Columbus, Ohio",
+  "nav_home": "Home",
+  "nav_about": "About",
+  "nav_ministries": "Ministries",
+  "nav_schedule": "Worship Schedule",
+  "nav_bulletin": "Bulletin & Devotionals",
+  "nav_gallery": "Gallery",
+  "nav_visit": "Visit",
+  "cta_live": "Watch Live",
+  "cta_give": "Give",
+  "footer_rights": "All rights reserved.",
+  "lang_id": "Indonesia",
+  "lang_en": "English",
+  "home_building": "Site under construction."
+}

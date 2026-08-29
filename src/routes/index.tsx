@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import * as m from '@/paraglide/messages'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -7,8 +8,8 @@ export const Route = createFileRoute('/')({
 function Home() {
   return (
     <main>
-      <h1>GMIM Musafir Columbus Ohio</h1>
-      <p>Situs dalam pembangunan.</p>
+      <h1>{m.site_name()}</h1>
+      <p>{m.home_building()}</p>
     </main>
   )
 }

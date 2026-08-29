@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "jsx": "react-jsx",
+    "allowJs": true,
+    "noEmit": true,
     "moduleResolution": "Bundler",
     "module": "ESNext",
     "target": "ES2022",
@@ -13,5 +15,6 @@
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] }
   },
-  "include": ["src", "tests", "*.config.ts", "drizzle.config.ts"]
+  "include": ["src", "tests", "*.config.ts", "drizzle.config.ts"],
+  "exclude": ["tests/e2e"]
 }

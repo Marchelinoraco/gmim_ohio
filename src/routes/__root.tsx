@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Outlet, createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
 import appCss from '@/styles/app.css?url'
+import { LanguageSwitcher } from '@/components/layout/language-switcher'
+import { getLocale } from '@/paraglide/runtime'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -24,11 +26,14 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="id">
+    <html lang={getLocale()}>
       <head>
         <HeadContent />
       </head>
       <body>
+        <header className="flex justify-end p-4">
+          <LanguageSwitcher />
+        </header>
         {children}
         <Scripts />
       </body>

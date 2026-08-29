@@ -1,0 +1,18 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "site_name": "GMIM Musafir Columbus Ohio",
+  "site_tagline": "Jemaat GMIM di Columbus, Ohio",
+  "nav_home": "Beranda",
+  "nav_about": "Tentang",
+  "nav_ministries": "Pelayanan",
+  "nav_schedule": "Jadwal Ibadah",
+  "nav_bulletin": "Warta & Renungan",
+  "nav_gallery": "Galeri",
+  "nav_visit": "Kunjungi",
+  "cta_live": "Ibadah Live",
+  "cta_give": "Persembahan",
+  "footer_rights": "Hak cipta dilindungi.",
+  "lang_id": "Indonesia",
+  "lang_en": "English",
+  "home_building": "Situs dalam pembangunan."
+}

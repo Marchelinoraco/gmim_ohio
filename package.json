@@ -34,6 +34,7 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "^2.25.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",

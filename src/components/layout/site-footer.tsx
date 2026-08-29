@@ -1,15 +1,13 @@
 import * as m from '@/paraglide/messages'
 import { LanguageSwitcher } from '@/components/layout/language-switcher'
 import { Logo } from '@/components/layout/logo'
+import { SITE } from '@/config/site'
 
-// Placeholder link sosial. URL asli diambil dari Site Settings di Rencana 2 —
-// sampai saat itu `href="#"` + `aria-disabled` supaya tidak menyesatkan.
-// TODO(Rencana 2): tarik dari Site Settings, hapus aria-disabled.
-const SOCIAL_LINKS = [
-  { key: 'facebook', label: 'Facebook' },
-  { key: 'instagram', label: 'Instagram' },
-  { key: 'youtube', label: 'YouTube' },
-] as const
+// Link sosial ditarik dari `SITE`; entri tanpa URL disembunyikan.
+// TODO(Rencana 2): tambah Instagram/YouTube saat URL-nya masuk Site Settings.
+const SOCIAL_LINKS = [{ key: 'facebook', label: 'Facebook', href: SITE.facebookUrl }].filter(
+  (s) => s.href.length > 0,
+)
 
 export function SiteFooter() {
   const year = new Date().getFullYear()
@@ -27,25 +25,28 @@ export function SiteFooter() {
 
         <div className="space-y-2">
           <h2 className="text-ink font-serif text-sm font-semibold">{m.nav_visit()}</h2>
-          <address className="text-ink text-sm not-italic">{m.footer_address()}</address>
+          <address className="text-ink text-sm not-italic">{SITE.address}</address>
         </div>
 
-        <div className="space-y-2">
-          <h2 className="text-ink font-serif text-sm font-semibold">{m.footer_social()}</h2>
-          <ul aria-label={m.footer_social()} className="flex flex-col">
-            {SOCIAL_LINKS.map((s) => (
-              <li key={s.key}>
-                <a
-                  href="#"
-                  aria-disabled="true"
-                  className="text-muted hover:text-primary inline-flex min-h-11 items-center text-sm"
-                >
-                  {s.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {SOCIAL_LINKS.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="text-ink font-serif text-sm font-semibold">{m.footer_social()}</h2>
+            <ul aria-label={m.footer_social()} className="flex flex-col">
+              {SOCIAL_LINKS.map((s) => (
+                <li key={s.key}>
+                  <a
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted hover:text-primary inline-flex min-h-11 items-center text-sm"
+                  >
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="space-y-2">
           <h2 className="text-ink font-serif text-sm font-semibold">

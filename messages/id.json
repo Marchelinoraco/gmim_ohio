@@ -13,7 +13,6 @@
   "nav_toggle_menu": "Buka atau tutup menu",
   "cta_live": "Ibadah Live",
   "cta_give": "Persembahan",
-  "footer_address": "895 Old Diley Road, Columbus, Ohio",
   "footer_social": "Media sosial",
   "footer_rights": "Hak cipta dilindungi.",
   "notfound_title": "Halaman tidak ditemukan",
@@ -25,5 +24,11 @@
   "theme_light": "Terang",
   "theme_dark": "Gelap",
   "theme_system": "Ikuti sistem",
-  "home_building": "Situs dalam pembangunan."
+  "coming_soon_status": "Segera Hadir",
+  "coming_soon_tagline": "Bertumbuh bersama dalam kasih Kristus di perantauan.",
+  "coming_soon_body": "Website resmi jemaat sedang dalam pembangunan. Segera hadir.",
+  "coming_soon_facebook": "Ikuti kami di Facebook",
+  "coming_soon_maps": "Lihat peta",
+  "coming_soon_sound_on": "Nyalakan suara",
+  "coming_soon_sound_off": "Matikan suara"
 }

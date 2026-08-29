@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/layout/language-switcher'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { Logo } from '@/components/layout/logo'
+import { SITE } from '@/config/site'
 
 // Rencana 2 membuat route asli untuk path di bawah ini (`/tentang`, `/pelayanan`,
 // dst.). Sampai saat itu nav dirender sebagai <a> biasa + `localizeHref` — pola
@@ -63,18 +64,40 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false)
 
   const homeHref = localizeHref('/', { locale })
+
+  const brand = (
+    <a href={homeHref} className="text-ink flex min-h-11 items-center gap-2.5">
+      <Logo variant="full" />
+      <span className="font-serif text-base leading-tight font-semibold sm:text-lg">
+        {m.site_name()}
+      </span>
+    </a>
+  )
+
+  // Mode coming-soon (Task 8c): sembunyikan 7 nav + CTA + hamburger — route-nya
+  // belum ada. Sisakan brand + kontrol tema/bahasa. Rencana 2 menyetel
+  // `SITE.comingSoon = false` dan header penuh di bawah kembali aktif.
+  if (SITE.comingSoon) {
+    return (
+      <header className="border-border bg-surface border-b">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+          {brand}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
+        </div>
+      </header>
+    )
+  }
+
   const liveHref = localizeHref('/ibadah-live', { locale })
   const giveHref = localizeHref('/persembahan', { locale })
 
   return (
     <header className="border-border bg-surface border-b">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <a href={homeHref} className="text-ink flex min-h-11 items-center gap-2.5">
-          <Logo variant="full" />
-          <span className="font-serif text-base leading-tight font-semibold sm:text-lg">
-            {m.site_name()}
-          </span>
-        </a>
+        {brand}
 
         {/* Nav desktop — selalu di DOM, tampil sejak breakpoint lg. */}
         <nav aria-label={m.nav_menu_label()} className="hidden items-center gap-0.5 lg:flex">

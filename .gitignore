@@ -19,3 +19,4 @@ src/paraglide/
 playwright-report/
 test-results/
 coverage/
+.neon

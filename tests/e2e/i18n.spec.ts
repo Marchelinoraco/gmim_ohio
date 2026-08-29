@@ -21,3 +21,16 @@ test('language switcher pindah ke /en', async ({ page }) => {
   await expect(page).toHaveURL(/\/en$/)
   await expect(page.getByText(BODY_EN)).toBeVisible()
 })
+
+test('dari /en bisa balik ke Indonesia (tidak terjebak cookie)', async ({ page }) => {
+  await page.goto('/en')
+  await expect(page.getByText(BODY_EN)).toBeVisible()
+  // Klik "Indonesia" — harus sampai di / dengan konten id, tanpa 307 balik ke /en.
+  await page.getByRole('banner').getByRole('link', { name: 'Indonesia' }).click()
+  await expect(page).toHaveURL(/localhost:\d+\/$/)
+  await expect(page.getByText(BODY_ID)).toBeVisible()
+  // Muat ulang / lagi — tetap Indonesia (tidak ada cookie yang membelokkan).
+  await page.reload()
+  await expect(page).toHaveURL(/localhost:\d+\/$/)
+  await expect(page.getByText(BODY_ID)).toBeVisible()
+})

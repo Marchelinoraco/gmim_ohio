@@ -4,9 +4,9 @@
 
 **Goal:** Menyiapkan aplikasi TanStack Start yang ter-deploy di Vercel, dengan i18n dwibahasa, koneksi Neon + Drizzle, skeleton auth better-auth, seluruh schema database + seed, token desain GMIM, dan pipeline CI.
 
-**Architecture:** Satu aplikasi TanStack Start (React 19, Vite, Nitro untuk Vercel). Halaman publik SSR; nanti `/admin` client-only. Database Neon Postgres diakses lewat Drizzle ORM (driver `neon-serverless` agar mendukung transaksi). Auth lewat better-auth + Drizzle adapter. i18n lewat Paraglide JS (locale `id` default tanpa prefix URL, `en` di prefix `/en`). Styling Tailwind CSS v4 + registry komponen (TypeUI, fallback shadcn/ui).
+**Architecture:** Satu aplikasi TanStack Start (React 19, Vite, Nitro untuk Vercel). Halaman publik SSR; nanti `/admin` client-only. Database Neon Postgres diakses lewat Drizzle ORM dengan driver `node-postgres` (`pg`) + `@vercel/functions` `attachDatabasePool` (rekomendasi Neon untuk Vercel Fluid Compute — koneksi TCP di-reuse antar invokasi warm; transaksi didukung penuh). Auth lewat better-auth + Drizzle adapter. i18n lewat Paraglide JS (locale `id` default tanpa prefix URL, `en` di prefix `/en`). Styling Tailwind CSS v4 + registry komponen (TypeUI, fallback shadcn/ui).
 
-**Tech Stack:** TanStack Start · TanStack Router · Vite · Nitro · React 19 · Tailwind CSS v4 · Paraglide JS (@inlang/paraglide-js) · Drizzle ORM · drizzle-kit · @neondatabase/serverless · better-auth · Vitest · Playwright · pnpm · GitHub Actions · Vercel.
+**Tech Stack:** TanStack Start · TanStack Router · Vite · Nitro · React 19 · Tailwind CSS v4 · Paraglide JS (@inlang/paraglide-js) · Drizzle ORM · drizzle-kit · pg (node-postgres) · @vercel/functions · better-auth · Vitest · Playwright · pnpm · GitHub Actions · Vercel.
 
 **Spec:** `docs/superpowers/specs/2026-08-29-gmim-musafir-website-design.md`
 
@@ -94,7 +94,7 @@ Setiap task otomatis tunduk pada berikut (nilai disalin verbatim dari spec):
     └── e2e/
         ├── smoke.spec.ts                # halaman utama render (id & en)
         └── i18n.spec.ts                 # language switcher
-```
+```      
 
 **Catatan boundary:**
 - `src/lib/datetime.ts` = satu-satunya tempat konversi zona waktu. Tidak ada `new Date(...)` manipulasi TZ di file lain.
@@ -378,7 +378,7 @@ git commit -m "Tambah Nitro untuk deploy Vercel"
 
 ---
 
-## Task 3: Tailwind v4 + token desain GMIM + font
+## Task 3: Tailwind v4 + token desain GMIM + font 
 
 **Files:**
 - Modify: `vite.config.ts`, `src/styles/app.css`, `src/routes/__root.tsx`, `package.json`
@@ -993,18 +993,31 @@ git commit -m "Setup tooling: ESLint, Prettier, Vitest, Playwright"
 
 ## Task 8: Koneksi Neon + Drizzle + validasi env
 
+> **REVISI (controller, 2026-08-30):** Neon sudah di-setup manual di luar SDD —
+> `neon` CLI ter-auth, project `gmim-musafir` (late-night-27741746) di org
+> `yunita` ter-link, branch **`dev`** aktif, `.env` sudah berisi `DATABASE_URL`
+> (pooled) + `DATABASE_URL_UNPOOLED` (direct) + `BETTER_AUTH_SECRET` +
+> `BETTER_AUTH_URL` + placeholder lain + `NEON_AI_GATEWAY_*` (tak dipakai).
+> `.env.example` sudah di-commit (`02cc440`). `.env` & `.neon` git-ignored.
+> **Driver: pakai `pg` (node-postgres) + `@vercel/functions` `attachDatabasePool`**,
+> BUKAN `@neondatabase/serverless` — ini rekomendasi Neon untuk TanStack Start di
+> Vercel Fluid Compute (functions tetap warm → reuse koneksi TCP). Ref:
+> <https://neon.com/docs/guides/vercel-connection-methods.md>.
+> Jadi Step 5 & 6 (bikin `.env.example` / `.env`) **sudah selesai** — skip.
+
 **Files:**
-- Create: `src/lib/env.ts`, `src/db/index.ts`, `drizzle.config.ts`, `.env.example`
-- Modify: `package.json` (deps), `.gitignore` (pastikan `.env` ada)
+- Create: `src/lib/env.ts`, `src/db/index.ts`, `src/db/schema/index.ts` (stub), `drizzle.config.ts`
+- Modify: `package.json` (deps)
+- Already done (skip): `.env.example`, `.env`, `.gitignore`
 
 **Interfaces:**
-- Produces: `env` (obyek tervalidasi) dari `@/lib/env`; `db` (instance Drizzle) dari `@/db`.
+- Produces: `env` (obyek tervalidasi) dari `@/lib/env`; `db` (instance Drizzle `node-postgres`) dari `@/db`.
 
 - [ ] **Step 1: Install**
 
 ```bash
-pnpm add drizzle-orm @neondatabase/serverless
-pnpm add -D drizzle-kit tsx dotenv
+pnpm add pg drizzle-orm @vercel/functions zod
+pnpm add -D drizzle-kit tsx dotenv @types/pg
 ```
 
 - [ ] **Step 2: `src/lib/env.ts`**
@@ -1022,22 +1035,22 @@ const schema = z.object({
   CONTACT_NOTIFICATION_EMAIL: z.string().email().optional(),
 })
 
+// Zod strips unknown keys by default — extra Neon vars (NEON_AI_GATEWAY_*, NEON_BRANCH) are harmless.
 export const env = schema.parse(process.env)
 ```
 
-```bash
-pnpm add zod
-```
-
-- [ ] **Step 3: `src/db/index.ts` (driver serverless — mendukung transaksi)**
+- [ ] **Step 3: `src/db/index.ts` (node-postgres + Vercel Fluid Compute pool reuse)**
 
 ```ts
-import { Pool } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-serverless'
+import { attachDatabasePool } from '@vercel/functions'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
 import { env } from '@/lib/env'
 import * as schema from './schema'
 
 const pool = new Pool({ connectionString: env.DATABASE_URL })
+attachDatabasePool(pool) // no-ops outside Vercel; on Vercel it reuses the TCP connection across warm invocations
+
 export const db = drizzle({ client: pool, schema })
 ```
 
@@ -1046,7 +1059,7 @@ export const db = drizzle({ client: pool, schema })
 - [ ] **Step 4: `drizzle.config.ts`**
 
 ```ts
-import 'dotenv/config'
+import 'dotenv/config' // loads .env
 import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({
@@ -1054,57 +1067,32 @@ export default defineConfig({
   schema: './src/db/schema/index.ts',
   dialect: 'postgresql',
   dbCredentials: {
+    // migrations MUST use the direct (unpooled) connection
     url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL!,
   },
 })
 ```
 
-- [ ] **Step 5: `.env.example`**
-
-```
-# Neon (Project Settings → Connection string)
-DATABASE_URL="postgresql://USER:PASS@ep-xxx-pooler.REGION.aws.neon.tech/neondb?sslmode=require"
-DATABASE_URL_UNPOOLED="postgresql://USER:PASS@ep-xxx.REGION.aws.neon.tech/neondb?sslmode=require"
-
-# better-auth
-BETTER_AUTH_SECRET="ganti-dengan-string-acak-min-32-char"
-BETTER_AUTH_URL="http://localhost:3000"
-
-# Vercel Blob (diisi saat Rencana 3)
-BLOB_READ_WRITE_TOKEN=""
-
-# Email notifikasi form kontak (opsional, Rencana 2/3)
-RESEND_API_KEY=""
-CONTACT_NOTIFICATION_EMAIL=""
-
-# Seed admin (dipakai pnpm seed:admin)
-SEED_ADMIN_EMAIL="admin@example.com"
-SEED_ADMIN_PASSWORD="ubah-ini"
-```
-
-- [ ] **Step 6: Buat `.env` lokal**
-
-Salin `.env.example` → `.env`, isi `DATABASE_URL` & `DATABASE_URL_UNPOOLED` dari Neon (prasyarat manual #1), buat `BETTER_AUTH_SECRET` acak (`openssl rand -base64 32`).
-
-- [ ] **Step 7: Verifikasi koneksi**
+- [ ] **Step 5: Verifikasi koneksi**
 
 Buat file sementara `scripts/check-db.ts`:
 ```ts
 import 'dotenv/config'
-import { Pool } from '@neondatabase/serverless'
+import { Pool } from 'pg'
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-const r = await pool.query('select now()')
+const r = await pool.query('select now() as now, current_database() as db, version() as version')
 console.log('DB OK:', r.rows[0])
 await pool.end()
 ```
 Run: `pnpm tsx scripts/check-db.ts`
-Expected: mencetak `DB OK: { now: ... }`. Hapus `scripts/check-db.ts` sesudah lolos.
+Expected: mencetak `DB OK: { now: ..., db: 'neondb', version: 'PostgreSQL 17...' }`. Hapus `scripts/check-db.ts` setelah lolos.
+Juga pastikan `pnpm typecheck` + `pnpm lint` + `pnpm build` tetap hijau.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add -A
-git commit -m "Tambah koneksi Neon + Drizzle + validasi env"
+git commit -m "Tambah koneksi Neon + Drizzle (node-postgres) + validasi env"
 ```
 
 ---
@@ -1496,7 +1484,7 @@ git commit -m "Migrasi database awal"
 
 ---
 
-## Task 12: Seed data — kategori, kolom, settings, admin
+ ## Task 12: Seed data — kategori, kolom, settings, admin
 
 **Files:**
 - Create: `src/db/seed/categories.ts`, `src/db/seed/kolom.ts`, `src/db/seed/settings.ts`, `src/db/seed/admin.ts`, `src/db/seed/index.ts`

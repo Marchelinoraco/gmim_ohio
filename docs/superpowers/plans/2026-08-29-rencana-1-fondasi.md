@@ -1321,15 +1321,17 @@ export const SITE = {
   name: 'GMIM Musafir Columbus Ohio',
   address: '895 Old Diley Road, Columbus, Ohio',
   mapsUrl: 'https://www.google.com/maps/search/?api=1&query=895+Old+Diley+Road+Columbus+Ohio',
-  facebookUrl: '', // user provides — leave '' → button hidden until set
+  facebookUrl: 'https://www.facebook.com/gmimmusafir.columbus/',
   hero: {
-    // video files disediakan user; ditaruh di /public/hero/ atau Vercel Blob.
-    // Sementara: poster + gradient fallback.
-    poster: '/hero-poster.jpg',
-    sources: [] as { src: string; type: string }[], // e.g. [{ src:'/hero/1.mp4', type:'video/mp4' }]
+    poster: '/hero/hero-poster.jpg',
+    sources: [{ src: '/hero/hero.mp4', type: 'video/mp4' }],
   },
 } as const
 ```
+
+> Video sudah ada & di-commit (`5e7affd`): `public/hero/hero.mp4` (1.9MB, 16s
+> loop, no audio) + `public/hero/hero-poster.jpg`. Fallback gradient tetap
+> dibuat untuk `prefers-reduced-motion` / gagal load.
 
 - [ ] **Step 2: `index.tsx` — coming-soon**
 

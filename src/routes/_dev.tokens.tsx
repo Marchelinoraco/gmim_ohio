@@ -1,4 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card'
 
 export const Route = createFileRoute('/_dev/tokens')({ component: Tokens })
 
@@ -33,6 +41,30 @@ function Tokens() {
       <div className="rounded bg-primary p-8 text-surface">
         Utility berbasis token: <code>bg-primary</code> + <code>text-surface</code>
       </div>
+
+      <h2 className="text-2xl">Button</h2>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="primary">Primary</Button>
+        <Button variant="secondary">Secondary</Button>
+        <Button variant="outline">Outline</Button>
+        <Button variant="ghost">Ghost</Button>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button size="sm">Small</Button>
+        <Button size="md">Medium</Button>
+        <Button size="lg">Large</Button>
+      </div>
+
+      <h2 className="text-2xl">Card</h2>
+      <Card className="max-w-sm">
+        <CardHeader>
+          <CardTitle>Contoh Kartu</CardTitle>
+        </CardHeader>
+        <CardContent>Isi kartu memakai token permukaan &amp; border.</CardContent>
+        <CardFooter>
+          <Button size="sm">Aksi</Button>
+        </CardFooter>
+      </Card>
     </main>
   )
 }

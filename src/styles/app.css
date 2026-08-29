@@ -1,1 +1,72 @@
-/* Tailwind + token ditambahkan di Task 3 */
+/* `source('../')` membatasi auto-content-detection Tailwind ke folder src/ saja;
+   tanpa ini Tailwind ikut memindai dokumen rencana .md dan menyertakan utility
+   yang tak terpakai. */
+@import 'tailwindcss' source('../');
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/inter';
+
+:root {
+  /* Brand */
+  --color-primary: #4a2e1e;        /* cokelat kayu (Manguni) */
+  --color-primary-hover: #3a2417;
+  --color-secondary: #234a8f;      /* biru royal (Mawar Luther) */
+  --color-secondary-hover: #1b3a72;
+  --color-accent: #a4232b;         /* merah mawar — dipakai hemat */
+
+  /* Netral / permukaan */
+  --color-surface: #ffffff;
+  --color-surface-2: #f6f0e6;      /* krem perkamen hangat */
+  --color-border: #e4d9c8;
+  --color-ink: #2a2018;            /* teks utama */
+  --color-muted: #6f6455;          /* teks sekunder */
+
+  /* Badge kategori ibadah (harmonis dgn palet) */
+  --color-cat-jemaat: #234a8f;
+  --color-cat-bapa: #4a2e1e;
+  --color-cat-ibu: #8a5a2b;
+  --color-cat-pemuda: #2f6f5e;
+  --color-cat-sekolah-minggu: #b5842b;
+  --color-cat-kolom: #6b4a7a;
+
+  /* Radius & shadow */
+  --radius: 0.625rem;
+}
+
+/* Struktur siap dark mode — belum diaktifkan untuk situs publik.
+   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { ... } }
+   :root[data-theme="dark"] { ... } */
+
+/* `@theme inline` memetakan CSS variable :root di atas ke token Tailwind, jadi
+   utility warna (`bg-primary`, `text-ink`, dst.) memakai `var(--color-*)` yang
+   nilainya diambil dari blok :root non-layer di atas. Tailwind tetap meng-emit
+   deklarasi kembar `--color-*: var(--color-*)` di `@layer theme`, tapi blok :root
+   non-layer di atas menang kaskade sehingga nilai konkret (hex) yang dipakai —
+   tidak ada referensi sirkular. Swap runtime (mis. dark mode nanti) cukup
+   meng-override blok :root tanpa rebuild CSS. */
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-hover: var(--color-secondary-hover);
+  --color-accent: var(--color-accent);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-border: var(--color-border);
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-muted);
+  --font-serif: 'Fraunces Variable', ui-serif, Georgia, serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  /* Tailwind v4 memakai key `--radius` (bukan `--radius-DEFAULT` ala v3) untuk
+     utility `rounded`. */
+  --radius: var(--radius);
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+}

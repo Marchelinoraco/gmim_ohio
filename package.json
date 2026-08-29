@@ -21,6 +21,8 @@
     "auth:generate": "pnpm dlx @better-auth/cli@latest generate --output src/db/schema/auth.ts"
   },
   "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/inter": "^5.3.0",
     "@tanstack/react-router": "^1.170.32",
     "@tanstack/react-start": "^1.168.49",
     "nitro": "3.0.260610-beta",
@@ -28,6 +30,7 @@
     "react-dom": "^19"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",

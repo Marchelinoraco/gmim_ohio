@@ -39,6 +39,8 @@ export const Route = createFileRoute('/')({
         { property: 'og:type', content: 'website' },
         { property: 'og:image', content: SITE.hero.poster },
       ],
+      // Poster = elemen LCP halaman ini — preload agar muncul secepat mungkin.
+      links: [{ rel: 'preload', as: 'image', href: SITE.hero.poster }],
     }
   },
   component: Home,
@@ -191,11 +193,18 @@ function Home() {
     if (!next) v.play().catch(() => {})
   }
 
-  const soundOn = reducedMotion ? !playing : muted
-  const soundLabel = soundOn ? m.coming_soon_sound_on() : m.coming_soon_sound_off()
-
+  // Label & ikon bercabang sama: reduced-motion = kontrol Putar/Jeda video;
+  // normal = toggle suara pada video latar bisu.
+  let toggleLabel = muted ? m.coming_soon_sound_on() : m.coming_soon_sound_off()
   let toggleIcon = muted ? <SpeakerOffIcon /> : <SpeakerOnIcon />
-  if (reducedMotion) toggleIcon = playing ? <PauseIcon /> : <PlayIcon />
+  if (reducedMotion) {
+    toggleLabel = playing ? m.coming_soon_pause() : m.coming_soon_play()
+    toggleIcon = playing ? <PauseIcon /> : <PlayIcon />
+  }
+
+  // Normal: kontrol suara → `aria-pressed` = "bersuara". Reduced-motion:
+  // kontrol Putar/Jeda → `aria-pressed` = "sedang diputar".
+  const togglePressed = reducedMotion ? playing : !muted
 
   return (
     <main>
@@ -214,6 +223,7 @@ function Home() {
             playsInline
             preload="metadata"
             poster={SITE.hero.poster}
+            aria-hidden="true"
           >
             {SITE.hero.sources.map((s) => (
               <source key={s.src} src={s.src} type={s.type} />
@@ -274,8 +284,8 @@ function Home() {
           <button
             type="button"
             onClick={handleToggle}
-            aria-label={soundLabel}
-            aria-pressed={!muted}
+            aria-label={toggleLabel}
+            aria-pressed={togglePressed}
             className="absolute right-4 bottom-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/75 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
           >
             {toggleIcon}

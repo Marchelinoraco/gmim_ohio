@@ -47,3 +47,26 @@ test('tombol Facebook menunjuk ke halaman FB jemaat', async ({ page }) => {
   await expect(fb).toHaveAttribute('href', 'https://www.facebook.com/gmimmusafir.columbus/')
   await expect(fb).toHaveAttribute('target', '_blank')
 })
+
+test('tombol suara meng-unmute video (motion normal)', async ({ page }) => {
+  await page.goto('/')
+  const video = page.locator('video')
+  const soundBtn = page.getByRole('button', { name: /nyalakan suara|matikan suara/i })
+
+  await expect(soundBtn).toBeVisible()
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.muted)).toBe(true)
+  await expect(soundBtn).toHaveAttribute('aria-pressed', 'false')
+
+  // Klik bisa terjadi sebelum React hydrate handler — ulang sampai muted lepas
+  // (klik pertama yang berhasil langsung menghentikan retry, jadi tak ada
+  // toggle balik).
+  await expect(async () => {
+    await soundBtn.click()
+    expect(await video.evaluate((v: HTMLVideoElement) => v.muted)).toBe(false)
+  }).toPass()
+
+  await expect(page.getByRole('button', { name: /matikan suara/i })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+})

@@ -7,3 +7,15 @@ dist/
 !.env.example
 *.log
 .DS_Store
+
+# TanStack / build
+.output/
+.nitro/
+.tanstack/
+routeTree.gen.ts
+# Paraglide output
+src/paraglide/
+# test
+playwright-report/
+test-results/
+coverage/

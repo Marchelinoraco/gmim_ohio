@@ -6,42 +6,110 @@
 @import '@fontsource-variable/inter';
 
 :root {
-  /* Brand */
-  --color-primary: #4a2e1e; /* cokelat kayu (Manguni) */
-  --color-primary-hover: #3a2417;
-  --color-secondary: #234a8f; /* biru royal (Mawar Luther) */
-  --color-secondary-hover: #1b3a72;
-  --color-accent: #a4232b; /* merah mawar — dipakai hemat */
+  /* ===================================================================
+     LIGHT — ungu + putih (default, aktif tanpa atribut)
+     Semua pasangan teks/latar sudah divalidasi WCAG AA
+     (4.5:1 teks normal, 3:1 UI/badge). Rasio dicatat di task-8b-report.md.
+     =================================================================== */
+  --color-primary: #6d28d9; /* tombol utama, link — putih di atasnya 7.10:1 */
+  --color-primary-hover: #5b21b6;
+  --color-secondary: #7c3aed; /* tombol sekunder — putih 5.70:1 */
+  --color-secondary-hover: #6d28d9;
+  --color-accent: #9333ea; /* badge "live", highlight (hemat) — putih 5.38:1 */
 
-  /* Netral / permukaan */
   --color-surface: #ffffff;
-  --color-surface-2: #f6f0e6; /* krem perkamen hangat */
-  --color-border: #e4d9c8;
-  --color-ink: #2a2018; /* teks utama */
-  --color-muted: #6f6455; /* teks sekunder */
+  --color-surface-2: #f5f3ff; /* section selang-seling, ungu sangat muda */
+  --color-border: #d9cff1; /* garis dekoratif (kartu punya shadow juga) */
+  --color-ink: #1c1a26; /* teks utama — 17.14:1 di putih */
+  --color-muted: #5b5670; /* teks sekunder — 6.98:1 di putih */
 
-  /* Badge kategori ibadah (harmonis dgn palet) */
-  --color-cat-jemaat: #234a8f;
-  --color-cat-bapa: #4a2e1e;
-  --color-cat-ibu: #8a5a2b;
-  --color-cat-pemuda: #2f6f5e;
-  --color-cat-sekolah-minggu: #8a6320;
-  --color-cat-kolom: #6b4a7a;
+  /* Badge 6 kategori ibadah — putih di atasnya, semua ≥ 5:1 di LIGHT */
+  --color-cat-jemaat: #5b21b6;
+  --color-cat-bapa: #1d4ed8;
+  --color-cat-ibu: #a21caf;
+  --color-cat-pemuda: #0f766e;
+  --color-cat-sekolah-minggu: #b45309;
+  --color-cat-kolom: #6d28d9;
 
-  /* Radius & shadow */
   --radius: 0.625rem;
+
+  /* ===================================================================
+     DARK — ungu-hitam. SUMBER TUNGGAL nilai dark.
+     Kedua selector dark di bawah HANYA me-remap --color-* -> var(--dark-*).
+     Tak ada nilai hex yang diduplikasi, jadi tak mungkin drift.
+     =================================================================== */
+  --dark-primary: #a78bfa; /* tombol (text-surface = #161221 di atasnya) 6.75:1 */
+  --dark-primary-hover: #c4b5fd;
+  --dark-secondary: #9575f4; /* text-surface di atasnya 5.36:1 */
+  --dark-secondary-hover: #b39dfb;
+  --dark-accent: #c4b5fd;
+
+  --dark-surface: #161221;
+  --dark-surface-2: #1f1830;
+  --dark-border: #403659;
+  --dark-ink: #f1eef8; /* 16.04:1 di #161221 */
+  --dark-muted: #a79fb8; /* 7.26:1 di #161221 */
+
+  /* Kategori ibadah versi dark — dipakai sebagai aksen/teks/latar-badge;
+     semua ≥ 9:1 terhadap kedua permukaan gelap. */
+  --dark-cat-jemaat: #c4b5fd;
+  --dark-cat-bapa: #93c5fd;
+  --dark-cat-ibu: #f0abfc;
+  --dark-cat-pemuda: #5eead4;
+  --dark-cat-sekolah-minggu: #fcd34d;
+  --dark-cat-kolom: #d8b4fe;
 }
 
-/* Struktur siap dark mode — belum diaktifkan untuk situs publik.
-   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { ... } }
-   :root[data-theme="dark"] { ... } */
+/* --- Jalur 1: OS dark, user belum memilih tema secara eksplisit --- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-primary: var(--dark-primary);
+    --color-primary-hover: var(--dark-primary-hover);
+    --color-secondary: var(--dark-secondary);
+    --color-secondary-hover: var(--dark-secondary-hover);
+    --color-accent: var(--dark-accent);
+    --color-surface: var(--dark-surface);
+    --color-surface-2: var(--dark-surface-2);
+    --color-border: var(--dark-border);
+    --color-ink: var(--dark-ink);
+    --color-muted: var(--dark-muted);
+    --color-cat-jemaat: var(--dark-cat-jemaat);
+    --color-cat-bapa: var(--dark-cat-bapa);
+    --color-cat-ibu: var(--dark-cat-ibu);
+    --color-cat-pemuda: var(--dark-cat-pemuda);
+    --color-cat-sekolah-minggu: var(--dark-cat-sekolah-minggu);
+    --color-cat-kolom: var(--dark-cat-kolom);
+  }
+}
+
+/* --- Jalur 2: user memilih "Gelap" secara eksplisit (menang atas OS) ---
+   Isi blok ini WAJIB identik dengan blok di atas — keduanya murni
+   pemetaan var(--dark-*), tak ada nilai literal. */
+:root[data-theme='dark'] {
+  --color-primary: var(--dark-primary);
+  --color-primary-hover: var(--dark-primary-hover);
+  --color-secondary: var(--dark-secondary);
+  --color-secondary-hover: var(--dark-secondary-hover);
+  --color-accent: var(--dark-accent);
+  --color-surface: var(--dark-surface);
+  --color-surface-2: var(--dark-surface-2);
+  --color-border: var(--dark-border);
+  --color-ink: var(--dark-ink);
+  --color-muted: var(--dark-muted);
+  --color-cat-jemaat: var(--dark-cat-jemaat);
+  --color-cat-bapa: var(--dark-cat-bapa);
+  --color-cat-ibu: var(--dark-cat-ibu);
+  --color-cat-pemuda: var(--dark-cat-pemuda);
+  --color-cat-sekolah-minggu: var(--dark-cat-sekolah-minggu);
+  --color-cat-kolom: var(--dark-cat-kolom);
+}
 
 /* `@theme inline` memetakan CSS variable :root di atas ke token Tailwind, jadi
    utility warna (`bg-primary`, `text-ink`, dst.) memakai `var(--color-*)` yang
    nilainya diambil dari blok :root non-layer di atas. Tailwind tetap meng-emit
    deklarasi kembar `--color-*: var(--color-*)` di `@layer theme`, tapi blok :root
    non-layer di atas menang kaskade sehingga nilai konkret (hex) yang dipakai —
-   tidak ada referensi sirkular. Swap runtime (mis. dark mode nanti) cukup
+   tidak ada referensi sirkular. Swap runtime (dark mode via `data-theme`) cukup
    meng-override blok :root tanpa rebuild CSS. */
 @theme inline {
   --color-primary: var(--color-primary);

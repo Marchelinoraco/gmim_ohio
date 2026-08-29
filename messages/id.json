@@ -21,5 +21,9 @@
   "notfound_home": "Kembali ke beranda",
   "lang_id": "Indonesia",
   "lang_en": "English",
+  "theme_toggle_label": "Ganti tema",
+  "theme_light": "Terang",
+  "theme_dark": "Gelap",
+  "theme_system": "Ikuti sistem",
   "home_building": "Situs dalam pembangunan."
 }

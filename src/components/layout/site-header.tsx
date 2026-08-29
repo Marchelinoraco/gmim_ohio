@@ -3,6 +3,7 @@ import * as m from '@/paraglide/messages'
 import { getLocale, localizeHref } from '@/paraglide/runtime'
 import { Button } from '@/components/ui/button'
 import { LanguageSwitcher } from '@/components/layout/language-switcher'
+import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { Logo } from '@/components/layout/logo'
 
 // Rencana 2 membuat route asli untuk path di bawah ini (`/tentang`, `/pelayanan`,
@@ -95,6 +96,7 @@ export function SiteHeader() {
           <Button asChild variant="primary" size="md" className="h-11">
             <a href={giveHref}>{m.cta_give()}</a>
           </Button>
+          <ThemeToggle />
           <LanguageSwitcher />
         </div>
 
@@ -138,7 +140,8 @@ export function SiteHeader() {
               <a href={giveHref}>{m.cta_give()}</a>
             </Button>
           </div>
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-3">
+            <ThemeToggle />
             <LanguageSwitcher />
           </div>
         </nav>

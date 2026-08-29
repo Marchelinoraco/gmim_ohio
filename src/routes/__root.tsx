@@ -6,6 +6,7 @@ import { getLocale, localizeHref } from '@/paraglide/runtime'
 import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
+import { THEME_INIT_SCRIPT } from '@/lib/theme'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -15,7 +16,6 @@ export const Route = createRootRoute({
       { title: 'GMIM Musafir Columbus Ohio' },
     ],
     links: [
-      { rel: 'stylesheet', href: appCss },
       // TODO(desainer): ganti dengan favicon.ico + logo-mark.svg proper
       // (mark sederhana Manguni + Mawar Luther). Sementara pakai PNG 64x64
       // hasil resize dari logo.png — non-blocking.
@@ -52,6 +52,18 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang={getLocale()}>
       <head>
+        {/* Anti-flash tema — dirender sebelum <link> stylesheet supaya
+            data-theme terpasang sebelum paint. `<html>` TIDAK di-hardcode
+            data-theme di SSR (server tak tahu preferensi user).
+
+            Stylesheet app.css sengaja dirender di sini TANPA lewat route
+            `head.links`: `HeadContent`/Asset menambah `precedence` pada tiap
+            <link rel="stylesheet">, dan React 19 lalu meng-hoist link itu ke
+            atas segala elemen non-hoistable (skrip inline) di <head>. Dengan
+            merender <link> sendiri tanpa `precedence`, urutan sumber terjaga:
+            skrip dulu, baru CSS. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <link rel="stylesheet" href={appCss} />
         <HeadContent />
       </head>
       <body>

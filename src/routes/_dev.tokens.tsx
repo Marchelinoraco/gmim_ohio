@@ -52,7 +52,7 @@ function Tokens() {
         {categories.map((c) => (
           <div key={c} className="w-32">
             <div
-              className="flex h-16 items-center justify-center rounded text-sm font-semibold text-white"
+              className="text-surface flex h-16 items-center justify-center rounded text-sm font-semibold"
               style={{ background: `var(--color-cat-${c})` }}
             >
               {c}

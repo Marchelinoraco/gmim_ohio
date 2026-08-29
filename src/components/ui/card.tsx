@@ -44,7 +44,8 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      // text-muted (#6f6455) di atas surface putih = 5.79:1 (AA)
+      // text-muted di atas surface putih ~6.9:1 — lolos AA. Dark mode via token
+      // CSS var (data-theme + @media, Task 8b) — tak perlu class `dark:`.
       className={cn("text-sm text-muted", className)}
       {...props}
     />

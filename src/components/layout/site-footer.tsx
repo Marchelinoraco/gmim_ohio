@@ -9,15 +9,17 @@ const SOCIAL_LINKS = [{ key: 'facebook', label: 'Facebook', href: SITE.facebookU
   (s) => s.href.length > 0,
 )
 
-export function SiteFooter() {
-  const year = new Date().getFullYear()
+// Dievaluasi sekali saat modul dimuat — sama di server & klien untuk umur proses,
+// jadi jendela mismatch-hidrasi pergantian tahun mengecil ke ~nol.
+const CURRENT_YEAR = new Date().getFullYear()
 
+export function SiteFooter() {
   return (
     <footer className="border-border bg-surface-2 mt-16 border-t">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
           <div className="text-ink flex items-center gap-2.5">
-            <Logo variant="mark" />
+            <Logo variant="mark" size={32} />
             <span className="font-serif text-base font-semibold">{m.site_name()}</span>
           </div>
           <p className="text-muted text-sm">{m.site_tagline()}</p>
@@ -58,7 +60,7 @@ export function SiteFooter() {
 
       <div className="border-border border-t px-4 py-4">
         <p className="text-muted mx-auto max-w-6xl text-sm">
-          &copy; {year} {m.site_name()}. {m.footer_rights()}
+          &copy; {CURRENT_YEAR} {m.site_name()}. {m.footer_rights()}
         </p>
       </div>
     </footer>

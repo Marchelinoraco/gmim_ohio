@@ -3,6 +3,9 @@ import { cn } from '@/lib/utils'
 type LogoProps = {
   /** `full` = seal GMIM lengkap; `mark` = ikon kecil (header mobile, footer). */
   variant?: 'full' | 'mark'
+  /** Sisi render dalam px. Dipakai untuk `width`/`height` intrinsik + ukuran
+   *  tampilan supaya tak ada CLS. Header 40, hero 64, footer 32. */
+  size?: number
   className?: string
 }
 
@@ -12,15 +15,20 @@ type LogoProps = {
 const MARK_SRC = '/logo.png'
 const FULL_SRC = '/logo.png'
 
-export function Logo({ variant = 'full', className }: LogoProps) {
+export function Logo({ variant = 'full', size = 40, className }: LogoProps) {
   const isMark = variant === 'mark'
   return (
     <img
       src={isMark ? MARK_SRC : FULL_SRC}
-      alt="Lambang GMIM"
-      width={isMark ? 32 : 40}
-      height={isMark ? 32 : 40}
-      className={cn(isMark ? 'h-8 w-8' : 'h-10 w-10', 'shrink-0', className)}
+      // Selalu berdampingan dengan nama gereja (teks link header, <h1> hero,
+      // brand footer) → dekoratif dalam konteks. `alt=""` menghindari
+      // double-announce sekaligus string tak-diterjemahkan.
+      alt=""
+      role="presentation"
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+      className={cn('shrink-0', className)}
     />
   )
 }

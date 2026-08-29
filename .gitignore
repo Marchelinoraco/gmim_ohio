@@ -9,7 +9,6 @@ dist/
 .DS_Store
 
 # TanStack / build
-.output/
 .nitro/
 .tanstack/
 routeTree.gen.ts

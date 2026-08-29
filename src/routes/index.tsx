@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
+import { getLocale } from '@/paraglide/runtime'
 import { Logo } from '@/components/layout/logo'
 import { SITE } from '@/config/site'
 
@@ -26,10 +27,19 @@ function reducedMotionServerSnapshot(): boolean {
 
 export const Route = createFileRoute('/')({
   head: () => {
-    // `m.*` di sini resolve ke locale request (Paraglide AsyncLocalStorage),
-    // jadi <title>/OG ikut id vs /en. Judul = nama + status "segera hadir".
+    // `m.*` + `getLocale()` di sini resolve ke locale request (Paraglide
+    // AsyncLocalStorage), jadi <title>/OG/canonical ikut id vs /en. Judul =
+    // nama + status "segera hadir".
     const title = `${SITE.name} — ${m.coming_soon_status()}`
     const description = m.coming_soon_body()
+    const locale = getLocale()
+    // CTA situs = "bagikan ke Facebook", jadi unfurl link harus rapi: URL
+    // absolut untuk og:image / og:url / canonical / hreflang.
+    const idUrl = `${SITE.url}/`
+    const enUrl = `${SITE.url}/en`
+    const canonical = locale === 'en' ? enUrl : idUrl
+    const ogImage = `${SITE.url}${SITE.hero.poster}`
+    const ogLocale = locale === 'en' ? 'en_US' : 'id_ID'
     return {
       meta: [
         { title },
@@ -37,10 +47,24 @@ export const Route = createFileRoute('/')({
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'website' },
-        { property: 'og:image', content: SITE.hero.poster },
+        { property: 'og:image', content: ogImage },
+        { property: 'og:url', content: canonical },
+        { property: 'og:site_name', content: SITE.name },
+        { property: 'og:locale', content: ogLocale },
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:description', content: description },
       ],
-      // Poster = elemen LCP halaman ini — preload agar muncul secepat mungkin.
-      links: [{ rel: 'preload', as: 'image', href: SITE.hero.poster }],
+      links: [
+        // Poster = elemen LCP halaman ini — preload agar muncul secepat mungkin.
+        { rel: 'preload', as: 'image', href: SITE.hero.poster },
+        { rel: 'canonical', href: canonical },
+        // Kunci ditulis lowercase `hreflang` agar atribut HTML keluar idiomatis
+        // (serializer head TanStack memakai kunci apa adanya).
+        { rel: 'alternate', hreflang: 'id', href: idUrl },
+        { rel: 'alternate', hreflang: 'en', href: enUrl },
+        { rel: 'alternate', hreflang: 'x-default', href: idUrl },
+      ],
     }
   },
   component: Home,
@@ -153,7 +177,9 @@ function Home() {
     v.addEventListener('pause', onPause)
     v.addEventListener('volumechange', onVolumeChange)
 
-    // Reduced-motion: jangan putar otomatis — tahan di poster.
+    // Playback dimulai dari sini, bukan atribut `autoplay` — supaya markup SSR
+    // tak pernah membawa `autoplay` dan poster tampil dulu untuk semua orang.
+    // Motion-OK: putar setelah hidrasi. Reduced-motion: tahan di poster.
     if (reducedMotion) {
       v.pause()
       try {
@@ -161,6 +187,8 @@ function Home() {
       } catch {
         // metadata belum siap — abaikan, poster tetap tampil.
       }
+    } else {
+      v.play().catch(() => {})
     }
 
     return () => {
@@ -202,10 +230,6 @@ function Home() {
     toggleIcon = playing ? <PauseIcon /> : <PlayIcon />
   }
 
-  // Normal: kontrol suara → `aria-pressed` = "bersuara". Reduced-motion:
-  // kontrol Putar/Jeda → `aria-pressed` = "sedang diputar".
-  const togglePressed = reducedMotion ? playing : !muted
-
   return (
     <main>
       {/* Tinggi hero = viewport dikurangi tinggi SiteHeader (solid, di atas
@@ -217,7 +241,6 @@ function Home() {
           <video
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
-            autoPlay={!reducedMotion}
             loop
             muted
             playsInline
@@ -244,7 +267,7 @@ function Home() {
           {/* Medali terang — seal GMIM (coklat/biru/merah) tetap terbaca di atas
               scrim gelap, konsisten di kedua tema. */}
           <div className="rounded-full bg-white p-4 shadow-xl">
-            <Logo variant="full" className="h-16 w-16" />
+            <Logo variant="full" size={64} />
           </div>
 
           <h1 className="font-serif text-4xl font-semibold sm:text-5xl">{SITE.name}</h1>
@@ -284,8 +307,9 @@ function Home() {
           <button
             type="button"
             onClick={handleToggle}
+            // Satu sinyal state saja: `aria-label` yang berubah (aksi + implikasi
+            // state) + ikon. Tanpa `aria-pressed` agar SR tak mengumumkan ganda.
             aria-label={toggleLabel}
-            aria-pressed={togglePressed}
             className="absolute right-4 bottom-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/75 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
           >
             {toggleIcon}

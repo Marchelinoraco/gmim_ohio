@@ -19,8 +19,11 @@ export const paraglideOptions = {
   cookieName: 'PARAGLIDE_LOCALE',
   // No `preferredLanguage`: the audience is Indonesian-speaking diaspora whose
   // devices are often set to English but who want `id` content. `/` always
-  // serves `id` unless the URL is `/en/*` or the user explicitly picked English
-  // via the switcher (which sets the `PARAGLIDE_LOCALE=en` cookie).
+  // serves `id` unless the URL is `/en/*`. The language switcher is a plain
+  // `<a href>` to the localized path — it does NOT call `setLocale()` and sets
+  // no cookie today. `cookie` stays in the chain so that if a future
+  // `setLocale()` call (e.g. a persisted preference) ever writes
+  // `PARAGLIDE_LOCALE`, it is honored on the next request.
   strategy: ['url', 'cookie', 'baseLocale'],
   urlPatterns: [
     {

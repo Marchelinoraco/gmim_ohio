@@ -68,6 +68,20 @@ export function ThemeToggle() {
   const pref = useSyncExternalStore(subscribeThemePref, readThemePref, serverThemePref)
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const prefHydrated = useRef(false)
+
+  // `storage` event dari tab lain meng-update `pref` (ikon) — terapkan juga ke
+  // `<html data-theme>` supaya tema benar-benar ganti lintas-tab, bukan cuma
+  // ikonnya. Lewati invokasi pertama: saat mount `data-theme` sudah dipasang
+  // skrip anti-flash `<head>`, dan menyentuhnya di sini bisa memicu kedip
+  // singkat saat `useSyncExternalStore` mengoreksi snapshot server→klien.
+  useEffect(() => {
+    if (!prefHydrated.current) {
+      prefHydrated.current = true
+      return
+    }
+    applyThemePref(pref)
+  }, [pref])
 
   useEffect(() => {
     if (!open) return

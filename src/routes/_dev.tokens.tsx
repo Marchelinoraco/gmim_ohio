@@ -1,8 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, notFound } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
 
-export const Route = createFileRoute('/_dev/tokens')({ component: Tokens })
+export const Route = createFileRoute('/_dev/tokens')({
+  // Halaman dev throwaway — tersedia hanya di `pnpm dev`. Di build produksi
+  // (`import.meta.env.PROD`) route ini melempar 404 lewat notFoundComponent root.
+  beforeLoad: () => {
+    if (import.meta.env.PROD) throw notFound()
+  },
+  component: Tokens,
+})
 
 // Halaman dev throwaway (dihapus di Rencana 4). Tombol di bawah menyetel
 // data-theme di <html> supaya reviewer bisa melihat palet light & dark tanpa

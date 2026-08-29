@@ -10,7 +10,19 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    // Emulasi `prefers-reduced-motion: reduce` — memvalidasi hero TIDAK autoplay
+    // dan tombol jadi kontrol Putar/Jeda. Di Playwright versi ini opsi ini lewat
+    // `contextOptions` (bukan properti `use` tingkat atas).
+    {
+      name: 'reduced-motion',
+      use: {
+        ...devices['Desktop Chrome'],
+        contextOptions: { reducedMotion: 'reduce' },
+      },
+    },
+  ],
   webServer: {
     command: 'pnpm dev',
     url: 'http://localhost:3000',

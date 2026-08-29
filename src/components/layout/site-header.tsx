@@ -67,7 +67,7 @@ export function SiteHeader() {
 
   const brand = (
     <a href={homeHref} className="text-ink flex min-h-11 items-center gap-2.5">
-      <Logo variant="full" />
+      <Logo variant="full" size={40} />
       <span className="font-serif text-base leading-tight font-semibold sm:text-lg">
         {m.site_name()}
       </span>

@@ -7,7 +7,7 @@ export function LanguageSwitcher() {
   const { pathname } = useLocation()
 
   return (
-    <nav aria-label="Bahasa" className="flex gap-2 text-sm">
+    <nav aria-label={m.nav_language_label()} className="flex gap-2 text-sm">
       {locales.map((loc) => (
         <a
           key={loc}

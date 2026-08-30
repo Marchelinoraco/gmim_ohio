@@ -1769,7 +1769,17 @@ git commit -m "Migrasi database awal"
 
 ---
 
- ## Task 12: Seed data — kategori, kolom, settings, admin
+## Task 12: Seed data — kategori, kolom, settings, admin
+
+> **REVISI (Task 9 finding):** `disableSignUp: true` juga memblok
+> `auth.api.signUpEmail` server-side (throw di handler yang sama). Jadi
+> `src/db/seed/admin.ts` TIDAK bisa pakai `auth.api.signUpEmail`. Ganti:
+> pakai `auth.$context` → `const ctx = await auth.$context; const hash = await
+> ctx.password.hash(password); await ctx.internalAdapter.createUser({...});
+> await ctx.internalAdapter.linkAccount({ providerId: 'credential', accountId:
+> <userId>, userId: <userId>, password: hash })`. Set `role: 'admin'`,
+> `isActive: true` (via createUser data atau update setelahnya). Verifikasi
+> nama method `internalAdapter` terhadap better-auth 1.7.2 terpasang.
 
 **Files:**
 - Create: `src/db/seed/categories.ts`, `src/db/seed/kolom.ts`, `src/db/seed/settings.ts`, `src/db/seed/admin.ts`, `src/db/seed/index.ts`

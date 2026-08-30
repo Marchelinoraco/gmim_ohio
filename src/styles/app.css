@@ -141,3 +141,85 @@ h3,
 h4 {
   font-family: var(--font-serif);
 }
+
+/* ===================================================================
+   .prose-gmim — tipografi untuk body rich-text (warta & renungan).
+   Dipakai <Prose> (src/components/site/prose.tsx) atas HTML yang sudah
+   lewat sanitizeRichText. Hanya token warna — ikut swap light/dark;
+   semua pasangan teks/latar ≥ WCAG AA di KEDUA tema (ink/muted/primary
+   sudah divalidasi di :root & blok dark).
+   =================================================================== */
+@layer components {
+  .prose-gmim {
+    color: var(--color-ink);
+    line-height: 1.7;
+  }
+
+  .prose-gmim :where(h2, h3, h4) {
+    font-family: var(--font-serif);
+    color: var(--color-ink);
+    line-height: 1.25;
+    margin-top: 2em;
+    margin-bottom: 0.6em;
+  }
+  .prose-gmim :where(h2) {
+    font-size: 1.5rem;
+  }
+  .prose-gmim :where(h3) {
+    font-size: 1.25rem;
+  }
+  .prose-gmim :where(h4) {
+    font-size: 1.0625rem;
+  }
+  .prose-gmim :where(h2, h3, h4):first-child {
+    margin-top: 0;
+  }
+
+  .prose-gmim :where(p, ul, ol, blockquote) {
+    margin-top: 0;
+    margin-bottom: 1.25em;
+  }
+  .prose-gmim :where(p, li) {
+    color: var(--color-ink);
+  }
+  .prose-gmim :where(:last-child) {
+    margin-bottom: 0;
+  }
+
+  .prose-gmim :where(a) {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose-gmim :where(a):hover {
+    color: var(--color-primary-hover);
+  }
+
+  .prose-gmim :where(ul, ol) {
+    padding-left: 1.5em;
+  }
+  .prose-gmim :where(ul) {
+    list-style-type: disc;
+  }
+  .prose-gmim :where(ol) {
+    list-style-type: decimal;
+  }
+  .prose-gmim :where(li) {
+    margin-top: 0.35em;
+    margin-bottom: 0.35em;
+  }
+  .prose-gmim :where(li)::marker {
+    color: var(--color-muted);
+  }
+
+  .prose-gmim :where(blockquote) {
+    border-left: 3px solid var(--color-border);
+    padding-left: 1em;
+    color: var(--color-muted);
+    font-style: italic;
+  }
+
+  .prose-gmim :where(strong) {
+    font-weight: 600;
+  }
+}

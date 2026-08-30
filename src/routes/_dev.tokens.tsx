@@ -1,6 +1,10 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
+import { Container } from '@/components/site/container'
+import { PageHero } from '@/components/site/page-hero'
+import { Section, SectionTitle } from '@/components/site/section'
+import { EmptyState } from '@/components/site/empty-state'
 
 export const Route = createFileRoute('/_dev/tokens')({
   // Halaman dev throwaway — tersedia hanya di `pnpm dev`. Di build produksi
@@ -105,6 +109,25 @@ function Tokens() {
           <Button size="sm">Aksi</Button>
         </CardFooter>
       </Card>
+
+      <h2 className="text-2xl">Primitif situs</h2>
+      <div className="bg-surface-2 p-4">
+        <Container className="border-border border border-dashed">
+          <p>
+            <code>&lt;Container&gt;</code> — lebar & padding konten standar.
+          </p>
+        </Container>
+      </div>
+      <PageHero title="Judul Halaman Contoh" subtitle="Sub-judul deskriptif untuk halaman ini.">
+        <Button size="sm">CTA</Button>
+      </PageHero>
+      <Section id="contoh">
+        <SectionTitle>Judul Bagian</SectionTitle>
+        <p>
+          Isi bagian memakai ritme vertikal dari <code>&lt;Section&gt;</code>.
+        </p>
+      </Section>
+      <EmptyState title="Belum ada data" message="Konten akan muncul di sini setelah tersedia." />
     </main>
   )
 }

@@ -1,0 +1,114 @@
+import { relations } from 'drizzle-orm'
+import { pgTable, text, timestamp, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
+
+// Skema auth. Regenerasi lewat `pnpm auth:generate` → menulis
+// `auth.generated.ts` (artefak diff yang bisa direview); rekonsiliasi manual
+// role/isActive/issuer ke FILE INI. Tambahan manual yang WAJIB dipertahankan
+// setiap kali skema auth di-regenerate:
+//   - tabel `user`: `role` + `isActive` (dari `user.additionalFields` di
+//     `src/lib/auth.ts`) — CLI hanya menulis `.default(...)`, `.notNull()` manual.
+//   - tabel `account`: kolom `issuer` + unique index `(issuer, account_id)`.
+//     better-auth 1.7 ("account identity is scoped by issuer") mewajibkannya,
+//     tapi `@better-auth/cli` masih 1.4.x dan belum menghasilkannya. Sign-in
+//     email/password mencari akun via `issuer = 'local:credential'`
+//     (`createLocalAccountIssuer('credential')`).
+//
+// Invarian di atas dikunci oleh `tests/unit/auth-schema.test.ts` — CI gagal
+// keras kalau skema drift, bukan login produksi yang diam-diam patah.
+
+export const user = pgTable('user', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').default(false).notNull(),
+  image: text('image'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+  role: text('role').default('admin').notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+})
+
+export const session = pgTable(
+  'session',
+  {
+    id: text('id').primaryKey(),
+    expiresAt: timestamp('expires_at').notNull(),
+    token: text('token').notNull().unique(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+  },
+  (table) => [index('session_userId_idx').on(table.userId)],
+)
+
+export const account = pgTable(
+  'account',
+  {
+    id: text('id').primaryKey(),
+    accountId: text('account_id').notNull(),
+    providerId: text('provider_id').notNull(),
+    issuer: text('issuer').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at'),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+    scope: text('scope'),
+    password: text('password'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('account_userId_idx').on(table.userId),
+    uniqueIndex('account_issuer_accountId_uidx').on(table.issuer, table.accountId),
+  ],
+)
+
+export const verification = pgTable(
+  'verification',
+  {
+    id: text('id').primaryKey(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index('verification_identifier_idx').on(table.identifier)],
+)
+
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+}))
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}))
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
+}))

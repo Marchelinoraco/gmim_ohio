@@ -1716,7 +1716,7 @@ export const siteSettings = pgTable('site_settings', {
 })
 ```
 
-> Cek hasil generate `auth.ts`: (a) nama ekspor tabel user (`user` vs `users`) — sesuaikan impor; (b) tipe kolom `id` tabel user. better-auth default memakai `text` id (bukan uuid), sehingga `updatedBy: text('updated_by')` di atas benar. Jika generate menghasilkan `uuid`, ubah `updatedBy` jadi `uuid('updated_by')`.
+> **Terverifikasi di Task 9:** tabel user diekspor sebagai `user` (singular), kolom `id` = `text('id').primaryKey()` (BUKAN uuid). `import { user } from './auth'` + `updatedBy: text('updated_by').references(() => user.id)` di atas SUDAH BENAR.
 
 - [ ] **Step 5: `src/db/schema/index.ts`**
 
@@ -1769,7 +1769,17 @@ git commit -m "Migrasi database awal"
 
 ---
 
- ## Task 12: Seed data — kategori, kolom, settings, admin
+## Task 12: Seed data — kategori, kolom, settings, admin
+
+> **REVISI (Task 9 finding):** `disableSignUp: true` juga memblok
+> `auth.api.signUpEmail` server-side (throw di handler yang sama). Jadi
+> `src/db/seed/admin.ts` TIDAK bisa pakai `auth.api.signUpEmail`. Ganti:
+> pakai `auth.$context` → `const ctx = await auth.$context; const hash = await
+> ctx.password.hash(password); await ctx.internalAdapter.createUser({...});
+> await ctx.internalAdapter.linkAccount({ providerId: 'credential', accountId:
+> <userId>, userId: <userId>, password: hash })`. Set `role: 'admin'`,
+> `isActive: true` (via createUser data atau update setelahnya). Verifikasi
+> nama method `internalAdapter` terhadap better-auth 1.7.2 terpasang.
 
 **Files:**
 - Create: `src/db/seed/categories.ts`, `src/db/seed/kolom.ts`, `src/db/seed/settings.ts`, `src/db/seed/admin.ts`, `src/db/seed/index.ts`

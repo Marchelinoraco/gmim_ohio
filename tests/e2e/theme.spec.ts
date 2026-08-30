@@ -22,7 +22,17 @@ async function openThemeMenu(page: Page) {
 async function chooseTheme(page: Page, name: RegExp) {
   await openThemeMenu(page)
   await page.getByRole('menuitemradio', { name }).click()
+  // `choose()` di komponen menerapkan `data-theme` ke <html> + menulis
+  // localStorage SECARA SINKRON, lalu `setOpen(false)` sebagai baris terakhir —
+  // jadi menu tertutup sudah menyiratkan tema terpasang. Tegaskan lewat invariant
+  // localStorage ⇄ data-theme supaya `chooseTheme` tak pernah kembali sebelum
+  // pilihan benar-benar mendarat di DOM (bukan hanya menu-nya yang hilang).
   await expect(page.getByRole('menu')).toBeHidden()
+  await page.waitForFunction(() => {
+    const pref = localStorage.getItem('gmim-theme')
+    const attr = document.documentElement.getAttribute('data-theme')
+    return pref === 'system' ? attr === null : attr === pref
+  })
 }
 
 test('anti-flash: skrip tema inline muncul di <head> sebelum <link> app.css', async ({ page }) => {
@@ -45,7 +55,7 @@ test('default mengikuti OS dark tanpa preferensi tersimpan (tak ada data-theme)'
   const page = await ctx.newPage()
   await page.goto('/')
   expect(await page.locator('html').getAttribute('data-theme')).toBeNull()
-  expect(await bodyBg(page)).toBe(DARK_BG)
+  await expect.poll(() => bodyBg(page), { timeout: 5000 }).toBe(DARK_BG)
   await ctx.close()
 })
 
@@ -54,7 +64,7 @@ test('default light saat OS light', async ({ browser }) => {
   const page = await ctx.newPage()
   await page.goto('/')
   expect(await page.locator('html').getAttribute('data-theme')).toBeNull()
-  expect(await bodyBg(page)).toBe(LIGHT_BG)
+  await expect.poll(() => bodyBg(page), { timeout: 5000 }).toBe(LIGHT_BG)
   await ctx.close()
 })
 
@@ -64,11 +74,11 @@ test('pilih "Gelap": tersimpan di localStorage & bertahan setelah reload', async
 
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   expect(await page.evaluate(() => localStorage.getItem('gmim-theme'))).toBe('dark')
-  expect(await bodyBg(page)).toBe(DARK_BG)
+  await expect.poll(() => bodyBg(page), { timeout: 5000 }).toBe(DARK_BG)
 
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  expect(await bodyBg(page)).toBe(DARK_BG)
+  await expect.poll(() => bodyBg(page), { timeout: 5000 }).toBe(DARK_BG)
 })
 
 test('pilih "Terang" mengalahkan OS dark & bertahan reload', async ({ browser }) => {
@@ -80,7 +90,7 @@ test('pilih "Terang" mengalahkan OS dark & bertahan reload', async ({ browser })
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await page.reload()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-  expect(await bodyBg(page)).toBe(LIGHT_BG)
+  await expect.poll(() => bodyBg(page), { timeout: 5000 }).toBe(LIGHT_BG)
   await ctx.close()
 })
 

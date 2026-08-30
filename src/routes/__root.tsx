@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
+import { churchJsonLd } from '@/lib/seo'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -70,6 +71,10 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <SiteHeader />
         {children}
         <SiteFooter />
+        {/* JSON-LD Church — sekali, semua halaman. String JSON via
+            dangerouslySetInnerHTML (bukan objek di head.meta) sesuai kontrak
+            `churchJsonLd(): string`. */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: churchJsonLd() }} />
         <Scripts />
       </body>
     </html>

@@ -18,7 +18,7 @@ export const getSession = createServerFn({ method: 'GET' }).handler(async () => 
 
 export const ensureAdmin = createServerFn({ method: 'GET' }).handler(async () => {
   const session = await auth.api.getSession({ headers: getRequestHeaders() })
-  if (!session?.user || session.user.role !== 'admin' || session.user.isActive === false) {
+  if (!session?.user || session.user.role !== 'admin' || !session.user.isActive) {
     throw redirect({ href: '/admin/login' })
   }
   return { user: session.user }

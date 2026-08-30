@@ -1,8 +1,10 @@
 import { relations } from 'drizzle-orm'
 import { pgTable, text, timestamp, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
-// Di-generate oleh `pnpm auth:generate` (@better-auth/cli). Tambahan manual yang
-// WAJIB dipertahankan setiap kali skema auth di-regenerate:
+// Skema auth. Regenerasi lewat `pnpm auth:generate` → menulis
+// `auth.generated.ts` (artefak diff yang bisa direview); rekonsiliasi manual
+// role/isActive/issuer ke FILE INI. Tambahan manual yang WAJIB dipertahankan
+// setiap kali skema auth di-regenerate:
 //   - tabel `user`: `role` + `isActive` (dari `user.additionalFields` di
 //     `src/lib/auth.ts`) — CLI hanya menulis `.default(...)`, `.notNull()` manual.
 //   - tabel `account`: kolom `issuer` + unique index `(issuer, account_id)`.
@@ -10,6 +12,9 @@ import { pgTable, text, timestamp, boolean, index, uniqueIndex } from 'drizzle-o
 //     tapi `@better-auth/cli` masih 1.4.x dan belum menghasilkannya. Sign-in
 //     email/password mencari akun via `issuer = 'local:credential'`
 //     (`createLocalAccountIssuer('credential')`).
+//
+// Invarian di atas dikunci oleh `tests/unit/auth-schema.test.ts` — CI gagal
+// keras kalau skema drift, bukan login produksi yang diam-diam patah.
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),

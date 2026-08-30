@@ -1,10 +1,15 @@
 import { relations } from 'drizzle-orm'
-import { pgTable, text, timestamp, boolean, index } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
-// Di-generate oleh `pnpm auth:generate` (@better-auth/cli). Dua kolom di tabel
-// `user` — `role` + `isActive` — berasal dari `user.additionalFields` di
-// `src/lib/auth.ts`; `.notNull()` ditambahkan manual (CLI hanya menulis
-// `.default(...)`). Jaga keduanya tetap sinkron bila skema auth di-regenerate.
+// Di-generate oleh `pnpm auth:generate` (@better-auth/cli). Tambahan manual yang
+// WAJIB dipertahankan setiap kali skema auth di-regenerate:
+//   - tabel `user`: `role` + `isActive` (dari `user.additionalFields` di
+//     `src/lib/auth.ts`) — CLI hanya menulis `.default(...)`, `.notNull()` manual.
+//   - tabel `account`: kolom `issuer` + unique index `(issuer, account_id)`.
+//     better-auth 1.7 ("account identity is scoped by issuer") mewajibkannya,
+//     tapi `@better-auth/cli` masih 1.4.x dan belum menghasilkannya. Sign-in
+//     email/password mencari akun via `issuer = 'local:credential'`
+//     (`createLocalAccountIssuer('credential')`).
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
@@ -46,6 +51,7 @@ export const account = pgTable(
     id: text('id').primaryKey(),
     accountId: text('account_id').notNull(),
     providerId: text('provider_id').notNull(),
+    issuer: text('issuer').notNull(),
     userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
@@ -61,7 +67,10 @@ export const account = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index('account_userId_idx').on(table.userId)],
+  (table) => [
+    index('account_userId_idx').on(table.userId),
+    uniqueIndex('account_issuer_accountId_uidx').on(table.issuer, table.accountId),
+  ],
 )
 
 export const verification = pgTable(

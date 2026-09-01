@@ -69,7 +69,7 @@ function About() {
 
         <Section id="pendeta">
           <SectionTitle>{m.about_pastor_title()}</SectionTitle>
-          <p className="text-ink font-medium">{m.about_pastor_name()}</p>
+          <p className="text-ink mb-2 font-medium">{m.about_pastor_name()}</p>
           <Paragraphs text={m.about_pastor_body()} />
         </Section>
       </Container>

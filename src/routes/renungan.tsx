@@ -51,13 +51,13 @@ function RenunganList() {
                   params={{ slug: d.slug }}
                   className="focus-visible:ring-secondary/60 focus-visible:ring-offset-surface rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 >
-                  <Card className="h-full transition-shadow hover:shadow-md">
+                  <Card className="h-full overflow-hidden pt-0 transition-shadow hover:shadow-md">
                     {d.coverImageUrl && (
                       <img
                         src={d.coverImageUrl}
                         alt=""
                         loading="lazy"
-                        className="aspect-[16/9] w-full rounded-t object-cover"
+                        className="aspect-[16/9] w-full object-cover"
                       />
                     )}
                     <CardHeader>

@@ -194,7 +194,11 @@ function GaleriAlbum() {
                       loading="lazy"
                       className="aspect-square w-full rounded object-cover"
                     />
-                    {/* Scrim + segitiga play (dekoratif — tombol sudah punya aria-label). */}
+                    {/* Scrim + segitiga play (dekoratif — tombol sudah punya aria-label).
+                        `bg-black/*` + `text-white` di sini BUKAN pelanggaran token:
+                        ini afordans yang di-composite di atas media gambar (tak ada
+                        token untuk "gelapkan gambar ini"), identik di kedua tema —
+                        pengecualian yang sama dengan overlay lightbox. */}
                     <span className="absolute inset-0 bg-black/30" aria-hidden="true" />
                     <span
                       className="absolute inset-0 flex items-center justify-center"

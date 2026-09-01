@@ -50,13 +50,13 @@ function GaleriList() {
                   params={{ id: a.id }}
                   className="focus-visible:ring-secondary/60 focus-visible:ring-offset-surface rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 >
-                  <Card className="h-full transition-shadow hover:shadow-md">
+                  <Card className="h-full overflow-hidden pt-0 transition-shadow hover:shadow-md">
                     {a.coverImageUrl && (
                       <img
                         src={a.coverImageUrl}
                         alt=""
                         loading="lazy"
-                        className="aspect-[4/3] w-full rounded-t object-cover"
+                        className="aspect-[4/3] w-full object-cover"
                       />
                     )}
                     <CardHeader>

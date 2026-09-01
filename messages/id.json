@@ -51,5 +51,10 @@
   "warta_subtitle": "Warta mingguan jemaat: tema ibadah, pengumuman, dan jadwal pelayanan sepanjang minggu.",
   "warta_empty": "Belum ada warta.",
   "warta_download_pdf": "Unduh PDF",
-  "warta_back": "Kembali ke daftar warta"
+  "warta_back": "Kembali ke daftar warta",
+  "renungan_title": "Renungan",
+  "renungan_subtitle": "Renungan singkat untuk menguatkan iman keluarga perantauan sepanjang minggu.",
+  "renungan_empty": "Belum ada renungan.",
+  "renungan_by": "oleh {author}",
+  "renungan_back": "Kembali ke daftar renungan"
 }

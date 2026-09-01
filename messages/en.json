@@ -51,5 +51,10 @@
   "warta_subtitle": "The congregation's weekly bulletin: the service theme, announcements, and the ministry schedule for the week.",
   "warta_empty": "No bulletins yet.",
   "warta_download_pdf": "Download PDF",
-  "warta_back": "Back to bulletins"
+  "warta_back": "Back to bulletins",
+  "renungan_title": "Devotionals",
+  "renungan_subtitle": "Short devotionals to strengthen the faith of our diaspora families through the week.",
+  "renungan_empty": "No devotionals yet.",
+  "renungan_by": "by {author}",
+  "renungan_back": "Back to devotionals"
 }

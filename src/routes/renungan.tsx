@@ -4,6 +4,7 @@ import { getLocale } from '@/paraglide/runtime'
 import { listDevotionals } from '@/features/content/devotionals'
 import { formatDateLong } from '@/lib/datetime'
 import { pageMeta } from '@/lib/seo'
+import { cn } from '@/lib/utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Container } from '@/components/site/container'
 import { EmptyState } from '@/components/site/empty-state'
@@ -51,7 +52,12 @@ function RenunganList() {
                   params={{ slug: d.slug }}
                   className="focus-visible:ring-secondary/60 focus-visible:ring-offset-surface rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 >
-                  <Card className="h-full overflow-hidden pt-0 transition-shadow hover:shadow-md">
+                  <Card
+                    className={cn(
+                      'h-full transition-shadow hover:shadow-md',
+                      d.coverImageUrl && 'overflow-hidden pt-0',
+                    )}
+                  >
                     {d.coverImageUrl && (
                       <img
                         src={d.coverImageUrl}

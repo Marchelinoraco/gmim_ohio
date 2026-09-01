@@ -56,5 +56,14 @@
   "renungan_subtitle": "Renungan singkat untuk menguatkan iman keluarga perantauan sepanjang minggu.",
   "renungan_empty": "Belum ada renungan.",
   "renungan_by": "oleh {author}",
-  "renungan_back": "Kembali ke daftar renungan"
+  "renungan_back": "Kembali ke daftar renungan",
+  "galeri_title": "Galeri",
+  "galeri_subtitle": "Dokumentasi ibadah dan kegiatan jemaat GMIM Musafir dalam foto dan video.",
+  "galeri_empty": "Belum ada album.",
+  "galeri_photos_count": "{count} media",
+  "galeri_back": "Kembali ke galeri",
+  "galeri_watch_video": "Putar video",
+  "lightbox_prev": "Sebelumnya",
+  "lightbox_next": "Berikutnya",
+  "lightbox_close": "Tutup"
 }

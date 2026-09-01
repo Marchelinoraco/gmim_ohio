@@ -56,5 +56,14 @@
   "renungan_subtitle": "Short devotionals to strengthen the faith of our diaspora families through the week.",
   "renungan_empty": "No devotionals yet.",
   "renungan_by": "by {author}",
-  "renungan_back": "Back to devotionals"
+  "renungan_back": "Back to devotionals",
+  "galeri_title": "Gallery",
+  "galeri_subtitle": "Worship services and congregational life at GMIM Musafir, in photos and video.",
+  "galeri_empty": "No albums yet.",
+  "galeri_photos_count": "{count} media",
+  "galeri_back": "Back to the gallery",
+  "galeri_watch_video": "Play video",
+  "lightbox_prev": "Previous",
+  "lightbox_next": "Next",
+  "lightbox_close": "Close"
 }

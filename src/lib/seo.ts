@@ -15,7 +15,6 @@
  * Modul ini tidak meng-import Paraglide runtime: `locale` selalu diterima
  * eksplisit sebagai parameter (pemanggil meneruskan `getLocale()`).
  */
-import type { MetaDescriptor } from '@tanstack/react-router'
 import { SITE } from '@/config/site'
 
 /**
@@ -26,13 +25,19 @@ import { SITE } from '@/config/site'
 export type LinkDescriptor = { rel: string; href: string; hreflang?: string }
 
 /**
- * Elemen `meta` = `MetaDescriptor` TanStack, dilebarkan dengan index signature.
- * `MetaDescriptor` adalah union (`{ title } | { name; content } | ...`); tanpa
- * pelebaran ini, akses kunci-string langsung (`m.title`, `m.property`) tak
- * ter-typecheck tanpa narrowing. `head()` sendiri mengetikkan `meta` sebagai
- * `unknown`, jadi pelebaran ini tak melonggarkan apa pun di sisi pemanggil.
+ * Bentuk elemen `meta`. `MetaDescriptor` TanStack adalah union anggota-disjoint
+ * (`{ title } | { name; content } | { charSet } | ...`), jadi akses kunci
+ * langsung (`m.title`, `m.property`) tak ter-typecheck di atasnya. Struct
+ * kunci-opsional ini menutup pola akses itu, mengetikkan nilainya
+ * `string | undefined` (bukan `unknown`), dan tetap kena excess-property check
+ * pada object literal di bawah sehingga kunci salah-ketik tertangkap.
  */
-type MetaTag = MetaDescriptor & Record<string, unknown>
+type MetaTag = {
+  title?: string
+  name?: string
+  property?: string
+  content?: string
+}
 
 interface PageMetaOpts {
   /** Path route, mis. `/warta`, `/warta/123`, `/`. */
@@ -57,6 +62,12 @@ function localeUrl(path: string, locale: 'id' | 'en'): string {
   return url.endsWith('/') ? url.slice(0, -1) : url
 }
 
+/**
+ * Menghasilkan `{ meta, links }` siap-pakai untuk `head()` sebuah route: judul,
+ * deskripsi, tag Open Graph + Twitter Card, canonical, dan alternate hreflang
+ * id/en/x-default. Pemanggil meneruskan `getLocale()` (dari `@/paraglide/runtime`)
+ * sebagai `locale` supaya keluaran ikut request id vs `/en`.
+ */
 export function pageMeta(opts: PageMetaOpts): { meta: MetaTag[]; links: LinkDescriptor[] } {
   const { path, titleId, titleEn, descId, descEn, locale, image } = opts
 
@@ -67,7 +78,7 @@ export function pageMeta(opts: PageMetaOpts): { meta: MetaTag[]; links: LinkDesc
   const enUrl = localeUrl(path, 'en')
   const ogLocale = locale === 'en' ? 'en_US' : 'id_ID'
   const rawImage = image ?? SITE.hero.poster
-  const ogImage = rawImage.startsWith('http') ? rawImage : `${SITE.url}${rawImage}`
+  const ogImage = /^https?:\/\//.test(rawImage) ? rawImage : `${SITE.url}${rawImage}`
 
   return {
     meta: [
@@ -100,7 +111,7 @@ export function pageMeta(opts: PageMetaOpts): { meta: MetaTag[]; links: LinkDesc
  * `dangerouslySetInnerHTML` pada `<script type="application/ld+json">`.
  */
 export function churchJsonLd(): string {
-  return JSON.stringify({
+  const json = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'Church',
     name: SITE.name,
@@ -114,4 +125,8 @@ export function churchJsonLd(): string {
     },
     sameAs: [SITE.facebookUrl],
   })
+  // Escape `<` — output disuntik via dangerouslySetInnerHTML ke <script>; ini
+  // mencegah `</script>` di nilai mana pun (kelak) menutup tag lebih awal.
+  // `JSON.parse` tetap round-trip (< → '<'), jadi test tak berubah.
+  return json.replace(/</g, '\\u003c')
 }

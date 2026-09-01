@@ -41,7 +41,7 @@ function WartaList() {
       <Container>
         <Section>
           {data.length === 0 ? (
-            <EmptyState title={m.warta_empty()} message={m.warta_subtitle()} />
+            <EmptyState title={m.warta_empty()} />
           ) : (
             <div className="grid gap-6 sm:grid-cols-2">
               {data.map((b) => (

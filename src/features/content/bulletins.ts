@@ -5,9 +5,12 @@ import type { SanitizedHtml } from '@/lib/sanitize'
 /**
  * Lapisan tipe + query baca untuk `bulletins` (Warta Jemaat).
  *
- * Server fn di sini mengembalikan baris DB mentah — HTML `bodyId`/`bodyEn`
- * BELUM disanitasi; sanitasi dikerjakan di titik render (loader task halaman)
- * lewat `sanitizeRichText`, supaya lapisan ini tetap murni data + tipe jelas.
+ * `listBulletins` / `getBulletin` mengembalikan baris DB mentah — HTML
+ * `bodyId`/`bodyEn` BELUM disanitasi; sanitasi (kalau perlu) dikerjakan di titik
+ * render. `getBulletinDetail` adalah PENGECUALIAN yang disengaja: ia menyanitasi
+ * `bodyId`/`bodyEn` DI DALAM server fn dan mengembalikannya sebagai
+ * `SanitizedHtml`, justru supaya `sanitizeRichText` (dan paket `sanitize-html`
+ * di baliknya) tak pernah ikut ke loader route maupun bundle klien.
  *
  * `@/db` dan skema di-import lazy DI DALAM tiap handler supaya modul route yang
  * memuat server fn ini tidak ikut meng-evaluasi `@/lib/env` saat bundling.
@@ -31,6 +34,7 @@ export const listBulletins = createServerFn({ method: 'GET' }).handler(
   },
 )
 
+// Body mentah — dipakai Rencana 3 (form edit admin), bukan halaman publik.
 /** Satu warta terbit berdasarkan id; `null` bila tidak ada / belum terbit. */
 export const getBulletin = createServerFn({ method: 'GET' })
   .validator((id: string) => id)
@@ -62,9 +66,10 @@ export type BulletinDetail = Bulletin & {
  * handler ini — batas server keras `createServerFn` — supaya tak pernah masuk
  * bundle klien lewat modul route yang meng-import fn ini.
  *
- * Validator = identitas `(id: string) => id`; id non-UUID menembus ke Postgres
- * dan melempar `22P02`. Loader route yang memanggil fn ini WAJIB membungkus
- * dalam try/catch dan mengubahnya jadi `notFound()`.
+ * Validator = identitas `(id: string) => id` (tanpa cek UUID). Loader route yang
+ * memanggil fn ini WAJIB memfilter dulu id berbentuk UUID → `notFound()`, supaya
+ * id ngawur tak menembus ke Postgres jadi `22P02` (500). Kegagalan infra asli
+ * tetap dibiarkan naik sebagai 500.
  */
 export const getBulletinDetail = createServerFn({ method: 'GET' })
   .validator((id: string) => id)

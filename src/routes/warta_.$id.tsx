@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { getLocale } from '@/paraglide/runtime'
-import { getBulletinDetail, type BulletinDetail } from '@/features/content/bulletins'
+import { getBulletinDetail } from '@/features/content/bulletins'
 import { formatDateLong } from '@/lib/datetime'
 import { pageMeta } from '@/lib/seo'
 import { Button } from '@/components/ui/button'
@@ -9,19 +9,18 @@ import { Container } from '@/components/site/container'
 import { Prose } from '@/components/site/prose'
 import { Section } from '@/components/site/section'
 
+// Validator `getBulletinDetail` = identitas (tanpa cek UUID). Pre-check di loader
+// menyaring id ngawur (mis. `/warta/xyz`) jadi 404 sebelum menyentuh Postgres —
+// tanpa ini id non-UUID melempar `22P02 invalid input syntax for type uuid` (500).
+// Kegagalan infra asli (DB down, dsb.) sengaja TIDAK ditangkap → naik sebagai 500.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export const Route = createFileRoute('/warta_/$id')({
-  // Validator `getBulletinDetail` = identitas, jadi id non-UUID (mis. `/warta/xyz`)
-  // menembus ke Postgres → `22P02 invalid input syntax for type uuid` → 500.
-  // try/catch mengubahnya jadi 404; `throw notFound()` untuk baris tak ada
-  // sengaja DI LUAR catch supaya tak ikut tertelan. Root `notFoundComponent`
-  // (di __root.tsx) yang merender halaman 404.
+  // id non-UUID → pre-check → 404. Baris tak ada / belum terbit → 404.
+  // Root `notFoundComponent` (di __root.tsx) yang merender halaman 404.
   loader: async ({ params }) => {
-    let detail: BulletinDetail | null
-    try {
-      detail = await getBulletinDetail({ data: params.id })
-    } catch {
-      throw notFound()
-    }
+    if (!UUID_RE.test(params.id)) throw notFound()
+    const detail = await getBulletinDetail({ data: params.id })
     if (!detail) throw notFound()
     return detail
   },

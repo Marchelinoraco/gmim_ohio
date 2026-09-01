@@ -12,18 +12,18 @@ export function EmptyState({
   icon,
 }: {
   title: string
-  message: string
+  message?: string
   icon?: ReactNode
 }) {
   return (
-    <div className="border-border bg-surface rounded border p-8 text-center sm:p-12">
+    <div className="border-border bg-surface mx-auto max-w-md rounded border p-8 text-center shadow-sm sm:p-12">
       {icon ? (
         <div className="text-muted mx-auto mb-3 flex h-10 w-10 items-center justify-center">
           {icon}
         </div>
       ) : null}
       <p className="text-ink font-medium">{title}</p>
-      <p className="text-muted mx-auto mt-2 max-w-md">{message}</p>
+      {message ? <p className="text-muted mt-2">{message}</p> : null}
     </div>
   )
 }

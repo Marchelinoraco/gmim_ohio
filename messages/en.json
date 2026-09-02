@@ -88,5 +88,18 @@
   "visit_expect_body": "Come as you are, in neat but casual clothes — there is no need to dress formally. Children are very welcome, and no one minds if they make a little noise during the service.\n\nThe service is in Indonesian, and the congregation is glad to help if it is your first time. There is usually a time of fellowship after the service — a good chance to get to know the families of the church.",
   "visit_contact_title": "Contact",
   "visit_open_maps": "Open in Google Maps",
-  "visit_map_label": "Church location map"
+  "visit_map_label": "Church location map",
+  "giving_title": "Give",
+  "giving_subtitle": "Your giving sustains the worship, category ministries, and works of love of GMIM Musafir in the diaspora.",
+  "giving_bank": "Bank",
+  "giving_account_no": "Account number",
+  "giving_holder": "Account holder",
+  "giving_copy": "Copy number",
+  "giving_copied": "Copied",
+  "giving_empty": "Giving details are not available yet.",
+  "live_title": "Watch Live",
+  "live_subtitle": "Join GMIM Musafir's worship live, wherever you are.",
+  "live_offline": "There is no live stream right now.",
+  "live_watch_archive": "Watch a past service",
+  "live_next_note": "The live stream starts shortly before Sunday worship. See the worship schedule for the full times."
 }

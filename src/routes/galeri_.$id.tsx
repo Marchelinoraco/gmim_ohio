@@ -7,6 +7,7 @@ import { getGalleryAlbum } from '@/features/content/gallery'
 import type { GalleryItem } from '@/features/content/gallery'
 import { formatDateLong } from '@/lib/datetime'
 import { pageMeta } from '@/lib/seo'
+import { youtubeId } from '@/lib/video'
 import { Container } from '@/components/site/container'
 import { Section } from '@/components/site/section'
 import { Lightbox } from '@/components/site/lightbox'
@@ -16,31 +17,6 @@ import { Lightbox } from '@/components/site/lightbox'
 // input syntax for type uuid` → 500. Pre-check di loader menyaringnya jadi 404
 // sebelum menyentuh DB. Kegagalan infra asli sengaja TIDAK ditangkap → 500.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-/**
- * Ekstrak id video dari URL YouTube. Menangani bentuk `watch?v=ID`,
- * `youtu.be/ID`, dan `/embed/ID` (plus `/v/`, `/shorts/`). `null` bila tak
- * dikenali — pemanggil melewati item tersebut.
- */
-export function youtubeId(url: string): string | null {
-  let parsed: URL
-  try {
-    parsed = new URL(url)
-  } catch {
-    return null
-  }
-  const host = parsed.hostname.replace(/^www\./, '')
-  if (host === 'youtu.be') {
-    const id = parsed.pathname.split('/').filter(Boolean)[0]
-    return id ?? null
-  }
-  if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
-    if (parsed.pathname === '/watch') return parsed.searchParams.get('v')
-    const parts = parsed.pathname.split('/').filter(Boolean)
-    if (parts[0] === 'embed' || parts[0] === 'v' || parts[0] === 'shorts') return parts[1] ?? null
-  }
-  return null
-}
 
 export const Route = createFileRoute('/galeri_/$id')({
   // id non-UUID → pre-check → 404. Album tak ada / belum terbit → 404.

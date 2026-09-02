@@ -13,8 +13,9 @@ describe('parseSiteSettings', () => {
 
   it('mengisi default bila sebuah key hilang', () => {
     const s = parseSiteSettings([]) // tak ada baris
-    expect(s.liveStream).toEqual({ isLive: false, url: '', archiveUrl: '' })
-    expect(s.givingInfo.accounts).toEqual([])
+    // Fallback = `DEFAULT_SETTINGS` apa adanya (dibaca lewat schema yang sama).
+    expect(s.liveStream).toEqual(DEFAULT_SETTINGS.live_stream)
+    expect(s.givingInfo).toEqual(DEFAULT_SETTINGS.giving_info)
   })
 
   it('melempar bila value sebuah key bentuknya salah', () => {

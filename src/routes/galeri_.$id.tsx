@@ -33,8 +33,7 @@ export const Route = createFileRoute('/galeri_/$id')({
           path: `/galeri/${loaderData.album.id}`,
           titleId: loaderData.album.titleId,
           titleEn: loaderData.album.titleEn,
-          descId:
-            'Dokumentasi foto dan video kegiatan jemaat GMIM Musafir Columbus Ohio.',
+          descId: 'Dokumentasi foto dan video kegiatan jemaat GMIM Musafir Columbus Ohio.',
           descEn:
             'Photos and videos documenting the life of the GMIM Musafir Columbus Ohio congregation.',
           locale: getLocale(),

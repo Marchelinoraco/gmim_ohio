@@ -11,7 +11,7 @@ import { Container } from '@/components/site/container'
 import { EmptyState } from '@/components/site/empty-state'
 import { PageHero } from '@/components/site/page-hero'
 import { Paragraphs } from '@/components/site/paragraphs'
-import { Section } from '@/components/site/section'
+import { Section, SectionTitle } from '@/components/site/section'
 
 type GivingAccount = SiteSettings['givingInfo']['accounts'][number]
 
@@ -46,25 +46,30 @@ export const Route = createFileRoute('/persembahan')({
 
 /**
  * Satu kartu rekening. Komponen lokal karena butuh state "tersalin" PER-kartu:
- * `copied` di-set di handler klik, direset ~2 dtk kemudian lewat `setTimeout`
- * yang di-`clearTimeout` di cleanup `useEffect` (cegah set-state setelah unmount
- * / klik beruntun). `navigator.clipboard.writeText` HANYA dipanggil di dalam
- * handler dan dibungkus try/catch — clipboard bisa ditolak (konteks non-secure,
- * izin) dan tak boleh melempar ke render tree; gagal salin = tombol tak berubah.
+ * `copiedAt` di-set di handler klik, direset ke `null` ~2 dtk kemudian lewat
+ * `setTimeout` yang di-`clearTimeout` di cleanup `useEffect` (cegah set-state
+ * setelah unmount / klik beruntun). Dipakai timestamp, BUKAN boolean: klik-salin
+ * beruntun selalu menghasilkan nilai state baru → `useEffect` selalu re-run →
+ * timer flash direset dari klik TERAKHIR (React bail-out bila `setCopied(true)`
+ * dipanggil dengan nilai yang sama). `navigator.clipboard.writeText` HANYA
+ * dipanggil di dalam handler dan dibungkus try/catch — clipboard bisa ditolak
+ * (konteks non-secure, izin) dan tak boleh melempar ke render tree; gagal salin
+ * = tombol tak berubah.
  */
 function AccountCard({ account }: { account: GivingAccount }) {
-  const [copied, setCopied] = useState(false)
+  const [copiedAt, setCopiedAt] = useState<number | null>(null)
+  const copied = copiedAt !== null
 
   useEffect(() => {
-    if (!copied) return
-    const timer = setTimeout(() => setCopied(false), 2000)
+    if (copiedAt === null) return
+    const timer = setTimeout(() => setCopiedAt(null), 2000)
     return () => clearTimeout(timer)
-  }, [copied])
+  }, [copiedAt])
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(account.number)
-      setCopied(true)
+      setCopiedAt(Date.now())
     } catch {
       // Clipboard tak tersedia (konteks non-secure, izin ditolak, dll.) — diam.
     }
@@ -88,7 +93,16 @@ function AccountCard({ account }: { account: GivingAccount }) {
           </div>
         </dl>
         <div className="mt-5">
-          <Button type="button" variant="outline" size="sm" onClick={handleCopy} aria-live="polite">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleCopy}
+            aria-live="polite"
+            // Label terlihat tetap generik; aria-label menyertakan bank supaya
+            // saat ada >1 rekening tiap tombol punya nama aksesibel yang unik.
+            aria-label={`${m.giving_copy()} — ${account.bank}`}
+          >
             {copied ? m.giving_copied() : m.giving_copy()}
           </Button>
         </div>
@@ -108,6 +122,7 @@ function Persembahan() {
       <PageHero title={m.giving_title()} subtitle={m.giving_subtitle()} />
       <Container>
         <Section>
+          <SectionTitle>{m.giving_accounts_title()}</SectionTitle>
           {givingInfo.accounts.length === 0 ? (
             <EmptyState title={m.giving_empty()} />
           ) : (

@@ -74,7 +74,8 @@ function RenunganDetail() {
           {/* Halaman ini tanpa <PageHero>, jadi judul renungan = satu-satunya <h1>. */}
           <h1 className="text-ink font-serif text-3xl sm:text-4xl">{title}</h1>
           <p className="text-muted mt-3">
-            {formatDateLong(data.publishedDate, locale)} · {m.renungan_by({ author: data.authorName })}
+            {formatDateLong(data.publishedDate, locale)} ·{' '}
+            {m.renungan_by({ author: data.authorName })}
           </p>
 
           {bodyHtml && <Prose html={bodyHtml} className="mt-6" />}

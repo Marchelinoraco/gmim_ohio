@@ -124,7 +124,10 @@ export function Lightbox({ items, index, open, onClose, onNav }: LightboxProps) 
             <Dialog.Title>{current?.caption ?? m.galeri_title()}</Dialog.Title>
           </VisuallyHidden.Root>
 
-          <Dialog.Close aria-label={m.lightbox_close()} className={`absolute top-2 right-2 z-10 ${chromeButton}`}>
+          <Dialog.Close
+            aria-label={m.lightbox_close()}
+            className={`absolute top-2 right-2 z-10 ${chromeButton}`}
+          >
             <CloseIcon className="h-5 w-5" />
           </Dialog.Close>
 

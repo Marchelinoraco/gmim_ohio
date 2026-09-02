@@ -16,6 +16,8 @@
  * Ekstrak id video dari URL YouTube. Menangani `watch?v=ID`, `youtu.be/ID`,
  * `/embed/ID`, `/v/ID`, `/shorts/ID` pada host `youtube.com` / `m.youtube.com` /
  * `youtube-nocookie.com`. `null` bila URL tak bisa di-parse atau bukan YouTube.
+ * Kasus tepi: `watch?v=` dengan `v` KOSONG mengembalikan `''` (bukan `null`) —
+ * pemanggil memakai `if (!id)` jadi keduanya sama-sama ditolak.
  */
 export function youtubeId(url: string): string | null {
   let parsed: URL
@@ -56,6 +58,10 @@ export function liveEmbedSrc(url: string): string | null {
   }
   const host = parsed.hostname.replace(/^www\./, '')
   if (host === 'facebook.com' || host === 'web.facebook.com' || host === 'fb.watch') {
+    // `plugins/video.php` mengharap permalink kanonis (`/…/videos/<id>` atau
+    // `/watch/?v=<id>`); short link `fb.watch/<slug>` kadang tak resolve di dalam
+    // iframe. Yang menyambungkan stream asli (Rencana 2b / Rencana 3) sebaiknya
+    // menyimpan permalink lengkap, bukan short link.
     return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`
   }
   return null

@@ -70,11 +70,32 @@ describe('liveEmbedSrc', () => {
     )
   })
 
+  it('URL video web.facebook.com → src plugin video Facebook (href ter-encode)', () => {
+    const url = 'https://web.facebook.com/gmimmusafir.columbus/videos/9876543210987654/'
+    expect(liveEmbedSrc(url)).toBe(
+      `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`,
+    )
+  })
+
   it('host tak dikenal → null', () => {
     expect(liveEmbedSrc('https://vimeo.com/123456789')).toBeNull()
   })
 
   it('string sampah → null', () => {
     expect(liveEmbedSrc('nope')).toBeNull()
+  })
+
+  // Nilai keamanan `liveEmbedSrc` = pemeriksaan host EXACT-equality. Kunci dari
+  // regresi: host mirip-Facebook / mirip-YouTube tak boleh lolos jadi embed.
+  it('host mirip-Facebook (subdomain palsu) → null', () => {
+    expect(liveEmbedSrc('https://facebook.com.evil.tld/gmimmusafir/videos/1/')).toBeNull()
+  })
+
+  it('host mirip-Facebook (prefiks palsu) → null', () => {
+    expect(liveEmbedSrc('https://notfacebook.com/gmimmusafir/videos/1/')).toBeNull()
+  })
+
+  it('host mirip-YouTube → null', () => {
+    expect(liveEmbedSrc('https://evil-youtube.com/watch?v=abc123')).toBeNull()
   })
 })

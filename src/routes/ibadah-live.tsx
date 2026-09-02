@@ -52,11 +52,15 @@ function IbadahLive() {
     <main>
       <PageHero title={m.live_title()} subtitle={m.live_subtitle()} />
       <Container>
+        {/* Tanpa <SectionTitle>: halaman ini satu blok "embed-atau-offline",
+            judul section cuma jadi derau. Bandingkan kunjungi.tsx yang menamai
+            tiap section karena memang punya banyak. */}
         <Section>
           {embed ? (
             <iframe
               src={embed}
               title={m.live_title()}
+              loading="lazy"
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
               className="border-border aspect-video w-full rounded border"

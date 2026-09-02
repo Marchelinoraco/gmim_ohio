@@ -77,5 +77,16 @@
   "contact_success": "Terima kasih. Pesan Anda sudah kami terima dan akan segera kami balas.",
   "contact_error": "Maaf, pesan gagal terkirim. Silakan coba lagi.",
   "contact_rate_limited": "Terlalu banyak percobaan. Coba lagi dalam beberapa menit.",
-  "contact_required_hint": "Wajib diisi"
+  "contact_required_hint": "Wajib diisi",
+  "visit_title": "Kunjungi Kami",
+  "visit_subtitle": "Kami menyambut Anda untuk beribadah bersama Jemaat GMIM Musafir di Columbus, Ohio. Berikut alamat, jam ibadah, dan hal-hal yang baik diketahui sebelum datang.",
+  "visit_address_title": "Alamat & Peta",
+  "visit_hours_title": "Jam Ibadah & Kantor",
+  "visit_service_times_label": "Jam ibadah",
+  "visit_office_hours_label": "Jam kantor",
+  "visit_expect_title": "Yang Perlu Diketahui",
+  "visit_expect_body": "Datanglah apa adanya dengan pakaian yang rapi dan sopan — tidak perlu formal. Anak-anak sangat kami sambut, dan tak seorang pun keberatan bila mereka sesekali bersuara selama ibadah.\n\nIbadah berlangsung dalam bahasa Indonesia, dan jemaat dengan senang hati membantu Anda yang baru pertama kali hadir. Seusai ibadah biasanya ada waktu ramah-tamah — kesempatan yang baik untuk saling berkenalan dengan keluarga-keluarga jemaat.",
+  "visit_contact_title": "Kontak",
+  "visit_open_maps": "Buka di Google Maps",
+  "visit_map_label": "Peta lokasi gereja"
 }

@@ -7,10 +7,12 @@ import { submitContactMessage } from '@/features/contact/submit'
  * `<ContactForm>` — komponen KLIEN untuk form kontak di halaman `/kunjungi`
  * (dirender oleh Task 12; komponen ini TIDAK membuat route).
  *
- * Mengirim ke server fn `submitContactMessage`. State lokal `status` menggerakkan
- * tombol (disabled saat `sending`) dan wilayah pesan `role="status"`
- * `aria-live="polite"` supaya pembaca layar mengumumkan sukses/gagal.
- * `errorKey` memisahkan "kena rate-limit" dari galat umum.
+ * Mengirim ke server fn `submitContactMessage` yang membalas discriminated union:
+ * `{ ok: true }` sukses, `{ ok: false, reason: 'RATE_LIMITED' }` kena batas. State
+ * lokal `status` menggerakkan tombol (disabled saat `sending`) dan wilayah pesan
+ * `role="status"` `aria-live="polite"` (dirujuk tombol via `aria-describedby`)
+ * supaya pembaca layar mengumumkan sukses/gagal. `errorKey` memisahkan "kena
+ * rate-limit" dari galat transport/DB (yang datang sebagai throw).
  *
  * SSR-safe: tak ada akses `window`/`document` di scope modul maupun saat render —
  * hanya di dalam handler submit. Semua `id` dari `useId()` supaya label ⇄ input
@@ -32,7 +34,6 @@ export function ContactForm() {
   const nameId = `${baseId}-name`
   const emailId = `${baseId}-email`
   const phoneId = `${baseId}-phone`
-  const phoneHintId = `${baseId}-phone-hint`
   const messageId = `${baseId}-message`
   const statusId = `${baseId}-status`
 
@@ -48,18 +49,28 @@ export function ContactForm() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    // `disabled` pada tombol memblok klik tapi bukan submit lewat Enter — cegah
+    // pengiriman ganda sebelum React sempat commit `status='sending'`.
+    if (sending) return
     setStatus('sending')
     try {
-      await submitContactMessage({ data: { name, email, phone, message, website } })
+      const res = await submitContactMessage({ data: { name, email, phone, message, website } })
+      if (!res.ok) {
+        // Kena rate-limit — jangan bersihkan field, pengunjung harus tetap punya
+        // apa yang sudah diketik.
+        setErrorKey('rate_limited')
+        setStatus('error')
+        return
+      }
       setStatus('success')
       setName('')
       setEmail('')
       setPhone('')
       setMessage('')
       setWebsite('')
-    } catch (err) {
-      const text = err instanceof Error ? err.message : String(err)
-      setErrorKey(text.includes('RATE_LIMITED') ? 'rate_limited' : 'generic')
+    } catch {
+      // Kegagalan transport / DB asli.
+      setErrorKey('generic')
       setStatus('error')
     }
   }
@@ -115,13 +126,9 @@ export function ContactForm() {
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          aria-describedby={phoneHintId}
           autoComplete="tel"
           className={inputClass}
         />
-        <p id={phoneHintId} className="text-muted text-xs">
-          {m.contact_phone_hint()}
-        </p>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -154,7 +161,12 @@ export function ContactForm() {
       />
 
       <div>
-        <Button type="submit" disabled={sending} aria-disabled={sending}>
+        <Button
+          type="submit"
+          disabled={sending}
+          aria-disabled={sending}
+          aria-describedby={statusId}
+        >
           {sending ? m.contact_sending() : m.contact_submit()}
         </Button>
       </div>

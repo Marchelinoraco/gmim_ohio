@@ -50,6 +50,9 @@ export function checkRateLimit(
   }
 
   const entry = store.get(ip)
+  // `entry.resetAt <= now` di sini tak akan pernah true — loop prune di atas
+  // sudah menghapus semua entri kedaluwarsa. Dibiarkan sebagai redundansi
+  // defensif; bukan cabang yang menanggung beban.
   if (!entry || entry.resetAt <= now) {
     store.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
     return false
@@ -61,8 +64,13 @@ export function checkRateLimit(
 
 /**
  * Terima satu pesan kontak: honeypot → rate-limit → simpan → notifikasi.
- * Balikan `{ ok: true }` untuk sukses (termasuk honeypot yang di-short-circuit);
- * `throw new Error('RATE_LIMITED')` bila IP melewati batas.
+ *
+ * Balikan discriminated union — rate-limit adalah alur kontrol yang diharapkan,
+ * bukan exception:
+ * - `{ ok: true }`  — sukses (termasuk honeypot yang di-short-circuit: bot harus
+ *   tetap melihat sukses biasa).
+ * - `{ ok: false, reason: 'RATE_LIMITED' }` — IP melewati batas.
+ * Kegagalan transport / DB asli tetap naik sebagai throw (ditangkap klien).
  */
 export const submitContactMessage = createServerFn({ method: 'POST' })
   .validator(contactSchema)
@@ -74,12 +82,19 @@ export const submitContactMessage = createServerFn({ method: 'POST' })
       return { ok: true } as const
     }
 
-    // 2. Rate-limit per IP. Vercel adalah proxy tepercaya yang men-set header
-    //    `x-forwarded-for` di edge, jadi `xForwardedFor: true` benar di sini.
-    const { getRequestIP } = await import('@tanstack/react-start/server')
-    const ip = getRequestIP({ xForwardedFor: true }) ?? 'unknown'
+    // 2. Rate-limit per IP. `x-real-ip` di-set Vercel di edge dan TIDAK bisa
+    //    dipalsukan klien. `x-forwarded-for` bisa — klien boleh mengirimnya dan
+    //    Vercel hanya MENAMBAHKAN entri, sedangkan `getRequestIP({ xForwardedFor:
+    //    true })` mengambil entri PERTAMA (bisa milik penyerang). Jadi x-real-ip
+    //    dulu, baru fallback (dev lokal / platform lain).
+    const { getRequestHeader, getRequestIP } = await import('@tanstack/react-start/server')
+    const ip = getRequestHeader('x-real-ip') ?? getRequestIP({ xForwardedFor: true }) ?? 'unknown'
+    // CATATAN: state rate-limit in-memory = per-lambda-instance di Vercel, jadi
+    // bukan batas global. Dan bila `ip` jatuh ke `'unknown'`, semua pengunjung
+    // lambda itu berbagi satu bucket. Dua-duanya bisa diterima untuk sekarang —
+    // alasan tambahan kenapa migrasi ke DB / Upstash adalah perbaikan sebenarnya.
     if (checkRateLimit(ip)) {
-      throw new Error('RATE_LIMITED')
+      return { ok: false, reason: 'RATE_LIMITED' } as const
     }
 
     // 3. Simpan pesan. `phone` kosong → `null` (bukan `''` / `undefined`).

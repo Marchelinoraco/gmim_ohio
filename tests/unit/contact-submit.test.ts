@@ -72,6 +72,33 @@ describe('contactSchema', () => {
   it('menolak phone > 40 karakter', () => {
     expect(contactSchema.safeParse({ ...valid, phone: '1'.repeat(41) }).success).toBe(false)
   })
+
+  // Batas inklusif — sisi yang LOLOS (pasangan test penolakan di atas cek sisi gagal).
+  it('menerima name tepat 2 karakter', () => {
+    expect(contactSchema.safeParse({ ...valid, name: 'Ab' }).success).toBe(true)
+  })
+
+  it('menerima name tepat 100 karakter', () => {
+    expect(contactSchema.safeParse({ ...valid, name: 'A'.repeat(100) }).success).toBe(true)
+  })
+
+  it('menerima message tepat 10 karakter', () => {
+    expect(contactSchema.safeParse({ ...valid, message: 'a'.repeat(10) }).success).toBe(true)
+  })
+
+  it('menerima message tepat 2000 karakter', () => {
+    expect(contactSchema.safeParse({ ...valid, message: 'a'.repeat(2000) }).success).toBe(true)
+  })
+
+  it('menerima email tepat 200 karakter', () => {
+    const email = `${'a'.repeat(188)}@example.com`
+    expect(email.length).toBe(200)
+    expect(contactSchema.safeParse({ ...valid, email }).success).toBe(true)
+  })
+
+  it('menerima phone tepat 40 karakter', () => {
+    expect(contactSchema.safeParse({ ...valid, phone: '1'.repeat(40) }).success).toBe(true)
+  })
 })
 
 describe('checkRateLimit', () => {

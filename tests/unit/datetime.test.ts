@@ -5,6 +5,7 @@ import {
   formatDateLong,
   isoWeekStart,
   datesForWeekday,
+  todayEastern,
 } from '@/lib/datetime'
 
 describe('toInstant', () => {
@@ -37,6 +38,25 @@ describe('formatServiceDateTime', () => {
 describe('formatDateLong', () => {
   it('id', () => {
     expect(formatDateLong('2026-08-31', 'id')).toBe('Senin, 31 Agustus 2026')
+  })
+})
+
+describe('todayEastern', () => {
+  it('memberi tanggal Eastern (bukan UTC) menjelang tengah malam — musim panas EDT', () => {
+    // 2026-08-31 03:30 UTC = 2026-08-30 23:30 Eastern (EDT, UTC-4).
+    expect(todayEastern(new Date('2026-08-31T03:30:00Z'))).toBe('2026-08-30')
+  })
+  it('menyeberang ke tanggal berikutnya tepat setelah tengah malam Eastern — musim panas EDT', () => {
+    // 2026-08-31 04:30 UTC = 2026-08-31 00:30 Eastern.
+    expect(todayEastern(new Date('2026-08-31T04:30:00Z'))).toBe('2026-08-31')
+  })
+  it('memberi tanggal Eastern menjelang tengah malam — musim dingin EST', () => {
+    // 2026-01-15 04:30 UTC = 2026-01-14 23:30 Eastern (EST, UTC-5).
+    expect(todayEastern(new Date('2026-01-15T04:30:00Z'))).toBe('2026-01-14')
+  })
+  it('menyeberang ke tanggal berikutnya tepat setelah tengah malam Eastern — musim dingin EST', () => {
+    // 2026-01-15 05:30 UTC = 2026-01-15 00:30 Eastern.
+    expect(todayEastern(new Date('2026-01-15T05:30:00Z'))).toBe('2026-01-15')
   })
 })
 

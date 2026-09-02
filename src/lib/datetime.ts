@@ -150,6 +150,22 @@ export function formatServiceDateTime(
   return `${formatDateLong(serviceDate, 'en')} · ${time}`
 }
 
+/**
+ * Tanggal Eastern "hari ini" sebagai `"YYYY-MM-DD"` (wall-clock Eastern). Kolom
+ * `serviceDate` juga wall-clock Eastern, jadi membandingkannya dengan tanggal
+ * turunan-UTC (`new Date().toISOString().slice(0,10)`) salah di sekitar tengah
+ * malam — mis. pukul 23.30 Eastern (03.30 UTC keesokan harinya) UTC sudah "besok"
+ * sementara jadwal ibadah masih memakai tanggal "hari ini". `now` opsional supaya
+ * bisa diuji deterministik.
+ */
+export function todayEastern(now: Date = new Date()): string {
+  const zoned = new TZDate(now.getTime(), EASTERN)
+  const year = zoned.getFullYear()
+  const month = String(zoned.getMonth() + 1).padStart(2, '0')
+  const day = String(zoned.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 /** Senin (`YYYY-MM-DD`) dari minggu yang memuat `date`. Idempoten bila `date` sudah Senin. */
 export function isoWeekStart(date: string): string {
   const dt = utcMidnight(parseDate(date))

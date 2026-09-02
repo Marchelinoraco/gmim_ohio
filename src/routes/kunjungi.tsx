@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { ContactForm } from '@/components/forms/contact-form'
 import { Container } from '@/components/site/container'
 import { PageHero } from '@/components/site/page-hero'
+import { Paragraphs } from '@/components/site/paragraphs'
 import { Section, SectionTitle } from '@/components/site/section'
 
 /**
@@ -40,24 +41,6 @@ export const Route = createFileRoute('/kunjungi')({
 })
 
 /**
- * Memecah string pesan teks-polos (paragraf dipisah `\n\n`) menjadi beberapa
- * `<p>`. BUKAN `<Prose>`: `<Prose>` khusus HTML DB tersanitasi (tipe branded
- * `SanitizedHtml`, dirender via dangerouslySetInnerHTML). Konten halaman ini
- * murni string pesan tanpa HTML, jadi `<p>` polos yang benar.
- */
-function Paragraphs({ text }: { text: string }) {
-  return (
-    <>
-      {text.split('\n\n').map((p, i) => (
-        <p key={i} className="text-ink mb-4 leading-relaxed last:mb-0">
-          {p}
-        </p>
-      ))}
-    </>
-  )
-}
-
-/**
  * Peta di-embed dari `SITE.address`, BUKAN `contactInfo.mapsUrl`. `mapsUrl` adalah
  * URL bebas yang diedit pengurus lewat dashboard (Rencana 3); mengubah URL bebas
  * apa pun menjadi bentuk `/maps/embed` yang valid itu rapuh. `SITE.address` stabil
@@ -88,7 +71,6 @@ function Kunjungi() {
             src={MAPS_EMBED_SRC}
             title={m.visit_map_label()}
             loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
             allowFullScreen
             className="border-border aspect-video w-full rounded border"
           />
@@ -124,7 +106,11 @@ function Kunjungi() {
               <ul className="text-ink space-y-1">
                 {phone ? (
                   <li>
-                    <a href={`tel:${phone}`} className="text-primary hover:underline">
+                    {/* href hanya digit & `+`; teks tetap string rapi dari settings. */}
+                    <a
+                      href={`tel:${phone.replace(/[^\d+]/g, '')}`}
+                      className="text-primary hover:underline"
+                    >
                       {phone}
                     </a>
                   </li>

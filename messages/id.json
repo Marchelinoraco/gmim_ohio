@@ -65,5 +65,17 @@
   "galeri_watch_video": "Putar video",
   "lightbox_prev": "Sebelumnya",
   "lightbox_next": "Berikutnya",
-  "lightbox_close": "Tutup"
+  "lightbox_close": "Tutup",
+  "contact_heading": "Kirim Pesan",
+  "contact_name_label": "Nama",
+  "contact_email_label": "Email",
+  "contact_phone_label": "Telepon",
+  "contact_phone_hint": "Opsional",
+  "contact_message_label": "Pesan",
+  "contact_submit": "Kirim",
+  "contact_sending": "Mengirim…",
+  "contact_success": "Terima kasih. Pesan Anda sudah kami terima dan akan segera kami balas.",
+  "contact_error": "Maaf, pesan gagal terkirim. Silakan coba lagi.",
+  "contact_rate_limited": "Terlalu banyak percobaan. Coba lagi dalam beberapa menit.",
+  "contact_required_hint": "Wajib diisi"
 }

@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm'
 import { addDays, datesForWeekday, todayEastern } from '@/lib/datetime'
 
 // `@/db` di-import lazy di dalam `seedSchedule()` — lihat catatan di `categories.ts`.
@@ -78,14 +79,6 @@ const BIBLE_READINGS = [
   'Yohanes 15:9-12',
 ] as const
 
-/** Nama pengkhotbah/pelayan placeholder — berputar independen dari tema. */
-const PREACHERS = [
-  'Pdt. Allan Robot, S.Th.',
-  'Pnt. Freddy Wowor',
-  'Pdt. Allan Robot, S.Th.',
-] as const
-const LITURGISTS = ['Sy. Meike Tumbelaka', 'Sy. Recky Sondakh', 'Sy. Ellen Mamahit'] as const
-
 interface CategoryRow {
   id: string
   key: string
@@ -108,9 +101,16 @@ interface TemplateRow {
 /**
  * Susun satu baris `worship_services` untuk template+tanggal (+kolom bila
  * kategori `kolom`). `seq` = penghitung global lintas semua ibadah yang
- * dibuat pada run ini, dipakai untuk memutar tema/bacaan/pelayan/tuan rumah
- * secara deterministik (`seq % daftar.length`) — bukan acak, supaya hasil
- * seed bisa diverifikasi ulang.
+ * dibuat pada run ini, dipakai untuk memutar tema/bacaan/tuan rumah secara
+ * deterministik (`seq % daftar.length`) — bukan acak, supaya hasil seed bisa
+ * diverifikasi ulang.
+ *
+ * `preacherName`/`liturgistName` SENGAJA selalu NULL — siapa yang berkhotbah
+ * atau melayani liturgi adalah data riil, bukan sesuatu yang boleh dikarang
+ * seed placeholder (aturan yang sama dengan "tidak ada nama pengurus karangan
+ * di `/tentang`" dan rekening `XXXX-XXXX-XXXX`: placeholder yang realistis
+ * justru lebih berbahaya daripada yang jelas-jelas kosong). Halaman jadwal
+ * (Task 4) merender "Akan diumumkan"/"To be announced" untuk field NULL ini.
  *
  * `templateId` SENGAJA tidak diisi (selalu NULL) — lihat catatan di
  * `seedSchedule()` soal index unik `ws_template_date_uq`.
@@ -130,10 +130,9 @@ function buildService({
 }) {
   const theme = THEMES[seq % THEMES.length]
   const reading = BIBLE_READINGS[seq % BIBLE_READINGS.length]
-  const preacher = PREACHERS[seq % PREACHERS.length]
-  const liturgist = LITURGISTS[seq % LITURGISTS.length]
   const locationType = tpl.defaultLocationType
-  const hostFamilyName = locationType === 'rumah' ? HOST_FAMILIES[seq % HOST_FAMILIES.length] : null
+  const hostFamilyName =
+    locationType === 'rumah' ? (HOST_FAMILIES[seq % HOST_FAMILIES.length] ?? null) : null
 
   return {
     categoryId: cat.id,
@@ -149,8 +148,8 @@ function buildService({
     themeId: theme?.id ?? null,
     themeEn: theme?.en ?? null,
     bibleReading: reading ?? null,
-    preacherName: preacher ?? null,
-    liturgistName: liturgist ?? null,
+    preacherName: null,
+    liturgistName: null,
     liturgyPdfUrl: null,
     status: 'published' as const,
   }
@@ -162,9 +161,13 @@ function buildService({
  * lewat dashboard (Rencana 3) tidak tertimpa saat seed di-run ulang.
  *
  * Rentang generate DINAMIS relatif tanggal seed dijalankan (`todayEastern()`
- * s/d +56 hari / 8 minggu), bukan tanggal hardcode — supaya situs selalu
- * menampilkan ibadah mendatang dan tidak basi seminggu setelah seed
- * dijalankan sekali di awal proyek.
+ * s/d +55 hari), bukan tanggal hardcode — supaya situs selalu menampilkan
+ * ibadah mendatang dan tidak basi seminggu setelah seed dijalankan sekali di
+ * awal proyek. `+55`, BUKAN `+56`: `datesForWeekday` inklusif di kedua ujung,
+ * jadi `[from, from+55]` adalah rentang 56 hari (8 minggu) genap — setiap
+ * hari-dalam-minggu muncul tepat 8 kali di rentang itu, apa pun hari
+ * `pnpm db:seed` dijalankan. `+56` akan membuat rentang 57 hari, memberi hari
+ * yang sama dengan `from` sendiri kemunculan ke-9 sementara hari lain tetap 8.
  *
  * Soal index unik `ws_template_date_uq` pada `(templateId, serviceDate)`:
  * kategori `kolom` butuh SATU ibadah per kolom aktif per tanggal (4 baris,
@@ -177,6 +180,14 @@ function buildService({
  * `scheduleTemplates` tetap dibuat dan disimpan sebagai catatan pola jadwal
  * mingguan untuk dashboard (Rencana 3), hanya saja tidak dirujuk balik dari
  * `worship_services` yang dihasilkan generator ini.
+ *
+ * Insert `scheduleTemplates` + `worshipServices` dibungkus SATU transaksi:
+ * tanpa itu, proses yang mati persis di antara kedua insert (mis. koneksi
+ * putus, compute Neon suspend) membuat retry berikutnya melihat
+ * `worshipServices` masih kosong (guard lolos) lalu meng-insert set kedua 6
+ * baris `scheduleTemplates` — duplikat yatim yang tidak kelihatan dari count
+ * `worshipServices` mana pun. Transaksi membuat kedua insert commit atau
+ * rollback bersama.
  */
 export async function seedSchedule() {
   const { db } = await import('@/db')
@@ -187,41 +198,45 @@ export async function seedSchedule() {
 
   const cats = await db.select().from(worshipCategories)
   const catByKey = new Map(cats.map((c) => [c.key, c]))
-  const kolomRows = await db.select().from(kolom)
+  const kolomRows = await db.select().from(kolom).where(eq(kolom.isActive, true))
 
   const from = todayEastern()
-  const to = addDays(from, 56) // 8 minggu ke depan
+  const to = addDays(from, 55)
 
-  const templateRows = await db
-    .insert(scheduleTemplates)
-    .values(
-      SCHEDULE_TEMPLATES.map((t) => {
-        const cat = catByKey.get(t.categoryKey)
-        if (!cat) throw new Error(`Kategori ${t.categoryKey} belum di-seed`)
-        return {
-          categoryId: cat.id,
-          dayOfWeek: t.dayOfWeek,
-          startTime: t.startTime,
-          endTime: t.endTime,
-          defaultLocationType: t.defaultLocationType,
+  const services = await db.transaction(async (tx) => {
+    const templateRows = await tx
+      .insert(scheduleTemplates)
+      .values(
+        SCHEDULE_TEMPLATES.map((t) => {
+          const cat = catByKey.get(t.categoryKey)
+          if (!cat) throw new Error(`Kategori ${t.categoryKey} belum di-seed`)
+          return {
+            categoryId: cat.id,
+            dayOfWeek: t.dayOfWeek,
+            startTime: t.startTime,
+            endTime: t.endTime,
+            defaultLocationType: t.defaultLocationType,
+          }
+        }),
+      )
+      .returning()
+
+    const services: ReturnType<typeof buildService>[] = []
+    for (const tpl of templateRows) {
+      const cat = cats.find((c) => c.id === tpl.categoryId)
+      if (!cat) continue
+      for (const date of datesForWeekday(from, to, tpl.dayOfWeek)) {
+        // Kategori `kolom` → satu ibadah PER kolom aktif; lainnya satu per tanggal.
+        const targets: (KolomRow | null)[] = cat.key === 'kolom' ? kolomRows : [null]
+        for (const k of targets) {
+          services.push(buildService({ tpl, cat, kolomRow: k, date, seq: services.length }))
         }
-      }),
-    )
-    .returning()
-
-  const services: ReturnType<typeof buildService>[] = []
-  for (const tpl of templateRows) {
-    const cat = cats.find((c) => c.id === tpl.categoryId)
-    if (!cat) continue
-    for (const date of datesForWeekday(from, to, tpl.dayOfWeek)) {
-      // Kategori `kolom` → satu ibadah PER kolom aktif; lainnya satu per tanggal.
-      const targets: (KolomRow | null)[] = cat.key === 'kolom' ? kolomRows : [null]
-      for (const k of targets) {
-        services.push(buildService({ tpl, cat, kolomRow: k, date, seq: services.length }))
       }
     }
-  }
 
-  await db.insert(worshipServices).values(services)
+    await tx.insert(worshipServices).values(services)
+    return services
+  })
+
   return services.length
 }

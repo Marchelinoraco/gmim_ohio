@@ -125,5 +125,10 @@
   "jadwal_filter_category": "Category",
   "jadwal_filter_kolom": "Kolom",
   "jadwal_calendar_prev_month": "Previous month",
-  "jadwal_calendar_next_month": "Next month"
+  "jadwal_calendar_next_month": "Next month",
+  "jadwal_title": "Worship Schedule",
+  "jadwal_subtitle": "The congregational, category, and kolom worship schedule of GMIM Musafir Columbus Ohio, with themes and Bible readings.",
+  "jadwal_empty": "No services scheduled yet.",
+  "jadwal_view_list": "List",
+  "jadwal_view_calendar": "Calendar"
 }

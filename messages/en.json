@@ -120,5 +120,8 @@
   "jadwal_preacher": "Preacher",
   "jadwal_liturgist": "Liturgist",
   "jadwal_download_liturgy": "Download the order of service",
-  "jadwal_tba": "To be announced"
+  "jadwal_tba": "To be announced",
+  "jadwal_filter_all": "All",
+  "jadwal_filter_category": "Category",
+  "jadwal_filter_kolom": "Kolom"
 }

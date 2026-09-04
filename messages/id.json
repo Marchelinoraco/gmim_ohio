@@ -120,5 +120,8 @@
   "jadwal_preacher": "Pelayan Firman",
   "jadwal_liturgist": "Pemimpin Ibadah",
   "jadwal_download_liturgy": "Unduh tata ibadah",
-  "jadwal_tba": "Akan diumumkan"
+  "jadwal_tba": "Akan diumumkan",
+  "jadwal_filter_all": "Semua",
+  "jadwal_filter_category": "Kategori",
+  "jadwal_filter_kolom": "Kolom"
 }

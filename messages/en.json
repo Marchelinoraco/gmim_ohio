@@ -133,5 +133,13 @@
   "jadwal_view_list": "List",
   "jadwal_view_calendar": "Calendar",
   "jadwal_back": "Back to the schedule",
-  "jadwal_share_wa": "Share on WhatsApp"
+  "jadwal_share_wa": "Share on WhatsApp",
+  "pelayanan_title": "Ministries",
+  "pelayanan_subtitle": "The six category ministries of GMIM Musafir Columbus Ohio: congregational worship at the church building, plus the Men's, Women's, Youth & Teens, Sunday School, and Kolom fellowships, which hold services in rotation at members' homes.",
+  "pelayanan_desc_ibadah_jemaat": "The Sunday service for the whole congregation, held at the church building — where we come together to hear the Word, pray, and celebrate the sacraments as one body in Christ.",
+  "pelayanan_desc_kaum_bapa": "A fellowship for the congregation's fathers and men, strengthening one another in faith and in their calling as heads of the family, with services that rotate from home to home.",
+  "pelayanan_desc_kaum_ibu": "A fellowship for the congregation's mothers and women, growing together in faith and supporting one another as wives and mothers, with services that move from one member's home to the next.",
+  "pelayanan_desc_pemuda_remaja": "Faith formation for the congregation's teens and young people, helping them know Christ more and preparing them to serve, with services hosted in turn at members' homes.",
+  "pelayanan_desc_sekolah_minggu": "Faith teaching for the congregation's children from an early age through stories and songs suited to them, with services held in turn at members' homes.",
+  "pelayanan_desc_kolom": "Household worship organized by the neighborhood zone where members live — a closer, more intimate space for fellowship and prayer, rotating from home to home within the same kolom."
 }

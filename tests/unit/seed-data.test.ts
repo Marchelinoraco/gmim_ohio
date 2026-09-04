@@ -4,6 +4,7 @@ import { WORSHIP_CATEGORIES } from '@/db/seed/categories'
 import { PLACEHOLDER_DEVOTIONALS } from '@/db/seed/devotionals'
 import { PLACEHOLDER_ALBUM, PLACEHOLDER_ALBUM_ITEMS } from '@/db/seed/gallery'
 import { PLACEHOLDER_KOLOM } from '@/db/seed/kolom'
+import { SCHEDULE_TEMPLATES } from '@/db/seed/schedule'
 import { DEFAULT_SETTINGS } from '@/db/seed/settings'
 
 // Tag yang diizinkan sanitizer rich-text (`src/lib/sanitize.ts`). Body warta &
@@ -141,6 +142,39 @@ describe('PLACEHOLDER_DEVOTIONALS', () => {
       expect(d.bodyId).toMatch(/<blockquote>/)
       expect(d.bodyEn).toMatch(/<blockquote>/)
     }
+  })
+})
+
+describe('SCHEDULE_TEMPLATES', () => {
+  it('menutup keenam kategori tepat sekali kecuali yang memang ganda', () => {
+    const keys = SCHEDULE_TEMPLATES.map((t) => t.categoryKey)
+    expect(new Set(keys).size).toBe(6)
+  })
+
+  it('dayOfWeek 0-6 dan startTime format HH:mm:ss', () => {
+    for (const t of SCHEDULE_TEMPLATES) {
+      expect(t.dayOfWeek).toBeGreaterThanOrEqual(0)
+      expect(t.dayOfWeek).toBeLessThanOrEqual(6)
+      expect(t.startTime).toMatch(/^\d{2}:\d{2}:\d{2}$/)
+    }
+  })
+
+  it('endTime (bila ada) setelah startTime dan formatnya konsisten', () => {
+    for (const t of SCHEDULE_TEMPLATES) {
+      expect(t.endTime).toMatch(/^\d{2}:\d{2}:\d{2}$/)
+      expect(t.endTime > t.startTime).toBe(true)
+    }
+  })
+
+  it('defaultLocationType hanya gedung_gereja atau rumah', () => {
+    for (const t of SCHEDULE_TEMPLATES) {
+      expect(['gedung_gereja', 'rumah']).toContain(t.defaultLocationType)
+    }
+  })
+
+  it('kategori kolom memakai lokasi rumah (tuan rumah wajib diisi generator)', () => {
+    const kolomTpl = SCHEDULE_TEMPLATES.find((t) => t.categoryKey === 'kolom')
+    expect(kolomTpl?.defaultLocationType).toBe('rumah')
   })
 })
 

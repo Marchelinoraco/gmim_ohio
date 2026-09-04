@@ -6,6 +6,7 @@ import {
   isoWeekStart,
   datesForWeekday,
   todayEastern,
+  addDays,
 } from '@/lib/datetime'
 
 describe('toInstant', () => {
@@ -84,5 +85,17 @@ describe('datesForWeekday', () => {
   })
   it('rentang tanpa kecocokan mengembalikan array kosong', () => {
     expect(datesForWeekday('2026-09-07', '2026-09-12', 0)).toEqual([])
+  })
+})
+
+describe('addDays', () => {
+  it('menambah hari biasa', () => {
+    expect(addDays('2026-09-04', 7)).toBe('2026-09-11')
+  })
+  it('menyeberang pergantian bulan', () => {
+    expect(addDays('2026-08-30', 5)).toBe('2026-09-04')
+  })
+  it('menyeberang pergantian tahun', () => {
+    expect(addDays('2026-12-30', 3)).toBe('2027-01-02')
   })
 })

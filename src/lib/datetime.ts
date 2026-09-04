@@ -166,6 +166,13 @@ export function todayEastern(now: Date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
+/** `YYYY-MM-DD` sejumlah `days` setelah `date`. Kalender murni, tanpa jam. */
+export function addDays(date: string, days: number): string {
+  const dt = utcMidnight(parseDate(date))
+  dt.setUTCDate(dt.getUTCDate() + days)
+  return dt.toISOString().slice(0, 10)
+}
+
 /** Senin (`YYYY-MM-DD`) dari minggu yang memuat `date`. Idempoten bila `date` sudah Senin. */
 export function isoWeekStart(date: string): string {
   const dt = utcMidnight(parseDate(date))

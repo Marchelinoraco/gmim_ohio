@@ -102,6 +102,8 @@ describe('formatMonthYear', () => {
   it('en', () => expect(formatMonthYear('2026-01', 'en')).toBe('January 2026'))
   it('id, Desember (indeks bulan)', () =>
     expect(formatMonthYear('2026-12', 'id')).toBe('Desember 2026'))
+  it('en, December (indeks bulan)', () =>
+    expect(formatMonthYear('2026-12', 'en')).toBe('December 2026'))
 })
 
 describe('addDays', () => {

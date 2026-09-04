@@ -114,9 +114,20 @@ type CalendarService = { serviceDate: string; category: { color: string } }
  * ("Senin, 31 Agustus 2026, 2 ibadah" / "Monday, 31 August 2026, 2 services"),
  * bukan `YYYY-MM-DD` mentah.
  *
- * `locale` (baru di Task 8) dipakai untuk `formatMonthYear` (judul bulan/tahun
+ * `locale` (baru di Task 8) dipakai untuk `formatMonthYear` (label bulan/tahun
  * di antara tombol navigasi — jawaban atas "kalender ini bulan apa") dan
  * `formatDateLong` di `aria-label`.
+ *
+ * Label bulan/tahun sengaja `<p aria-live="polite">`, BUKAN `<h3>`/heading apa
+ * pun — ia keterangan widget kalender (pola sama dengan date-picker aksesibel
+ * pada umumnya: label bulan/tahun bagian dari widget, bukan garis besar
+ * dokumen), bukan bagian dari struktur heading halaman. `jadwal.tsx` merender
+ * `<SectionTitle>` (`h2`) untuk tanggal terpilih TEPAT DI BAWAH kalender ini —
+ * kalau label ini `<h3>` maka urutan heading di DOM jadi `h1 → h3 → h2`
+ * (melompati `h2` dari `h1`, lalu `h2` muncul setelah `h3` tanpa level valid
+ * di antaranya), merusak navigasi heading pembaca layar. `aria-live="polite"`
+ * membuat perubahan bulan (klik tombol navigasi) diumumkan ke pembaca layar —
+ * label tombol prev/next saja tak menyampaikan bulan barunya.
  */
 export function MonthCalendar({
   month,
@@ -146,7 +157,9 @@ export function MonthCalendar({
         >
           ‹
         </button>
-        <h3 className="text-ink font-serif text-lg">{formatMonthYear(month, locale)}</h3>
+        <p className="text-ink font-serif text-lg" aria-live="polite">
+          {formatMonthYear(month, locale)}
+        </p>
         <button
           type="button"
           aria-label={m.jadwal_calendar_next_month()}

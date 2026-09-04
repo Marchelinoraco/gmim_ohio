@@ -182,7 +182,7 @@ export function lastDayOfMonth(month: string): string {
   return addDays(`${nextMonth}-01`, -1)
 }
 
-/** "September 2026" (id) / "September 2026" (en) — nama bulan penuh + tahun. */
+/** "Desember 2026" (id) / "December 2026" (en) — nama bulan penuh + tahun. */
 export function formatMonthYear(month: string, locale: 'id' | 'en'): string {
   const year = Number(month.slice(0, 4))
   const monthIndex = Number(month.slice(5, 7)) - 1

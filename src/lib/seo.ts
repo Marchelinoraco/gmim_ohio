@@ -55,8 +55,12 @@ interface PageMetaOpts {
  * `SITE.url` + path sadar-locale. `en` diberi prefiks `/en`. Slash tunggal di
  * ekor dipangkas sehingga `path: '/'` menghasilkan `https://gmimmusafir.org`
  * (id) / `https://gmimmusafir.org/en` (en) — bukan `//` atau trailing slash.
+ *
+ * Di-`export` supaya `@/lib/sitemap` memancarkan URL absolut yang IDENTIK
+ * dengan canonical + alternate hreflang di `pageMeta` — satu sumber, bukan dua
+ * salinan yang bisa menyimpang.
  */
-function localeUrl(path: string, locale: 'id' | 'en'): string {
+export function localeUrl(path: string, locale: 'id' | 'en'): string {
   const prefix = locale === 'en' ? '/en' : ''
   const url = `${SITE.url}${prefix}${path}`
   return url.endsWith('/') ? url.slice(0, -1) : url

@@ -1,10 +1,15 @@
 # CI — lint + typecheck + unit tests + e2e on every PR and every push to master.
 # Catches regressions before merge; production auto-deploys from `master` via Vercel.
 #
-# Neon `ci` branch + a TEST_DATABASE_URL secret are deferred to Rencana 3 — no
-# DB-touching tests exist yet (unit tests read plain data modules; e2e only
-# renders public pages). The dummy DATABASE_URL on the e2e step below is just
-# URL-shaped so `src/lib/env.ts` (Zod) parses; nothing opens a connection.
+# Rencana 2a's `tests/e2e/public-pages.spec.ts` navigates to /warta, /renungan,
+# /galeri, /kunjungi, /persembahan, /ibadah-live and /beranda — every one of those
+# has a loader that opens a real database connection. That invalidated the old
+# "dummy URL-shaped DATABASE_URL, nothing ever connects" arrangement (17 of 20
+# tests in that spec failed against it). So CI now runs a throwaway Postgres
+# service, migrates it and seeds it before the e2e step.
+#
+# The service DB is ephemeral and local to the runner — it is NOT Neon. Neon
+# `production` is never touched by CI.
 name: CI
 
 on:
@@ -15,6 +20,35 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    # Throwaway Postgres for the e2e step. Ephemeral per run; nothing persists.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gmim_ci
+        ports:
+          - 5432:5432
+        # Without a healthcheck the migrate step can race the container's boot.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Points at the service container above. Migrate, seed and the e2e dev
+      # server all read this. No sslmode — it is a plain local Postgres, not Neon.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gmim_ci
+      # `src/lib/env.ts` requires these two (not `.optional()`), and `pnpm db:seed`
+      # imports `@/db` -> `@/lib/env`, so they must be set for the seed step too —
+      # not just for the e2e dev server. CI-only fakes, NOT real secrets: nothing
+      # in CI signs in.
+      BETTER_AUTH_SECRET: ci-dummy-secret-not-used-in-ci-0000 # >= 16 chars
+      BETTER_AUTH_URL: http://localhost:3000
+
     steps:
       - uses: actions/checkout@v4
 
@@ -43,16 +77,16 @@ jobs:
 
       - run: pnpm exec playwright install --with-deps chromium
 
+      # Schema + placeholder content for the DB-backed public pages. `db:seed` is
+      # idempotent, and this database is thrown away with the runner.
+      - run: pnpm db:migrate
+      - run: pnpm db:seed
+
       # Playwright's webServer runs `pnpm dev`; TanStack Start SSR evaluates the
       # whole route tree — including `src/routes/api/auth/$.ts` -> `@/lib/auth`
-      # -> `@/lib/env` — so the dev server refuses to start without these.
-      # All three are CI-only fakes, NOT real secrets: the e2e suite never
-      # touches auth or the database.
+      # -> `@/lib/env` — so the dev server needs all three vars. They come from
+      # the job env above; DATABASE_URL there IS connected to.
       - run: pnpm test:e2e
-        env:
-          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci # CI-only, not real; never connected to
-          BETTER_AUTH_SECRET: ci-dummy-secret-not-used-in-ci-0000 # CI-only fake (>= 16 chars)
-          BETTER_AUTH_URL: http://localhost:3000 # CI-only, not real
 
       - name: Upload Playwright report
         if: failure()

@@ -5,6 +5,7 @@ import { formatServiceDateTime } from '@/lib/datetime'
 import { SITE } from '@/config/site'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { CategoryBadge } from '@/components/schedule/category-badge'
+import { resolveServiceLocation } from '@/components/schedule/service-location'
 
 /**
  * `<ServiceCard>` — kartu satu ibadah. Komponen tampilan BERSAMA untuk daftar
@@ -19,11 +20,14 @@ import { CategoryBadge } from '@/components/schedule/category-badge'
  * disembunyikan, supaya pengunjung tahu roster belum diisi, bukan mengira kartunya
  * rusak.
  *
- * Lokasi: `gedung_gereja` → nama gereja (`SITE.name`, pola sama dengan
- * `beranda.tsx`); `rumah` + `hostFamilyName` → `m.home_location_home({ host })`;
- * `rumah` tanpa nama tuan rumah → `m.home_location_tba()` — TIDAK PERNAH jatuh ke
- * alamat gereja (bug nyata yang sudah diperbaiki sekali di Rencana 2a). Kunci
- * lokasi Rencana 2a dipakai ulang di sini karena kata-katanya sudah pas di luar
+ * Lokasi diresolusi lewat `resolveServiceLocation` (`@/components/schedule/
+ * service-location`) — satu sumber kebenaran dipakai bersama tampilan
+ * `/jadwal/$id` dan JSON-LD `Event`-nya: `gedung_gereja` → nama gereja
+ * (`SITE.name`, pola sama dengan `beranda.tsx`); `rumah` + `hostFamilyName` →
+ * `m.home_location_home({ host })`; `rumah` tanpa nama tuan rumah →
+ * `m.home_location_tba()` — TIDAK PERNAH jatuh ke alamat gereja (bug nyata yang
+ * sudah muncul dua kali: Rencana 2a, lalu JSON-LD Task 9). Kunci lokasi
+ * Rencana 2a dipakai ulang di sini karena kata-katanya sudah pas di luar
  * konteks Beranda — tidak perlu kunci `jadwal_at_home`/`jadwal_location_tba` baru.
  *
  * Tema/bacaan/tautan tata ibadah bersifat opsional di DB — barisnya disembunyikan
@@ -47,12 +51,13 @@ export function ServiceCard({
 }) {
   const theme = locale === 'id' ? service.themeId : service.themeEn
 
+  const loc = resolveServiceLocation(service)
   const location =
-    service.locationType === 'rumah'
-      ? service.hostFamilyName
-        ? m.home_location_home({ host: service.hostFamilyName })
+    loc.kind === 'church'
+      ? SITE.name
+      : loc.kind === 'home'
+        ? m.home_location_home({ host: loc.hostFamilyName })
         : m.home_location_tba()
-      : SITE.name
 
   const card = (
     <Card className="h-full">

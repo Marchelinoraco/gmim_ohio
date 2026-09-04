@@ -7,6 +7,7 @@ import { localeUrl, pageMeta } from '@/lib/seo'
 import { SITE } from '@/config/site'
 import { Button } from '@/components/ui/button'
 import { CategoryBadge } from '@/components/schedule/category-badge'
+import { resolveServiceLocation } from '@/components/schedule/service-location'
 import { Container } from '@/components/site/container'
 import { Section } from '@/components/site/section'
 
@@ -40,6 +41,44 @@ export const Route = createFileRoute('/jadwal_/$id')({
       descEn: s.bibleReading ?? s.category.nameEn,
       locale,
     })
+
+    // `resolveServiceLocation` — satu sumber kebenaran dipakai bersama
+    // `<ServiceCard>` + tampilan di bawah. `unknown` (rumah tanpa
+    // hostFamilyName) TIDAK PERNAH jatuh ke nama/alamat gereja di sini — itu
+    // persis bug yang diperbaiki (lihat docblock `resolveServiceLocation`).
+    const loc = resolveServiceLocation(s)
+    const jsonLdLocation =
+      loc.kind === 'church'
+        ? {
+            '@type': 'Place',
+            name: SITE.name,
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '895 Old Diley Road',
+              addressLocality: 'Columbus',
+              addressRegion: 'OH',
+              addressCountry: 'US',
+            },
+          }
+        : loc.kind === 'home'
+          ? {
+              '@type': 'Place',
+              name: loc.hostFamilyName,
+              // Alamat tuan rumah opsional di DB — JANGAN fabrikasi alamat
+              // gereja di sini bila belum diisi. `Place` tanpa `address` valid
+              // di schema.org.
+              ...(loc.hostAddress && {
+                address: {
+                  '@type': 'PostalAddress',
+                  streetAddress: loc.hostAddress,
+                  addressLocality: 'Columbus',
+                  addressRegion: 'OH',
+                  addressCountry: 'US',
+                },
+              }),
+            }
+          : null // rumah tanpa tuan rumah sama sekali — belum ada lokasi utk dijadikan structured data.
+
     return {
       ...base,
       // Entri `script:ld+json` dirender `HeadContent` sebagai
@@ -58,21 +97,9 @@ export const Route = createFileRoute('/jadwal_/$id')({
             }),
             eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
             eventStatus: 'https://schema.org/EventScheduled',
-            location: {
-              '@type': 'Place',
-              name:
-                s.locationType === 'gedung_gereja' ? SITE.name : (s.hostFamilyName ?? SITE.name),
-              address: {
-                '@type': 'PostalAddress',
-                streetAddress:
-                  s.locationType === 'gedung_gereja'
-                    ? '895 Old Diley Road'
-                    : (s.hostAddress ?? '895 Old Diley Road'),
-                addressLocality: 'Columbus',
-                addressRegion: 'OH',
-                addressCountry: 'US',
-              },
-            },
+            // Lokasi belum diketahui (rumah tanpa tuan rumah) → jangan
+            // pancarkan `location` sama sekali, bukan fabrikasi alamat gereja.
+            ...(jsonLdLocation && { location: jsonLdLocation }),
             organizer: { '@type': 'Organization', name: SITE.name, url: SITE.url },
           },
         },
@@ -88,12 +115,13 @@ function JadwalDetail() {
   const theme = locale === 'id' ? service.themeId : service.themeEn
   const title = theme ?? (locale === 'id' ? service.category.nameId : service.category.nameEn)
 
+  const loc = resolveServiceLocation(service)
   const location =
-    service.locationType === 'rumah'
-      ? service.hostFamilyName
-        ? m.home_location_home({ host: service.hostFamilyName })
+    loc.kind === 'church'
+      ? SITE.name
+      : loc.kind === 'home'
+        ? m.home_location_home({ host: loc.hostFamilyName })
         : m.home_location_tba()
-      : SITE.name
 
   // URL absolut halaman ini (untuk teks bagikan WhatsApp) — pola sama dengan
   // `pageMeta`/`localeUrl` di `@/lib/seo` (satu sumber kebenaran untuk URL absolut

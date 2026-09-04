@@ -1,13 +1,24 @@
 import * as m from '@/paraglide/messages'
 import { LanguageSwitcher } from '@/components/layout/language-switcher'
 import { Logo } from '@/components/layout/logo'
+import { SiteMapFooter } from '@/components/site/site-map-footer'
 import { SITE } from '@/config/site'
 
-// Link sosial ditarik dari `SITE`; entri tanpa URL disembunyikan.
-// TODO(Rencana 2): tambah Instagram/YouTube saat URL-nya masuk Site Settings.
+// Link sosial ditarik dari `SITE`, BUKAN `getSiteSettings()`: `SiteFooter` ada di
+// `__root.tsx` yang tak punya loader, dan memberi root sebuah settings loader akan
+// membuat SETIAP halaman — termasuk coming-soon — bergantung ke database (Rencana
+// 1 sengaja membuat `/api/auth` lazy supaya `/` tetap boot dengan `DATABASE_URL`
+// kosong). `social_links.facebook` di seed pun generik (`https://www.facebook.com/`)
+// — lebih buruk dari `SITE.facebookUrl`. Entri tanpa URL disembunyikan.
+// TODO(2b): pindah ke Site Settings begitu root punya loader (Rencana 2b/3), dan
+// tambah Instagram/YouTube saat URL-nya masuk.
 const SOCIAL_LINKS = [{ key: 'facebook', label: 'Facebook', href: SITE.facebookUrl }].filter(
   (s) => s.href.length > 0,
 )
+
+// `SITE.comingSoon` literal `true` → dibaca lewat indireksi bertipe `boolean`
+// (alasan lengkap di `src/routes/index.tsx`).
+const comingSoon: boolean = SITE.comingSoon
 
 // Dievaluasi sekali saat modul dimuat — sama di server & klien untuk umur proses,
 // jadi jendela mismatch-hidrasi pergantian tahun mengecil ke ~nol.
@@ -16,6 +27,14 @@ const CURRENT_YEAR = new Date().getFullYear()
 export function SiteFooter() {
   return (
     <footer className="border-border bg-surface-2 mt-16 border-t">
+      {/* Mode coming-soon (simetris dengan `site-header.tsx`, ~baris 77): peta
+          situs disembunyikan — menautkan ke /tentang, /warta, dst. berarti
+          mengiklankan halaman yang belum diluncurkan, persis yang dicegah
+          `SITE.comingSoon`. Selagi coming-soon, footer merender persis seperti
+          sebelumnya (brand, alamat, sosial, bahasa). Rencana 2b menyetel
+          `SITE.comingSoon = false` dan peta situs muncul. */}
+      {!comingSoon && <SiteMapFooter />}
+
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
           <div className="text-ink flex items-center gap-2.5">

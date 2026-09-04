@@ -21,9 +21,7 @@ describe('skema tabel account', () => {
   })
 
   it('punya unique index atas (issuer, account_id)', () => {
-    const idx = cfg.indexes.find(
-      (i) => i.config.name === 'account_issuer_accountId_uidx',
-    )
+    const idx = cfg.indexes.find((i) => i.config.name === 'account_issuer_accountId_uidx')
     expect(idx).toBeDefined()
     expect(idx?.config.unique).toBe(true)
     const cols = idx?.config.columns.map((c) => (c as { name?: string }).name)

@@ -12,8 +12,12 @@ import { SITE } from '@/config/site'
 // yang sama dengan LanguageSwitcher — sehingga `pnpm typecheck` lolos tanpa perlu
 // route stub, tetap dwibahasa (di `/en` link ikut di bawah `/en`), dan resolve ke
 // halaman 404 hingga Rencana 2 mengisi route-nya.
-// TODO(Rencana 2): naikkan ke `<Link to="/tentang">` TanStack Router yang typed
-// begitu route tersebut ada.
+// TODO(2b): naikkan ke `<Link to="/tentang">` TanStack Router yang typed begitu
+// route tersebut ada. INI COUPLING BERKONSEKUENSI PALING TINGGI di branch:
+// `NAV_ITEMS` di bawah memuat `/pelayanan` dan `/jadwal` — route yang BELUM ADA
+// di 2a. Membalik `SITE.comingSoon = false` sebelum kedua route itu dibangun
+// memasang dua tautan 404 di SETIAP halaman situs live. 2b harus membuat route
+// tsb LEBIH DULU, baru membalik flag.
 const NAV_ITEMS = [
   { key: 'home', label: () => m.nav_home(), path: '/' },
   { key: 'about', label: () => m.nav_about(), path: '/tentang' },

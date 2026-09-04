@@ -89,7 +89,7 @@ function Jadwal() {
     <div className="flex flex-col gap-10">
       {groupByDate(services).map((group) => (
         <div key={group.date}>
-          <SectionTitle as="h3">{formatDateLong(group.date, locale)}</SectionTitle>
+          <SectionTitle>{formatDateLong(group.date, locale)}</SectionTitle>
           <div className="grid gap-6 sm:grid-cols-2">
             {group.services.map((service) => (
               <ServiceCard key={service.id} service={service} locale={locale} linkToDetail />

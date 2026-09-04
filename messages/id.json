@@ -123,5 +123,7 @@
   "jadwal_tba": "Akan diumumkan",
   "jadwal_filter_all": "Semua",
   "jadwal_filter_category": "Kategori",
-  "jadwal_filter_kolom": "Kolom"
+  "jadwal_filter_kolom": "Kolom",
+  "jadwal_calendar_prev_month": "Bulan sebelumnya",
+  "jadwal_calendar_next_month": "Bulan berikutnya"
 }

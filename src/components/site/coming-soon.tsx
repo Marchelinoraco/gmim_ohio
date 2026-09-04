@@ -199,6 +199,9 @@ export function ComingSoon() {
           SiteHeader coming-soon: py-3 + min-h-11 + border = ~4.3rem; 5rem beri
           margin aman. */}
       <section className="bg-primary relative flex min-h-[calc(100svh-5rem)] flex-col overflow-hidden">
+        {/* TODO(2b): ekstrak <HeroMedia> bersama (poster + sources + scrim) —
+            src/components/site/beranda.tsx menduplikasi blok ini. 2b menghapus
+            file ini, jadi itu momen alaminya. */}
         {hasVideo ? (
           <video
             ref={videoRef}

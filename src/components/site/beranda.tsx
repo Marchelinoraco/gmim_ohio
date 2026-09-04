@@ -57,11 +57,19 @@ export function Beranda({ settings, bulletins, services }: BerandaProps) {
             <SectionTitle>{m.home_services_this_week()}</SectionTitle>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {services.map((s) => {
+                // Beranda sengaja hanya pakai nama kategori; `category.color`/`key`
+                // dan `kolom` ikut di-fetch untuk halaman `/jadwal` (Rencana 2b).
                 const categoryName = locale === 'id' ? s.category.nameId : s.category.nameEn
-                // Ibadah di rumah → nama keluarga tuan rumah; selain itu → alamat
-                // gereja (string alamat kanonik yang sama dipakai footer/coming-soon).
+                // Ibadah rumah: "Di rumah <keluarga>", atau "Lokasi menyusul" bila
+                // nama tuan rumah belum diisi (JANGAN jatuh ke alamat gereja — itu
+                // menyesatkan). Ibadah gedung: nama gereja, supaya kedua kasus jelas
+                // beda bagi pembaca.
                 const where =
-                  s.locationType === 'rumah' ? (s.hostFamilyName ?? SITE.address) : SITE.address
+                  s.locationType === 'rumah'
+                    ? s.hostFamilyName
+                      ? m.home_location_home({ host: s.hostFamilyName })
+                      : m.home_location_tba()
+                    : SITE.name
                 return (
                   <Card key={s.id} className="h-full">
                     <CardHeader>
@@ -145,7 +153,9 @@ function BerandaHero({
   locale: 'id' | 'en'
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const hasVideo = image.length === 0 && SITE.hero.sources.length > 0
+  // `hero.image` kosong (seed) → video; diisi → gambar. `SITE.hero.sources` selalu
+  // ≥ 1 (`as const`), jadi tak ada cabang fallback ketiga.
+  const hasVideo = image.length === 0
 
   useEffect(() => {
     const v = videoRef.current
@@ -157,6 +167,9 @@ function BerandaHero({
 
   return (
     <section className="bg-primary relative flex min-h-[70svh] flex-col overflow-hidden">
+      {/* TODO(2b): ekstrak <HeroMedia> bersama (poster + sources + scrim) —
+          src/components/site/coming-soon.tsx menduplikasi blok ini. 2b menghapus
+          coming-soon.tsx, jadi itu momen alaminya. */}
       {hasVideo ? (
         <video
           ref={videoRef}
@@ -172,15 +185,13 @@ function BerandaHero({
             <source key={s.src} src={s.src} type={s.type} />
           ))}
         </video>
-      ) : image.length > 0 ? (
+      ) : (
         <img
           src={image}
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
           aria-hidden="true"
         />
-      ) : (
-        <div className="from-primary to-primary-hover absolute inset-0 bg-gradient-to-br" />
       )}
 
       {/* Scrim — sama dengan coming-soon: teks putih ≥ 4.5:1 di atas frame video
@@ -198,7 +209,7 @@ function BerandaHero({
               kedua tema — tak bergantung pada warna permukaan. */}
           <Button asChild variant="primary" size="lg" className="h-11">
             {/* TODO(2b): ganti jadi <Link to="/jadwal"> setelah route-nya ada */}
-            <a href={localizeHref('/jadwal', { locale })}>{m.home_schedule_cta()}</a>
+            <a href={localizeHref('/jadwal', { locale })}>{m.nav_schedule()}</a>
           </Button>
           <Button asChild variant="secondary" size="lg" className="h-11">
             <Link to="/kunjungi">{m.home_visit_cta()}</Link>

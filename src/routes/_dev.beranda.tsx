@@ -3,6 +3,7 @@ import { listBulletins } from '@/features/content/bulletins'
 import { listUpcomingServices } from '@/features/schedule/services'
 import { getSiteSettings } from '@/features/content/site-settings'
 import { Beranda } from '@/components/site/beranda'
+import { SiteMapFooter } from '@/components/site/site-map-footer'
 
 export const Route = createFileRoute('/_dev/beranda')({
   // Halaman dev throwaway — tersedia hanya di `pnpm dev`. Di build produksi
@@ -19,5 +20,15 @@ export const Route = createFileRoute('/_dev/beranda')({
 // Halaman dev throwaway (dihapus di Rencana 2b saat `<Beranda>` pindah ke `/`).
 function DevBeranda() {
   const [settings, bulletins, services] = Route.useLoaderData()
-  return <Beranda settings={settings} bulletins={bulletins} services={services} />
+  return (
+    <>
+      <Beranda settings={settings} bulletins={bulletins} services={services} />
+      {/* Footer root menekan <SiteMapFooter> selama `SITE.comingSoon` true (RULING
+          3), jadi `/beranda` satu-satunya tempat meninjau peta situs sebelum 2b
+          mengirimnya ke domain produksi gereja. Hanya satu salinan yang render —
+          footer root tetap menekan miliknya. Aman: <SiteMapFooter> cuma pakai
+          `getLocale()` + `localizeHref` + `m.*` — tanpa DB, tanpa loader. */}
+      <SiteMapFooter />
+    </>
+  )
 }

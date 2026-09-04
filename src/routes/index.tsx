@@ -18,7 +18,7 @@ import { ComingSoon } from '@/components/site/coming-soon'
  * `undefined`, `<Beranda>` dianggap kode mati). Dibaca lewat indireksi bertipe
  * `boolean` supaya KEDUA cabang tetap ter-typecheck. `SITE.comingSoon` TIDAK
  * diubah: di produksi tetap `true` dan `/` merender coming-soon byte-identik
- * dengan sebelumnya (diverifikasi: HTML `/` identik selain token waktu request).
+ * dengan sebelumnya (bukti byte-identik: task-14-report.md §2b).
  * `<Beranda>` hanya terlihat lewat `/beranda` (file `_dev.beranda.tsx`) sampai
  * Rencana 2b menyetel `SITE.comingSoon = false`.
  */

@@ -16,9 +16,8 @@ const SOCIAL_LINKS = [{ key: 'facebook', label: 'Facebook', href: SITE.facebookU
   (s) => s.href.length > 0,
 )
 
-// `SITE.comingSoon` adalah literal `true`; dibaca lewat indireksi bertipe
-// `boolean` supaya cabang `!comingSoon` tetap ter-typecheck dan tak kena
-// `no-constant-binary-expression`.
+// `SITE.comingSoon` literal `true` → dibaca lewat indireksi bertipe `boolean`
+// (alasan lengkap di `src/routes/index.tsx`).
 const comingSoon: boolean = SITE.comingSoon
 
 // Dievaluasi sekali saat modul dimuat — sama di server & klien untuk umur proses,

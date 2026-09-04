@@ -114,5 +114,11 @@
   "footer_sitemap_label": "Site map",
   "footer_explore": "Explore",
   "footer_publications": "Publications",
-  "footer_worship": "Worship"
+  "footer_worship": "Worship",
+  "jadwal_theme": "Theme",
+  "jadwal_reading": "Reading",
+  "jadwal_preacher": "Preacher",
+  "jadwal_liturgist": "Liturgist",
+  "jadwal_download_liturgy": "Download the order of service",
+  "jadwal_tba": "To be announced"
 }

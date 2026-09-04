@@ -38,19 +38,23 @@ function xmlEscape(value: string): string {
     .replace(/'/g, '&apos;')
 }
 
-/** Satu blok `<url>…</url>` (URL id sebagai `<loc>`, 3 alternate, `lastmod` opsional). */
+/**
+ * Satu blok `<url>…</url>` (URL id sebagai `<loc>`, 3 alternate, `lastmod`
+ * opsional). Urutan anak mengikuti XSD sitemap 0.9 — `<url>` adalah sequence
+ * terurut: `<loc>` → `<lastmod>` → ekstensi (`<xhtml:link>`). Google toleran
+ * terhadap urutan lain, validator ketat tidak.
+ */
 function urlBlock(entry: SitemapEntry): string {
   const idUrl = xmlEscape(localeUrl(entry.path, 'id'))
   const enUrl = xmlEscape(localeUrl(entry.path, 'en'))
-  const lines = [
-    '  <url>',
-    `    <loc>${idUrl}</loc>`,
+  const lines = ['  <url>', `    <loc>${idUrl}</loc>`]
+  if (entry.lastmod) lines.push(`    <lastmod>${xmlEscape(entry.lastmod)}</lastmod>`)
+  lines.push(
     `    <xhtml:link rel="alternate" hreflang="id" href="${idUrl}"/>`,
     `    <xhtml:link rel="alternate" hreflang="en" href="${enUrl}"/>`,
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${idUrl}"/>`,
-  ]
-  if (entry.lastmod) lines.push(`    <lastmod>${xmlEscape(entry.lastmod)}</lastmod>`)
-  lines.push('  </url>')
+    '  </url>',
+  )
   return lines.join('\n')
 }
 

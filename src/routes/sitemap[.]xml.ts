@@ -37,10 +37,16 @@ const STATIC_PATHS = [
   '/ibadah-live',
 ] as const
 
-/** `Date` (kolom `timestamptz`) atau `"YYYY-MM-DD"` → `"YYYY-MM-DD"`. */
-function toYmd(value: Date | string): string {
-  const date = typeof value === 'string' ? new Date(value) : value
-  return date.toISOString().slice(0, 10)
+/**
+ * `updatedAt` (kolom `timestamptz` → `Date`) → `"YYYY-MM-DD"`.
+ *
+ * `toISOString()` memberi tanggal UTC — bisa sehari di depan Eastern dekat
+ * tengah malam. Sengaja diterima di sini: `lastmod` cuma petunjuk kesegaran
+ * untuk crawler, bukan tanggal yang ditampilkan; tidak sepadan menyeret
+ * `TZDate` (`@/lib/datetime`) hanya untuk ini.
+ */
+function toYmd(value: Date): string {
+  return value.toISOString().slice(0, 10)
 }
 
 /**
@@ -76,12 +82,11 @@ export const Route = createFileRoute('/sitemap.xml')({
   server: {
     handlers: {
       GET: async () => {
-        const staticEntries: SitemapEntry[] = STATIC_PATHS.map((path) => ({ path }))
-
         let entries: SitemapEntry[]
         if (comingSoon) {
           entries = [{ path: '/' }]
         } else {
+          const staticEntries: SitemapEntry[] = STATIC_PATHS.map((path) => ({ path }))
           // Endpoint yang dilihat crawler tak boleh 500 karena DB kedip sesaat —
           // degradasi ke entri statis. Bungkus HANYA query. Jangan buang isi baris
           // ke log.

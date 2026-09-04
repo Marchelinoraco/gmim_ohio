@@ -35,8 +35,10 @@ describe('buildSitemapXml', () => {
     expect(xml).not.toContain('gmimmusafir.org//')
   })
 
-  it('tiga <xhtml:link> alternate per <url>; x-default menunjuk URL id', () => {
+  it('tiga <xhtml:link> alternate per <url>; <loc> & x-default = URL id', () => {
     const xml = buildSitemapXml([{ path: '/warta' }])
+    // <loc> memakai URL id (bukan /en) untuk path non-root.
+    expect(xml).toContain('<loc>https://gmimmusafir.org/warta</loc>')
     expect(xml).toContain(
       '<xhtml:link rel="alternate" hreflang="id" href="https://gmimmusafir.org/warta"/>',
     )
@@ -49,18 +51,23 @@ describe('buildSitemapXml', () => {
     expect((xml.match(/<xhtml:link /g) ?? []).length).toBe(3)
   })
 
-  it('lastmod dipancarkan saat ada, dihilangkan saat tidak', () => {
+  it('lastmod dipancarkan saat ada (setelah <loc>, sebelum alternate — urut XSD), dihilangkan saat tidak', () => {
     const withMod = buildSitemapXml([{ path: '/warta/abc', lastmod: '2026-08-30' }])
     expect(withMod).toContain('<lastmod>2026-08-30</lastmod>')
+    // XSD sitemap 0.9: <url> = sequence terurut loc → lastmod → ekstensi.
+    expect(withMod.indexOf('<loc>')).toBeLessThan(withMod.indexOf('<lastmod>'))
+    expect(withMod.indexOf('<lastmod>')).toBeLessThan(withMod.indexOf('<xhtml:link'))
 
     const withoutMod = buildSitemapXml([{ path: '/warta/abc' }])
     expect(withoutMod).not.toContain('<lastmod>')
   })
 
   it('nilai yang perlu di-escape di-escape di <loc> maupun href', () => {
-    const xml = buildSitemapXml([{ path: '/warta/a&b<c' }])
-    expect(xml).toContain('https://gmimmusafir.org/warta/a&amp;b&lt;c')
-    expect(xml).not.toContain('a&b<c')
+    // `"` = karakter yang akan membobol href="…" — kunci ikut ke-escape.
+    const xml = buildSitemapXml([{ path: '/warta/a&b<c"d' }])
+    expect(xml).toContain('https://gmimmusafir.org/warta/a&amp;b&lt;c&quot;d')
+    expect(xml).not.toContain('a&b<c"d')
+    expect(xml).toContain('&quot;')
     // `&` di-escape lebih dulu, jadi `&lt;` tidak jadi `&amp;lt;`.
     expect(xml).not.toContain('&amp;lt;')
   })

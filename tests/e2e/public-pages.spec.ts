@@ -58,11 +58,14 @@ for (const path of PUBLIC_PATHS) {
     await expect(h1).not.toBeEmpty()
   })
 
-  test(`/en${path} — 200, <html lang="en">`, async ({ page }) => {
+  test(`/en${path} — 200, satu <h1> non-kosong, <html lang="en">`, async ({ page }) => {
     const res = await page.goto(`/en${path}`)
     expect(res?.status()).toBe(200)
     await expect(page.locator('html')).toHaveAttribute('lang', 'en')
-    await expect(page.locator('h1')).toHaveCount(1)
+    const h1 = page.locator('h1')
+    await expect(h1).toHaveCount(1)
+    // Tangkap heading kosong / belum diterjemahkan di sisi en juga.
+    await expect(h1).not.toBeEmpty()
   })
 }
 
@@ -101,22 +104,31 @@ test('/galeri: album → tile pertama buka lightbox, ArrowRight maju, Escape tut
   const firstTile = page.getByRole('button', { name: 'Ibadah Minggu di gedung gereja' })
   await expect(firstTile).toBeVisible()
 
-  // Klik bisa mendahului hidrasi handler onClick — ulang sampai dialog muncul
-  // (pola anti-flake yang sama dengan theme.spec.ts `openThemeMenu`).
+  // Buka lightbox — klik bisa mendahului hidrasi handler onClick — ulang sampai
+  // dialog muncul (pola anti-flake `theme.spec.ts` `openThemeMenu`).
   const dialog = page.getByRole('dialog')
   await expect(async () => {
     if (!(await dialog.isVisible())) await firstTile.click({ timeout: 1000 })
     await expect(dialog).toBeVisible({ timeout: 1000 })
   }).toPass({ timeout: 15000 })
 
-  // Gambar aktif di lightbox = item 0.
+  // Gambar aktif = item 0 (tile pertama → index 0).
   await expect(dialog.getByRole('img', { name: 'Ibadah Minggu di gedung gereja' })).toBeVisible()
 
-  // ArrowRight → item 1. Handler keydown dipasang window-level di <Lightbox>
-  // useEffect (klien saja); dialog sudah terbuka jadi effect sudah jalan.
-  await page.keyboard.press('ArrowRight')
+  // ArrowRight → item 1. `<Lightbox>` memasang listener `keydown` window-level di
+  // `useEffect`, jadi ada jendela di mana dialog sudah terlihat tapi listener
+  // belum terpasang → tekan pertama tertelan. `ArrowRight` TIDAK idempoten, jadi
+  // tiap percobaan retry harus mulai dari state diketahui: tutup dulu, buka lagi
+  // (selalu balik ke index 0), baru tekan.
+  await expect(async () => {
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden({ timeout: 1000 })
+    await firstTile.click()
+    await expect(dialog).toBeVisible({ timeout: 1000 })
+    await page.keyboard.press('ArrowRight')
+    await expect(dialog.getByText('2 / 3')).toBeVisible({ timeout: 1000 })
+  }).toPass({ timeout: 15000 })
   await expect(dialog.getByRole('img', { name: 'Ramah tamah jemaat seusai ibadah' })).toBeVisible()
-  await expect(dialog.getByText('2 / 3')).toBeVisible()
 
   // Escape ditangani Radix Dialog → tutup.
   await page.keyboard.press('Escape')

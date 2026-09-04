@@ -4,6 +4,7 @@ import { getLocale } from '@/paraglide/runtime'
 import { getDevotionalDetail } from '@/features/content/devotionals'
 import { formatDateLong } from '@/lib/datetime'
 import { pageMeta } from '@/lib/seo'
+import { SITE } from '@/config/site'
 import { Container } from '@/components/site/container'
 import { Prose } from '@/components/site/prose'
 import { Section } from '@/components/site/section'
@@ -22,6 +23,9 @@ export const Route = createFileRoute('/renungan_/$slug')({
   head: ({ loaderData }) => {
     if (!loaderData) return {}
     const locale = getLocale()
+    // Cover renungan → OG image (sejajar `galeri_.$id.tsx`). Semua null di seed.
+    const cover = loaderData.coverImageUrl
+    const coverAbs = cover ? (/^https?:\/\//.test(cover) ? cover : `${SITE.url}${cover}`) : null
     const base = pageMeta({
       path: `/renungan/${loaderData.slug}`,
       titleId: loaderData.titleId,
@@ -29,6 +33,7 @@ export const Route = createFileRoute('/renungan_/$slug')({
       descId: loaderData.excerptId,
       descEn: loaderData.excerptEn,
       locale,
+      image: cover ?? undefined,
     })
     return {
       ...base,
@@ -46,6 +51,7 @@ export const Route = createFileRoute('/renungan_/$slug')({
             datePublished: loaderData.publishedDate,
             author: { '@type': 'Person', name: loaderData.authorName },
             inLanguage: locale === 'id' ? 'id-ID' : 'en-US',
+            ...(coverAbs && { image: coverAbs }),
           },
         },
       ],

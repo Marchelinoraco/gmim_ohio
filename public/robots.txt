@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /tokens
 Sitemap: https://gmimmusafir.org/sitemap.xml

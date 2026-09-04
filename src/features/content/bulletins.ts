@@ -5,12 +5,14 @@ import type { SanitizedHtml } from '@/lib/sanitize'
 /**
  * Lapisan tipe + query baca untuk `bulletins` (Warta Jemaat).
  *
- * `listBulletins` / `getBulletin` mengembalikan baris DB mentah — HTML
- * `bodyId`/`bodyEn` BELUM disanitasi; sanitasi (kalau perlu) dikerjakan di titik
- * render. `getBulletinDetail` adalah PENGECUALIAN yang disengaja: ia menyanitasi
- * `bodyId`/`bodyEn` DI DALAM server fn dan mengembalikannya sebagai
- * `SanitizedHtml`, justru supaya `sanitizeRichText` (dan paket `sanitize-html`
- * di baliknya) tak pernah ikut ke loader route maupun bundle klien.
+ * `listBulletins` mengembalikan `BulletinSummary` — subset kolom yang dipakai
+ * daftar; body HTML SENGAJA tak di-select (lihat tipe di bawah). `getBulletin`
+ * mengembalikan baris mentah lengkap (body `bodyId`/`bodyEn` BELUM disanitasi;
+ * dipakai form edit admin di Rencana 3). `getBulletinDetail` adalah PENGECUALIAN
+ * yang disengaja: ia menyanitasi `bodyId`/`bodyEn` DI DALAM server fn dan
+ * mengembalikannya sebagai `SanitizedHtml`, justru supaya `sanitizeRichText`
+ * (dan paket `sanitize-html` di baliknya) tak pernah ikut ke loader route maupun
+ * bundle klien.
  *
  * `@/db` dan skema di-import lazy DI DALAM tiap handler supaya modul route yang
  * memuat server fn ini tidak ikut meng-evaluasi `@/lib/env` saat bundling.
@@ -20,14 +22,34 @@ import type { SanitizedHtml } from '@/lib/sanitize'
 /** Satu baris `bulletins` apa adanya (kolom mentah, `bodyId/En` belum disanitasi). */
 export type Bulletin = typeof bulletins.$inferSelect
 
+/**
+ * Bentuk daftar warta — hanya kolom yang benar-benar dipakai pemanggil `/warta`,
+ * `<Beranda>`, dan `sitemap.xml` (`id` + judul + ringkasan + `weekDate` +
+ * `updatedAt`). Body HTML admin (`bodyId`/`bodyEn`) TIDAK di-select: tak ada yang
+ * merendernya di daftar, dan menyerialisasi HTML mentah ke payload loader klien
+ * tumbuh tanpa batas seiring pengurus menambah warta.
+ */
+export type BulletinSummary = Pick<
+  Bulletin,
+  'id' | 'titleId' | 'titleEn' | 'summaryId' | 'summaryEn' | 'weekDate' | 'updatedAt'
+>
+
 /** Daftar warta terbit, terbaru dulu (urut `weekDate` desc). */
 export const listBulletins = createServerFn({ method: 'GET' }).handler(
-  async (): Promise<Bulletin[]> => {
+  async (): Promise<BulletinSummary[]> => {
     const { db } = await import('@/db')
     const { bulletins } = await import('@/db/schema')
     const { desc, eq } = await import('drizzle-orm')
     return db
-      .select()
+      .select({
+        id: bulletins.id,
+        titleId: bulletins.titleId,
+        titleEn: bulletins.titleEn,
+        summaryId: bulletins.summaryId,
+        summaryEn: bulletins.summaryEn,
+        weekDate: bulletins.weekDate,
+        updatedAt: bulletins.updatedAt,
+      })
       .from(bulletins)
       .where(eq(bulletins.status, 'published'))
       .orderBy(desc(bulletins.weekDate))

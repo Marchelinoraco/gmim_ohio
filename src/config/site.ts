@@ -10,6 +10,11 @@
  * Rencana 2 sebagian pindah ke tabel Site Settings.
  */
 export const SITE = {
+  // TODO(2b): setel `false` untuk meluncurkan situs publik. Titik masuk 2b =
+  // `grep -rn "TODO(2b)" src/ tests/` — SEMUA yang harus berubah bersama flag
+  // ini ada di sana (nav header, peta situs footer, switch `/`, sitemap.xml,
+  // robots noindex di `seo.ts`, hapus `_dev.beranda.tsx`, e2e `PUBLIC_PATHS`).
+  // Route `/pelayanan` + `/jadwal` HARUS ada sebelum flag dibalik.
   comingSoon: true,
   name: 'GMIM Musafir Columbus Ohio',
   // Base URL produksi (tanpa trailing slash) — sumber tunggal untuk URL absolut

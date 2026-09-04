@@ -8,14 +8,43 @@
  * `SITE.url` sebagai sumber tunggal dan sadar-locale (`en` → prefiks `/en`).
  * `churchJsonLd()` menyusun JSON-LD `@type: Church` sekali untuk seluruh situs.
  *
- * Gotcha: serializer `head()` TanStack menuliskan kunci objek APA ADANYA sebagai
- * atribut HTML. Karena itu kuncinya `hreflang` (huruf kecil) — bukan `hrefLang`
- * gaya React DOM — supaya atribut yang keluar `hreflang="id"` yang idiomatis.
+ * Kunci link ditulis huruf kecil `hreflang` — BUKAN `hrefLang` gaya React DOM.
+ * Serializer `head()` TanStack menuliskan kunci objek APA ADANYA sebagai nama
+ * atribut HTML, jadi kunci = atribut yang keluar. Bukti langsung: saat kunci
+ * sempat diubah ke `hrefLang`, halaman konten memancarkan literal
+ * `<link ... hrefLang="id" ...>`, sementara head coming-soon `/` yang tak
+ * tersentuh tetap `hreflang="id"` — serializer yang sama, render path yang sama,
+ * ejaan kunci yang berbeda → atribut yang berbeda.
+ *
+ * Akibatnya React mencatat `Invalid DOM property 'hreflang'. Did you mean
+ * 'hrefLang'?` di dev. Warning itu DITERIMA dengan sengaja: ia cuma derau konsol
+ * dev, sedangkan alternatifnya (`hrefLang`) hanya "berfungsi" karena parsing
+ * HTML5 meng-lowercase nama atribut. Untuk atribut sepenting hreflang di situs
+ * publik gereja, output yang benar & idiomatis mengalahkan konsol yang sunyi.
+ *
+ * JANGAN ubah ke `hrefLang` — sudah pernah dicoba dan dibalik (lihat
+ * `pre-merge-fix-report.md` §"Item 3 revert").
  *
  * Modul ini tidak meng-import Paraglide runtime: `locale` selalu diterima
  * eksplisit sebagai parameter (pemanggil meneruskan `getLocale()`).
  */
 import { SITE } from '@/config/site'
+
+/**
+ * Selagi `SITE.comingSoon` true, tiap halaman yang memanggil `pageMeta` memancar
+ * `<meta name="robots" content="noindex, follow">` — gerbang `comingSoon` yang
+ * lain (header, footer, sitemap.xml) mencegah PENEMUAN dari situs ini, tapi tak
+ * menghentikan crawler mengindeks URL yang di-paste langsung (mis. ke WhatsApp /
+ * Facebook). `follow` (bukan `nofollow`) supaya ekuitas tautan tetap mengalir.
+ * Di-key ke flag → hilang sendiri saat 2b (`false`), tanpa item lockstep baru.
+ * `src/routes/index.tsx` head coming-soon TIDAK memanggil `pageMeta`, jadi `/`
+ * yang live tetap terindeks — memang disengaja.
+ *
+ * Indireksi bertipe `boolean` (sama seperti `index.tsx` / `site-footer.tsx` /
+ * `sitemap[.]xml.ts`): `SITE` `as const` menyempitkan `SITE.comingSoon` ke
+ * literal `true`, menetapkan ke const bertipe `boolean` melebarkannya lagi.
+ */
+const comingSoon: boolean = SITE.comingSoon
 
 /**
  * Bentuk elemen `links` di `head()`. TanStack mengetikkannya `unknown` dan tidak
@@ -86,6 +115,9 @@ export function pageMeta(opts: PageMetaOpts): { meta: MetaTag[]; links: LinkDesc
 
   return {
     meta: [
+      // Lihat docblock `comingSoon` di atas: noindex selagi belum diluncurkan,
+      // `follow` supaya ekuitas tautan tetap mengalir. Hilang sendiri di 2b.
+      ...(comingSoon ? [{ name: 'robots', content: 'noindex, follow' }] : []),
       { title },
       { name: 'description', content: description },
       { property: 'og:title', content: title },
@@ -102,6 +134,8 @@ export function pageMeta(opts: PageMetaOpts): { meta: MetaTag[]; links: LinkDesc
     links: [
       { rel: 'canonical', href: canonical },
       // Sama untuk kedua locale: selalu id + en + x-default (= id).
+      // Kunci huruf kecil `hreflang` WAJIB — serializer menulisnya apa adanya
+      // sbg nama atribut (lihat docblock; jangan ubah ke `hrefLang`).
       { rel: 'alternate', hreflang: 'id', href: idUrl },
       { rel: 'alternate', hreflang: 'en', href: enUrl },
       { rel: 'alternate', hreflang: 'x-default', href: idUrl },

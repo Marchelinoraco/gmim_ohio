@@ -60,7 +60,12 @@ describe('PLACEHOLDER_KOLOM', () => {
   it('4 kolom bernomor 1..4', () => {
     expect(PLACEHOLDER_KOLOM).toHaveLength(4)
     expect(PLACEHOLDER_KOLOM.map((k) => k.number)).toEqual([1, 2, 3, 4])
-    expect(PLACEHOLDER_KOLOM.map((k) => k.name)).toEqual(['Kolom 1', 'Kolom 2', 'Kolom 3', 'Kolom 4'])
+    expect(PLACEHOLDER_KOLOM.map((k) => k.name)).toEqual([
+      'Kolom 1',
+      'Kolom 2',
+      'Kolom 3',
+      'Kolom 4',
+    ])
   })
 })
 

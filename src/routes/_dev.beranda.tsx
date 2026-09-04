@@ -17,7 +17,9 @@ export const Route = createFileRoute('/_dev/beranda')({
   component: DevBeranda,
 })
 
-// Halaman dev throwaway (dihapus di Rencana 2b saat `<Beranda>` pindah ke `/`).
+// Halaman dev throwaway.
+// TODO(2b): HAPUS file ini seluruhnya — `<Beranda>` pindah ke `/` saat
+// `SITE.comingSoon = false`, dan route pratinjau ini tak lagi punya alasan ada.
 function DevBeranda() {
   const [settings, bulletins, services] = Route.useLoaderData()
   return (

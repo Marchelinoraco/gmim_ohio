@@ -15,11 +15,8 @@ import { buildSitemapXml, type SitemapEntry } from '@/lib/sitemap'
  *   `/galeri/<id>` yang `published`. Rencana 2b membalik flag ini bersamaan
  *   dengan nav & link footer.
  *
- * Indireksi `const comingSoon: boolean = SITE.comingSoon` sama seperti
- * `src/routes/index.tsx` & `src/components/layout/site-footer.tsx`: `SITE` adalah
- * `as const` sehingga `SITE.comingSoon` menyempit ke literal `true` dan membuat
- * cabang `!comingSoon` jadi dead code (plus ESLint `no-constant-binary-expression`).
- * Menetapkan ke const bertipe `boolean` melebarkannya lagi.
+ * Indireksi `const comingSoon: boolean = SITE.comingSoon` — alasan lengkap di
+ * `src/routes/index.tsx`.
  */
 const comingSoon: boolean = SITE.comingSoon
 

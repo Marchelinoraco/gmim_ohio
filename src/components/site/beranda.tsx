@@ -2,13 +2,14 @@ import { useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { getLocale, localizeHref } from '@/paraglide/runtime'
-import type { Bulletin } from '@/features/content/bulletins'
+import type { BulletinSummary } from '@/features/content/bulletins'
 import type { SiteSettings } from '@/features/content/site-settings'
 import type { UpcomingService } from '@/features/schedule/services'
-import { formatDateLong, formatServiceDateTime } from '@/lib/datetime'
+import { formatServiceDateTime } from '@/lib/datetime'
 import { SITE } from '@/config/site'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { BulletinCard } from '@/components/site/bulletin-card'
 import { Container } from '@/components/site/container'
 import { Paragraphs } from '@/components/site/paragraphs'
 import { Section, SectionTitle } from '@/components/site/section'
@@ -29,7 +30,7 @@ import { Section, SectionTitle } from '@/components/site/section'
 
 type BerandaProps = {
   settings: SiteSettings
-  bulletins: Bulletin[]
+  bulletins: BulletinSummary[]
   services: UpcomingService[]
 }
 
@@ -103,24 +104,7 @@ export function Beranda({ settings, bulletins, services }: BerandaProps) {
             <SectionTitle>{m.home_latest_bulletins()}</SectionTitle>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {latestBulletins.map((b) => (
-                <Link
-                  key={b.id}
-                  to="/warta/$id"
-                  params={{ id: b.id }}
-                  className="focus-visible:ring-secondary/60 focus-visible:ring-offset-surface rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                >
-                  <Card className="h-full transition-shadow hover:shadow-md">
-                    <CardHeader>
-                      <CardDescription>{formatDateLong(b.weekDate, locale)}</CardDescription>
-                      <CardTitle className="font-serif text-xl">
-                        {locale === 'id' ? b.titleId : b.titleEn}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-muted">
-                      {locale === 'id' ? b.summaryId : b.summaryEn}
-                    </CardContent>
-                  </Card>
-                </Link>
+                <BulletinCard key={b.id} bulletin={b} locale={locale} />
               ))}
             </div>
             <div className="mt-8">

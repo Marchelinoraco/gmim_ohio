@@ -37,6 +37,8 @@ import { test, expect, type Page } from '@playwright/test'
 // 8 route publik yang dibangun Rencana 2a. `/beranda` (file `_dev.beranda.tsx`,
 // URL `/beranda` — `_dev` segmen layout pathless) memberi `<Beranda>` cakupan
 // e2e selama `SITE.comingSoon` masih `true`.
+// TODO(2b): saat `SITE.comingSoon = false`, `PUBLIC_PATHS` harus MEMBUANG
+// `/beranda` (route-nya dihapus) dan MENAMBAH `/` (kini merender `<Beranda>`).
 const PUBLIC_PATHS = [
   '/tentang',
   '/warta',

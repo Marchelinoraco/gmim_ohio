@@ -3,8 +3,14 @@ import { pageMeta, churchJsonLd } from '@/lib/seo'
 
 describe('pageMeta', () => {
   it('id: canonical & og:url tanpa prefix, alternate id/en/x-default', () => {
-    const { meta, links } = pageMeta({ path: '/warta', titleId: 'Warta', titleEn: 'Bulletin',
-      descId: 'd', descEn: 'd', locale: 'id' })
+    const { meta, links } = pageMeta({
+      path: '/warta',
+      titleId: 'Warta',
+      titleEn: 'Bulletin',
+      descId: 'd',
+      descEn: 'd',
+      locale: 'id',
+    })
     const canonical = links.find((l) => l.rel === 'canonical')
     expect(canonical?.href).toBe('https://gmimmusafir.org/warta')
     expect(links.filter((l) => l.rel === 'alternate')).toHaveLength(3)
@@ -12,13 +18,40 @@ describe('pageMeta', () => {
     expect(meta.find((m) => m.property === 'og:url')?.content).toBe('https://gmimmusafir.org/warta')
   })
   it('en: canonical & og:url berprefiks /en', () => {
-    const { links } = pageMeta({ path: '/warta', titleId: 'Warta', titleEn: 'Bulletin',
-      descId: 'd', descEn: 'd', locale: 'en' })
+    const { links } = pageMeta({
+      path: '/warta',
+      titleId: 'Warta',
+      titleEn: 'Bulletin',
+      descId: 'd',
+      descEn: 'd',
+      locale: 'en',
+    })
     expect(links.find((l) => l.rel === 'canonical')?.href).toBe('https://gmimmusafir.org/en/warta')
   })
   it('path "/" tidak menghasilkan "//"', () => {
-    const { links } = pageMeta({ path: '/', titleId: 'x', titleEn: 'x', descId: 'd', descEn: 'd', locale: 'en' })
+    const { links } = pageMeta({
+      path: '/',
+      titleId: 'x',
+      titleEn: 'x',
+      descId: 'd',
+      descEn: 'd',
+      locale: 'en',
+    })
     expect(links.find((l) => l.rel === 'canonical')?.href).toBe('https://gmimmusafir.org/en')
+  })
+  // TODO(2b): saat `SITE.comingSoon = false`, `pageMeta` berhenti memancarkan
+  // meta robots — assertion ini ikut berubah jadi `expect(robots).toBeUndefined()`.
+  it('coming-soon: menyisipkan <meta name="robots" content="noindex, follow">', () => {
+    const { meta } = pageMeta({
+      path: '/warta',
+      titleId: 'Warta',
+      titleEn: 'Bulletin',
+      descId: 'd',
+      descEn: 'd',
+      locale: 'id',
+    })
+    const robots = meta.find((m) => m.name === 'robots')
+    expect(robots?.content).toBe('noindex, follow')
   })
 })
 

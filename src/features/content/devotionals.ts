@@ -5,12 +5,14 @@ import type { SanitizedHtml } from '@/lib/sanitize'
 /**
  * Lapisan tipe + query baca untuk `devotionals` (Renungan).
  *
- * `listDevotionals` / `getDevotional` mengembalikan baris DB mentah — HTML
- * `bodyId`/`bodyEn` BELUM disanitasi; sanitasi (kalau perlu) dikerjakan di titik
- * render. `getDevotionalDetail` adalah PENGECUALIAN yang disengaja: ia
- * menyanitasi `bodyId`/`bodyEn` DI DALAM server fn dan mengembalikannya sebagai
- * `SanitizedHtml`, justru supaya `sanitizeRichText` (dan paket `sanitize-html`
- * di baliknya) tak pernah ikut ke loader route maupun bundle klien.
+ * `listDevotionals` mengembalikan `DevotionalSummary` — subset kolom yang dipakai
+ * daftar; body HTML SENGAJA tak di-select (lihat tipe di bawah). `getDevotional`
+ * mengembalikan baris mentah lengkap (body BELUM disanitasi; dipakai form edit
+ * admin di Rencana 3). `getDevotionalDetail` adalah PENGECUALIAN yang disengaja:
+ * ia menyanitasi `bodyId`/`bodyEn` DI DALAM server fn dan mengembalikannya
+ * sebagai `SanitizedHtml`, justru supaya `sanitizeRichText` (dan paket
+ * `sanitize-html` di baliknya) tak pernah ikut ke loader route maupun bundle
+ * klien.
  *
  * `@/db` dan skema di-import lazy DI DALAM tiap handler supaya modul route yang
  * memuat server fn ini tidak ikut meng-evaluasi `@/lib/env` saat bundling.
@@ -20,14 +22,47 @@ import type { SanitizedHtml } from '@/lib/sanitize'
 /** Satu baris `devotionals` apa adanya (kolom mentah, `bodyId/En` belum disanitasi). */
 export type Devotional = typeof devotionals.$inferSelect
 
+/**
+ * Bentuk daftar renungan — hanya kolom yang benar-benar dipakai pemanggil
+ * `/renungan` dan `sitemap.xml` (`id`/`slug` + judul + `excerpt` + `authorName` +
+ * `coverImageUrl` + `publishedDate` + `updatedAt`). Body HTML admin
+ * (`bodyId`/`bodyEn`) TIDAK di-select: tak ada yang merendernya di daftar, dan
+ * menyerialisasi HTML mentah ke payload loader klien tumbuh tanpa batas seiring
+ * pengurus menambah renungan.
+ */
+export type DevotionalSummary = Pick<
+  Devotional,
+  | 'id'
+  | 'slug'
+  | 'titleId'
+  | 'titleEn'
+  | 'excerptId'
+  | 'excerptEn'
+  | 'authorName'
+  | 'coverImageUrl'
+  | 'publishedDate'
+  | 'updatedAt'
+>
+
 /** Daftar renungan terbit, terbaru dulu (urut `publishedDate` desc). */
 export const listDevotionals = createServerFn({ method: 'GET' }).handler(
-  async (): Promise<Devotional[]> => {
+  async (): Promise<DevotionalSummary[]> => {
     const { db } = await import('@/db')
     const { devotionals } = await import('@/db/schema')
     const { desc, eq } = await import('drizzle-orm')
     return db
-      .select()
+      .select({
+        id: devotionals.id,
+        slug: devotionals.slug,
+        titleId: devotionals.titleId,
+        titleEn: devotionals.titleEn,
+        excerptId: devotionals.excerptId,
+        excerptEn: devotionals.excerptEn,
+        authorName: devotionals.authorName,
+        coverImageUrl: devotionals.coverImageUrl,
+        publishedDate: devotionals.publishedDate,
+        updatedAt: devotionals.updatedAt,
+      })
       .from(devotionals)
       .where(eq(devotionals.status, 'published'))
       .orderBy(desc(devotionals.publishedDate))

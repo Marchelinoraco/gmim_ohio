@@ -21,6 +21,13 @@ import { ComingSoon } from '@/components/site/coming-soon'
  * dengan sebelumnya (bukti byte-identik: task-14-report.md §2b).
  * `<Beranda>` hanya terlihat lewat `/beranda` (file `_dev.beranda.tsx`) sampai
  * Rencana 2b menyetel `SITE.comingSoon = false`.
+ *
+ * TODO(2b): saat flag dibalik, HAPUS indireksi `comingSoon` di bawah, kedua
+ * ternary di `loader`/`head`, dan seluruh blok "coming-soon head" — `/` cukup
+ * `loader: () => Promise.all([...])` + `head: () => pageMeta({ path: '/', ... })`.
+ * (Komentar saja di sini — jangan ubah kode di 2a.) Catatan: canonical `/`
+ * berubah dari `…/` (trailing slash, head coming-soon) ke `…` tanpa slash
+ * (`pageMeta`) — no-slash memang canonical yang lebih baik, disengaja.
  */
 const comingSoon: boolean = SITE.comingSoon
 

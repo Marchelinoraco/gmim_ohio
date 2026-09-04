@@ -22,8 +22,9 @@ export const contactSchema = z.object({
   // Honeypot. BUKAN batasan schema: kalau schema menolak `website` yang terisi,
   // bot menerima error validasi dan jadi tahu ia terdeteksi. Maka schema
   // menerima `website` sebagai string opsional apa adanya; handler yang diam-diam
-  // short-circuit dengan `{ ok: true }` (lihat langkah 1 di handler).
-  website: z.string().optional(),
+  // short-circuit dengan `{ ok: true }` (lihat langkah 1 di handler). `.max(200)`
+  // supaya field tak terlihat ini tetap punya batas panjang seperti yang lain.
+  website: z.string().max(200).optional(),
 })
 
 export type ContactInput = z.infer<typeof contactSchema>
@@ -114,6 +115,18 @@ export const submitContactMessage = createServerFn({ method: 'POST' })
     //    — cukup catat bahwa notifikasi gagal.
     const { env } = await import('@/lib/env')
     if (env.RESEND_API_KEY && env.CONTACT_NOTIFICATION_EMAIL) {
+      // `data.name` sudah `.trim()` di schema, tapi CR/LF (atau kontrol lain) di
+      // TENGAH string masih lolos — dan header `Subject` tak boleh punya baris
+      // baru (injeksi header). Buang semua karakter kontrol sebelum interpolasi.
+      // (Filter char-code, bukan regex: `no-control-regex` melarang karakter
+      // kontrol di literal regex.)
+      const subjectName = [...data.name]
+        .filter((ch) => {
+          const code = ch.charCodeAt(0)
+          return code > 0x1f && code !== 0x7f
+        })
+        .join('')
+        .trim()
       try {
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -125,7 +138,7 @@ export const submitContactMessage = createServerFn({ method: 'POST' })
             // Domain pengirim terverifikasi asli di-set di Rencana 3.
             from: 'GMIM Musafir <onboarding@resend.dev>',
             to: [env.CONTACT_NOTIFICATION_EMAIL],
-            subject: `Pesan kontak baru dari ${data.name}`,
+            subject: `Pesan kontak baru dari ${subjectName}`,
             text: [
               `Nama: ${data.name}`,
               `Email: ${data.email}`,

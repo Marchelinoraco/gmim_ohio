@@ -75,7 +75,7 @@ function IbadahLive() {
                   </a>
                 </Button>
               ) : null}
-              {/* TODO 2b: ganti dengan jadwal ibadah berikutnya dari worship_services */}
+              {/* TODO(2b): ganti dengan jadwal ibadah berikutnya dari worship_services */}
               <p className="text-muted">{m.live_next_note()}</p>
             </div>
           )}

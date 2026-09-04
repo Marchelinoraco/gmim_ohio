@@ -1,10 +1,9 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { getLocale } from '@/paraglide/runtime'
 import { listBulletins } from '@/features/content/bulletins'
-import { formatDateLong } from '@/lib/datetime'
 import { pageMeta } from '@/lib/seo'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { BulletinCard } from '@/components/site/bulletin-card'
 import { Container } from '@/components/site/container'
 import { EmptyState } from '@/components/site/empty-state'
 import { PageHero } from '@/components/site/page-hero'
@@ -45,24 +44,7 @@ function WartaList() {
           ) : (
             <div className="grid gap-6 sm:grid-cols-2">
               {data.map((b) => (
-                <Link
-                  key={b.id}
-                  to="/warta/$id"
-                  params={{ id: b.id }}
-                  className="focus-visible:ring-secondary/60 focus-visible:ring-offset-surface rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                >
-                  <Card className="h-full transition-shadow hover:shadow-md">
-                    <CardHeader>
-                      <CardDescription>{formatDateLong(b.weekDate, locale)}</CardDescription>
-                      <CardTitle className="font-serif text-xl">
-                        {locale === 'id' ? b.titleId : b.titleEn}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-muted">
-                      {locale === 'id' ? b.summaryId : b.summaryEn}
-                    </CardContent>
-                  </Card>
-                </Link>
+                <BulletinCard key={b.id} bulletin={b} locale={locale} />
               ))}
             </div>
           )}

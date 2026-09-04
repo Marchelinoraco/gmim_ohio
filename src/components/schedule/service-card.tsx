@@ -1,5 +1,5 @@
+import { Link } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
-import { localizeHref } from '@/paraglide/runtime'
 import type { UpcomingService } from '@/features/schedule/services'
 import { formatServiceDateTime } from '@/lib/datetime'
 import { SITE } from '@/config/site'
@@ -30,10 +30,9 @@ import { CategoryBadge } from '@/components/schedule/category-badge'
  * bila `null` (beda dengan pelayan/pemimpin ibadah, yang tak pernah "opsional"
  * secara pastoral).
  *
- * `linkToDetail`: route `/jadwal/$id` belum ada (Task 9 membuatnya), jadi kartu
- * dibungkus `<a>` polos + `localizeHref` (pola sama dengan `site-header.tsx`),
- * BUKAN `<Link to="/jadwal/$id">` yang typed — itu tak akan lolos typecheck
- * sebelum route-nya terdaftar.
+ * `linkToDetail`: kartu dibungkus `<Link to="/jadwal/$id">` typed — TanStack
+ * menangani prefiks locale `/en` sendiri lewat `rewrite` config router, jadi
+ * tak perlu `localizeHref` di sini.
  *
  * `key` tetap di titik panggil (`<ServiceCard key={s.id} …>`), bukan di sini.
  */
@@ -107,13 +106,13 @@ export function ServiceCard({
 
   if (!linkToDetail) return card
 
-  // TODO(Task 9): naikkan ke <Link to="/jadwal/$id"> setelah route ada
   return (
-    <a
-      href={localizeHref(`/jadwal/${service.id}`, { locale })}
+    <Link
+      to="/jadwal/$id"
+      params={{ id: service.id }}
       className="focus-visible:ring-secondary/60 focus-visible:ring-offset-surface rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       {card}
-    </a>
+    </Link>
   )
 }

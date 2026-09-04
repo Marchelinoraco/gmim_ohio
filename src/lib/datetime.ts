@@ -150,6 +150,18 @@ export function formatServiceDateTime(
   return `${formatDateLong(serviceDate, 'en')} · ${time}`
 }
 
+/** Offset UTC Eastern pada `date` (`YYYY-MM-DD`) — `-04:00` (EDT) atau `-05:00` (EST), tergantung DST. */
+export function easternOffset(date: string): string {
+  const { year, month, day } = parseDate(date)
+  const zoned = new TZDate(year, month - 1, day, 12, 0, 0, EASTERN) // tengah hari — jauh dari batas DST manapun
+  const offsetMinutes = -zoned.getTimezoneOffset()
+  const sign = offsetMinutes >= 0 ? '+' : '-'
+  const abs = Math.abs(offsetMinutes)
+  const hh = String(Math.floor(abs / 60)).padStart(2, '0')
+  const mm = String(abs % 60).padStart(2, '0')
+  return `${sign}${hh}:${mm}`
+}
+
 /**
  * Tanggal Eastern "hari ini" sebagai `"YYYY-MM-DD"` (wall-clock Eastern). Kolom
  * `serviceDate` juga wall-clock Eastern, jadi membandingkannya dengan tanggal

@@ -9,6 +9,7 @@ import {
   todayEastern,
   addDays,
   lastDayOfMonth,
+  easternOffset,
 } from '@/lib/datetime'
 
 describe('toInstant', () => {
@@ -104,6 +105,11 @@ describe('formatMonthYear', () => {
     expect(formatMonthYear('2026-12', 'id')).toBe('Desember 2026'))
   it('en, December (indeks bulan)', () =>
     expect(formatMonthYear('2026-12', 'en')).toBe('December 2026'))
+})
+
+describe('easternOffset', () => {
+  it('musim panas = EDT', () => expect(easternOffset('2026-07-01')).toBe('-04:00'))
+  it('musim dingin = EST', () => expect(easternOffset('2026-01-15')).toBe('-05:00'))
 })
 
 describe('addDays', () => {

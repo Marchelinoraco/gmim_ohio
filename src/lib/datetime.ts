@@ -173,6 +173,27 @@ export function addDays(date: string, days: number): string {
   return dt.toISOString().slice(0, 10)
 }
 
+/** Tanggal terakhir (`YYYY-MM-DD`) dari bulan `YYYY-MM`. */
+export function lastDayOfMonth(month: string): string {
+  const year = Number(month.slice(0, 4))
+  const monthNum = Number(month.slice(5, 7))
+  const nextMonth =
+    monthNum === 12 ? `${year + 1}-01` : `${year}-${String(monthNum + 1).padStart(2, '0')}`
+  return addDays(`${nextMonth}-01`, -1)
+}
+
+/** "September 2026" (id) / "September 2026" (en) — nama bulan penuh + tahun. */
+export function formatMonthYear(month: string, locale: 'id' | 'en'): string {
+  const year = Number(month.slice(0, 4))
+  const monthIndex = Number(month.slice(5, 7)) - 1
+  if (locale === 'id') return `${at(MONTH_ID, monthIndex)} ${year}`
+  return new Intl.DateTimeFormat('en-GB', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, monthIndex, 1)))
+}
+
 /** Senin (`YYYY-MM-DD`) dari minggu yang memuat `date`. Idempoten bila `date` sudah Senin. */
 export function isoWeekStart(date: string): string {
   const dt = utcMidnight(parseDate(date))

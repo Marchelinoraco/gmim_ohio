@@ -1,5 +1,5 @@
 import * as m from '@/paraglide/messages'
-import { addDays } from '@/lib/datetime'
+import { addDays, formatDateLong, formatMonthYear, lastDayOfMonth } from '@/lib/datetime'
 
 /**
  * `groupByDate` + `monthGrid` + `<MonthCalendar>` — dua fungsi murni + satu
@@ -8,13 +8,15 @@ import { addDays } from '@/lib/datetime'
  * "kalender").
  *
  * Sengaja TIDAK mengimpor `utcMidnight`/`parseDate` dari `@/lib/datetime` —
- * keduanya fungsi privat modul itu (tak diekspor). Aritmetika kalender di sini
- * dibangun ulang sebagai fungsi murni mandiri di atas `addDays` (satu-satunya
- * helper tanggal yang perlu diimpor) + `new Date(\`\${iso}T00:00:00Z\`)` untuk
- * membaca hari-dalam-minggu — pola UTC-midnight yang SAMA dengan `datetime.ts`,
- * tapi diduplikasi secara sengaja di sini karena helper aslinya privat. Suffix
- * `T00:00:00Z` WAJIB ada di setiap parsing tanggal di file ini supaya tak ada
- * penggeseran hari akibat parsing sebagai waktu lokal mesin.
+ * keduanya fungsi privat modul itu (tak diekspor). Aritmetika grid kalender di
+ * sini dibangun ulang sebagai fungsi murni mandiri di atas `addDays` +
+ * `new Date(\`\${iso}T00:00:00Z\`)` untuk membaca hari-dalam-minggu — pola
+ * UTC-midnight yang SAMA dengan `datetime.ts`, tapi diduplikasi secara sengaja
+ * di sini karena helper aslinya privat. Suffix `T00:00:00Z` WAJIB ada di
+ * setiap parsing tanggal di file ini supaya tak ada penggeseran hari akibat
+ * parsing sebagai waktu lokal mesin. `lastDayOfMonth`/`formatDateLong`/
+ * `formatMonthYear` SUDAH publik di `datetime.ts` (Task 8) sehingga diimpor
+ * langsung, bukan diduplikasi — beda dengan `dayOfWeek` di bawah.
  */
 
 /** Bentuk minimal yang dibutuhkan `groupByDate` — hanya menyentuh `serviceDate`. */
@@ -51,15 +53,6 @@ export function groupByDate<T extends Dated>(
 /** Hari-dalam-minggu (0=Minggu … 6=Sabtu) dari `YYYY-MM-DD`, aritmetika UTC murni. */
 function dayOfWeek(date: string): number {
   return new Date(`${date}T00:00:00Z`).getUTCDay()
-}
-
-/** Tanggal terakhir (`YYYY-MM-DD`) dari bulan `YYYY-MM` — dihitung lewat `addDays`. */
-function lastDayOfMonth(month: string): string {
-  const year = Number(month.slice(0, 4))
-  const monthNum = Number(month.slice(5, 7))
-  const nextMonth =
-    monthNum === 12 ? `${year + 1}-01` : `${year}-${String(monthNum + 1).padStart(2, '0')}`
-  return addDays(`${nextMonth}-01`, -1)
 }
 
 /**
@@ -115,21 +108,27 @@ type CalendarService = { serviceDate: string; category: { color: string } }
  * Tailwind. Sel tanpa ibadah dirender sebagai `<div>` non-interaktif (nomor
  * tanggal saja, tak ada yang bisa diklik).
  *
- * `aria-label` sel ibadah pakai interpolasi string biasa (tanggal + jumlah)
- * — belum ada kunci pesan kalender untuk ini di Rencana 2b (lihat
- * task-6-report.md); dibuat netral-bahasa (bukan kalimat) supaya tak
- * menyisipkan kata berbahasa Indonesia yang keliru di UI locale `en` sebelum
- * kunci pesan sungguhan ditambahkan.
+ * `aria-label` sel ibadah pakai `m.jadwal_calendar_day_label({ date, count })`
+ * (kunci pesan ditambahkan di Task 8) dengan `date` yang sudah dilokalkan lewat
+ * `formatDateLong` — jadi pembaca layar mendengar kalimat penuh berlokal
+ * ("Senin, 31 Agustus 2026, 2 ibadah" / "Monday, 31 August 2026, 2 services"),
+ * bukan `YYYY-MM-DD` mentah.
+ *
+ * `locale` (baru di Task 8) dipakai untuk `formatMonthYear` (judul bulan/tahun
+ * di antara tombol navigasi — jawaban atas "kalender ini bulan apa") dan
+ * `formatDateLong` di `aria-label`.
  */
 export function MonthCalendar({
   month,
   services,
+  locale,
   selectedDate,
   onSelectDate,
   onChangeMonth,
 }: {
   month: string
   services: CalendarService[]
+  locale: 'id' | 'en'
   selectedDate?: string
   onSelectDate: (date: string) => void
   onChangeMonth: (nextMonth: string) => void
@@ -147,6 +146,7 @@ export function MonthCalendar({
         >
           ‹
         </button>
+        <h3 className="text-ink font-serif text-lg">{formatMonthYear(month, locale)}</h3>
         <button
           type="button"
           aria-label={m.jadwal_calendar_next_month()}
@@ -197,7 +197,10 @@ export function MonthCalendar({
             <button
               key={date}
               type="button"
-              aria-label={`${date} (${dayServices.length})`}
+              aria-label={m.jadwal_calendar_day_label({
+                date: formatDateLong(date, locale),
+                count: dayServices.length,
+              })}
               onClick={() => onSelectDate(date)}
               className={`${cellClass} hover:bg-surface-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-surface outline-none focus-visible:ring-2 focus-visible:ring-offset-2`}
             >

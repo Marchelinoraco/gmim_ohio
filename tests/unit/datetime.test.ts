@@ -3,10 +3,12 @@ import {
   toInstant,
   formatServiceDateTime,
   formatDateLong,
+  formatMonthYear,
   isoWeekStart,
   datesForWeekday,
   todayEastern,
   addDays,
+  lastDayOfMonth,
 } from '@/lib/datetime'
 
 describe('toInstant', () => {
@@ -86,6 +88,20 @@ describe('datesForWeekday', () => {
   it('rentang tanpa kecocokan mengembalikan array kosong', () => {
     expect(datesForWeekday('2026-09-07', '2026-09-12', 0)).toEqual([])
   })
+})
+
+describe('lastDayOfMonth', () => {
+  it('bulan 30 hari', () => expect(lastDayOfMonth('2026-09')).toBe('2026-09-30'))
+  it('bulan 31 hari', () => expect(lastDayOfMonth('2026-12')).toBe('2026-12-31'))
+  it('Februari tahun kabisat', () => expect(lastDayOfMonth('2028-02')).toBe('2028-02-29'))
+  it('Februari tahun biasa', () => expect(lastDayOfMonth('2026-02')).toBe('2026-02-28'))
+})
+
+describe('formatMonthYear', () => {
+  it('id', () => expect(formatMonthYear('2026-09', 'id')).toBe('September 2026'))
+  it('en', () => expect(formatMonthYear('2026-01', 'en')).toBe('January 2026'))
+  it('id, Desember (indeks bulan)', () =>
+    expect(formatMonthYear('2026-12', 'id')).toBe('Desember 2026'))
 })
 
 describe('addDays', () => {

@@ -126,6 +126,7 @@
   "jadwal_filter_kolom": "Kolom",
   "jadwal_calendar_prev_month": "Bulan sebelumnya",
   "jadwal_calendar_next_month": "Bulan berikutnya",
+  "jadwal_calendar_day_label": "{date}, {count} ibadah",
   "jadwal_title": "Jadwal Ibadah",
   "jadwal_subtitle": "Jadwal ibadah Jemaat, kategorial, dan kolom GMIM Musafir Columbus Ohio, lengkap dengan tema dan bacaan Alkitab.",
   "jadwal_empty": "Belum ada ibadah terjadwal.",

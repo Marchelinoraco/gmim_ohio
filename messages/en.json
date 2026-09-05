@@ -141,5 +141,10 @@
   "pelayanan_desc_kaum_ibu": "A fellowship for the congregation's mothers and women, growing together in faith and supporting one another as wives and mothers, with services that move from one member's home to the next.",
   "pelayanan_desc_pemuda_remaja": "Faith formation for the congregation's teens and young people, helping them know Christ more and preparing them to serve, with services hosted in turn at members' homes.",
   "pelayanan_desc_sekolah_minggu": "Faith teaching for the congregation's children from an early age through stories and songs suited to them, with services held in turn at members' homes.",
-  "pelayanan_desc_kolom": "Household worship organized by the neighborhood zone where members live — a closer, more intimate space for fellowship and prayer, rotating from home to home within the same kolom."
+  "pelayanan_desc_kolom": "Household worship organized by the neighborhood zone where members live — a closer, more intimate space for fellowship and prayer, rotating from home to home within the same kolom.",
+  "pelayanan_schedule_title": "Schedule",
+  "pelayanan_coordinator": "Coordinator Contact",
+  "pelayanan_kolom_intro": "Kolom are neighborhood zones grouped by where members live, used to rotate household worship from one member's home to the next within the same zone. Each kolom keeps its own worship schedule; the kolom coordinator (once appointed) can be contacted for more information.",
+  "pelayanan_kolom_list_title": "List of Kolom",
+  "pelayanan_back": "Back to Ministries"
 }

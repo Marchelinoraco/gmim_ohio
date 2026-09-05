@@ -141,5 +141,10 @@
   "pelayanan_desc_kaum_ibu": "Persekutuan para ibu dan perempuan dewasa jemaat untuk bertumbuh bersama dalam iman dan saling mendukung dalam peran sebagai istri dan ibu, dengan ibadah yang berpindah dari satu rumah anggota ke rumah lainnya.",
   "pelayanan_desc_pemuda_remaja": "Pembinaan iman bagi remaja dan pemuda jemaat agar makin mengenal Kristus dan siap melayani, dengan ibadah yang digilir menempati rumah para anggota.",
   "pelayanan_desc_sekolah_minggu": "Pengajaran iman bagi anak-anak jemaat sejak usia dini lewat cerita dan lagu yang sesuai umur mereka, dengan ibadah yang diadakan bergantian di rumah para anggota.",
-  "pelayanan_desc_kolom": "Ibadah rumah tangga menurut pembagian wilayah tempat tinggal anggota, ruang persekutuan dan saling mendoakan yang lebih dekat dan akrab, digilir dari rumah ke rumah dalam kolom yang sama."
+  "pelayanan_desc_kolom": "Ibadah rumah tangga menurut pembagian wilayah tempat tinggal anggota, ruang persekutuan dan saling mendoakan yang lebih dekat dan akrab, digilir dari rumah ke rumah dalam kolom yang sama.",
+  "pelayanan_schedule_title": "Jadwal",
+  "pelayanan_coordinator": "Kontak Koordinator",
+  "pelayanan_kolom_intro": "Kolom adalah pembagian wilayah pelayanan berdasarkan tempat tinggal anggota jemaat, dipakai untuk menggilir ibadah rumah tangga dari satu rumah ke rumah lain dalam kolom yang sama. Setiap kolom memiliki jadwal ibadahnya sendiri; koordinator kolom (bila sudah ditunjuk) dapat dihubungi untuk informasi lebih lanjut.",
+  "pelayanan_kolom_list_title": "Daftar Kolom",
+  "pelayanan_back": "Kembali ke Pelayanan"
 }

@@ -22,13 +22,19 @@ import type { kolom, worshipCategories, worshipServices } from '@/db/schema'
  * fn-fn ini mengembalikan `[]`/`null` dan section Beranda menyembunyikan dirinya.
  */
 
-/** Satu ibadah terbit + kategori (key/nama/warna/slug) + kolom (nama) bila ada. */
+/**
+ * Satu ibadah terbit + kategori (key/nama/warna/slug) + kolom (id/nama) bila
+ * ada. `kolom.id` (Task 11) dibutuhkan supaya `/pelayanan/kolom` bisa
+ * mengelompokkan jadwal per kolom lewat `id` (dicocokkan ke baris `listKolom()`),
+ * BUKAN `kolom.name` — `kolom.name` di schema (`src/db/schema/worship.ts`)
+ * TIDAK unique, jadi pengelompokan by nama rapuh.
+ */
 export type UpcomingService = typeof worshipServices.$inferSelect & {
   category: Pick<
     typeof worshipCategories.$inferSelect,
     'key' | 'nameId' | 'nameEn' | 'color' | 'slug'
   >
-  kolom: Pick<typeof kolom.$inferSelect, 'name'> | null
+  kolom: Pick<typeof kolom.$inferSelect, 'id' | 'name'> | null
 }
 
 /**
@@ -47,7 +53,7 @@ export const listUpcomingServices = createServerFn({ method: 'GET' })
       limit,
       with: {
         category: { columns: { key: true, nameId: true, nameEn: true, color: true, slug: true } },
-        kolom: { columns: { name: true } },
+        kolom: { columns: { id: true, name: true } },
       },
     })
   })
@@ -97,7 +103,7 @@ export const listServices = createServerFn({ method: 'GET' })
       orderBy: (s, { asc }) => [asc(s.serviceDate), asc(s.startTime)],
       with: {
         category: { columns: { key: true, nameId: true, nameEn: true, color: true, slug: true } },
-        kolom: { columns: { name: true } },
+        kolom: { columns: { id: true, name: true } },
       },
     })
   })
@@ -118,7 +124,7 @@ export const getService = createServerFn({ method: 'GET' })
       where: (s, { and, eq }) => and(eq(s.id, id), eq(s.status, 'published')),
       with: {
         category: { columns: { key: true, nameId: true, nameEn: true, color: true, slug: true } },
-        kolom: { columns: { name: true } },
+        kolom: { columns: { id: true, name: true } },
       },
     })
     return row ?? null

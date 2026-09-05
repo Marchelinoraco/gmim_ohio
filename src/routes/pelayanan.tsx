@@ -1,10 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
-import { getLocale, localizeHref } from '@/paraglide/runtime'
+import { getLocale } from '@/paraglide/runtime'
 import { listCategories } from '@/features/schedule/taxonomy'
 import { pageMeta } from '@/lib/seo'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CategoryBadge } from '@/components/schedule/category-badge'
+import { CATEGORY_DESCRIPTIONS } from '@/components/schedule/category-description'
 import { Container } from '@/components/site/container'
 import { PageHero } from '@/components/site/page-hero'
 import { Section } from '@/components/site/section'
@@ -13,20 +14,17 @@ import { Section } from '@/components/site/section'
  * Halaman indeks `/pelayanan` — kartu untuk keenam kategori ibadah (di-seed,
  * tidak pernah kosong; `listCategories()` sudah terurut `sortOrder`, lihat
  * `src/features/schedule/taxonomy.ts`). Deskripsi tiap kategori hidup di katalog
- * i18n (spec §5.5), BUKAN di DB — dipetakan lewat `DESC` di bawah.
+ * i18n (spec §5.5), BUKAN di DB — dipetakan lewat `CATEGORY_DESCRIPTIONS`
+ * (`@/components/schedule/category-description`, dipakai bersama subtitle
+ * `<PageHero>` di `/pelayanan/$slug`, Task 11 — sumber tunggal, jangan
+ * duplikasi literalnya lagi di sini).
  *
- * Pemetaan `category.key` → pesan ditulis eksplisit (bukan template string
- * dinamis) karena Paraglide meng-compile satu fungsi per kunci pesan; kunci
- * dinamis (`m[\`pelayanan_desc_${key}\`]`) tak bisa di-resolve compiler-nya.
+ * Kartu kategori menaut ke `/pelayanan/$slug` (5 kategori non-kolom) atau
+ * `/pelayanan/kolom` (Task 11) lewat `<Link>` typed — route-nya sudah ada di
+ * route tree sejak Task 11, jadi tak perlu lagi dibungkus `<a>` +
+ * `localizeHref` (lihat commit "Tambah halaman indeks Pelayanan" utk versi
+ * sebelumnya).
  */
-const DESC = {
-  ibadah_jemaat: () => m.pelayanan_desc_ibadah_jemaat(),
-  kaum_bapa: () => m.pelayanan_desc_kaum_bapa(),
-  kaum_ibu: () => m.pelayanan_desc_kaum_ibu(),
-  pemuda_remaja: () => m.pelayanan_desc_pemuda_remaja(),
-  sekolah_minggu: () => m.pelayanan_desc_sekolah_minggu(),
-  kolom: () => m.pelayanan_desc_kolom(),
-} as const satisfies Record<string, () => string>
 
 export const Route = createFileRoute('/pelayanan')({
   loader: () => listCategories(),
@@ -57,28 +55,32 @@ function Pelayanan() {
         <Section>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {data.map((c) => {
-              // `/pelayanan/kolom` dan `/pelayanan/$slug` (Task 11) belum ada di
-              // route tree, jadi `<Link to>` typed tak bisa resolve ke sana —
-              // dibungkus `<a>` + `localizeHref`, pola sama dengan
-              // `service-card.tsx` sebelum `/jadwal/$id` ada.
-              const path = c.key === 'kolom' ? '/pelayanan/kolom' : `/pelayanan/${c.slug}`
-              return (
-                <a
+              const card = (
+                <Card className="h-full transition-shadow hover:shadow-md">
+                  <CardHeader>
+                    <CategoryBadge category={c} locale={locale} />
+                    <CardTitle className="font-serif text-xl">
+                      {locale === 'id' ? c.nameId : c.nameEn}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-muted">{CATEGORY_DESCRIPTIONS[c.key]()}</CardContent>
+                </Card>
+              )
+              const linkClassName =
+                'focus-visible:ring-secondary/60 focus-visible:ring-offset-surface rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2'
+              return c.key === 'kolom' ? (
+                <Link key={c.id} to="/pelayanan/kolom" className={linkClassName}>
+                  {card}
+                </Link>
+              ) : (
+                <Link
                   key={c.id}
-                  // TODO(Task 11): naikkan ke <Link to="/pelayanan/$slug"> / <Link to="/pelayanan/kolom"> setelah route-nya ada
-                  href={localizeHref(path, { locale })}
-                  className="focus-visible:ring-secondary/60 focus-visible:ring-offset-surface rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  to="/pelayanan/$slug"
+                  params={{ slug: c.slug }}
+                  className={linkClassName}
                 >
-                  <Card className="h-full transition-shadow hover:shadow-md">
-                    <CardHeader>
-                      <CategoryBadge category={c} locale={locale} />
-                      <CardTitle className="font-serif text-xl">
-                        {locale === 'id' ? c.nameId : c.nameEn}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-muted">{DESC[c.key]()}</CardContent>
-                  </Card>
-                </a>
+                  {card}
+                </Link>
               )
             })}
           </div>

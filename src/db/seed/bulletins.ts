@@ -21,20 +21,16 @@ export const PLACEHOLDER_BULLETINS = [
     bodyId:
       '<h2>Tema Ibadah: Hidup dalam Syukur</h2>' +
       '<p>Firman Tuhan mengajak kita mensyukuri pemeliharaan Allah selama menetap jauh dari tanah air. Rasa syukur itu nyata ketika kita bersedia berbagi waktu, tenaga, dan berkat bagi sesama warga jemaat.</p>' +
-      '<p>Minggu depan, 6 September 2026, ibadah dipimpin oleh Pdt. Allan Robot, S.Th., dilanjutkan ramah tamah dan perkenalan keluarga yang baru bergabung. Konsistori mengundang seluruh jemaat hadir tepat waktu.</p>' +
       '<ul>' +
       '<li>Ibadah Kolom bergilir setiap Rabu pukul 19.00 di rumah anggota jemaat.</li>' +
-      '<li>Ibadah Kategorial Pemuda dan Remaja Sabtu pukul 17.00 secara daring.</li>' +
-      '<li>Latihan Paduan Suara Jumat pukul 19.30 di gedung gereja.</li>' +
+      '<li>Ibadah Kategorial Pemuda dan Remaja Sabtu pukul 17.00, bergilir di rumah anggota jemaat.</li>' +
       '</ul>',
     bodyEn:
       '<h2>Service Theme: Living in Gratitude</h2>' +
       '<p>God’s Word calls us to give thanks for his provision while we live far from our homeland. That gratitude becomes real when we are willing to share our time, energy, and blessings with fellow members of the congregation.</p>' +
-      '<p>Next Sunday, September 6, 2026, the service will be led by Rev. Allan Robot, followed by fellowship and an introduction of families who have newly joined. The council invites the whole congregation to arrive on time.</p>' +
       '<ul>' +
       '<li>Rotating Kolom (zone) service every Wednesday at 7:00 PM in members’ homes.</li>' +
-      '<li>Youth and Teens fellowship service Saturday at 5:00 PM online.</li>' +
-      '<li>Choir rehearsal Friday at 7:30 PM at the church building.</li>' +
+      '<li>Youth and Teens fellowship service Saturday at 5:00 PM, rotating between members’ homes.</li>' +
       '</ul>',
     pdfUrl: null,
     status: 'published',

@@ -78,16 +78,25 @@ Semua di bawah ini **live, ada di nav dan/atau sitemap, dan terindeks** sejak `n
 
 Kelima section (`about_history_body`, `about_vision_body`, `about_mission_body`, `about_council_body`, `about_pastor_body` di `messages/{id,en}.json`) adalah prosa karangan yang **plausibel**. Teksnya sudah jujur di dua tempat ("Bagian ini akan dilengkapi dengan catatan sejarah resmi jemaat", "Susunan BPMJ periode berjalan akan segera ditampilkan"), tapi selebihnya dibaca sebagai sejarah resmi jemaat. Halaman ini kini live, ada di nav, ada di sitemap, dan terindeks. **Prioritas tertinggi untuk diganti.**
 
-### 4.2 ⚠️ Renungan & warta yang diatribusikan ke orang nyata
+### 4.2 Atribusi ke orang nyata — SUDAH DIPERBAIKI, sisanya perlu keputusan pengurus
 
-- `src/db/seed/devotionals.ts` — 3 renungan karangan; **dua di antaranya (`renungan-1`, `renungan-3`) diatribusikan by name ke `Pdt. Allan Robot, S.Th.`**, seorang pendeta nyata yang tidak menulisnya. Terbit di `/renungan`, punya halaman detail sendiri, dan ada di `sitemap.xml`.
-- `src/db/seed/bulletins.ts` — 3 warta karangan (`2026-08-30`, dst.) yang menyebut nama pendeta yang sama beserta tanggal ibadah spesifik ("Minggu depan, 6 September 2026, ibadah dipimpin oleh Pdt. Allan Robot, S.Th.") dan pengumuman yang tidak pernah ada (latihan paduan suara Jumat 19.30, ibadah pemuda daring).
+Spec §1 mencatat **Pdt. Allan Robot, S.Th. sebagai pendeta GMIM Musafir yang sungguhan** — jadi menyebut beliau sebagai pendeta di `/tentang` itu SAH (fakta dari spec). Yang tidak sah adalah mengatributkan kepada beliau tulisan dan acara yang tidak beliau buat. Dua hal itu sudah dibereskan:
 
-Ini kelas masalah yang **sama persis** dengan nama tuan rumah dan nama pelayan yang sudah dihapus dari seed jadwal (§4.5): fabrikasi yang tampak masuk akal tentang orang nyata. Bedanya, yang ini belum ditangani. **Rekomendasi: kosongkan atau tandai jelas-jelas contoh sebelum situs dipromosikan ke jemaat.**
+- `src/db/seed/devotionals.ts` — dulu dua renungan karangan (`renungan-1`, `renungan-3`) memakai `authorName: 'Pdt. Allan Robot, S.Th.'`. **Sudah diganti** jadi `'Tim Renungan'` (byline non-personal yang memang sudah dipakai renungan ketiga). Dikunci oleh test di `tests/unit/seed-data.test.ts` — `authorName` wajib non-personal.
+- `src/db/seed/bulletins.ts` — warta `2026-08-30` dulu memuat *"Minggu depan, 6 September 2026, ibadah dipimpin oleh Pdt. Allan Robot, S.Th., … Konsistori mengundang seluruh jemaat hadir tepat waktu"*. **Paragraf itu sudah dihapus.** Klaim "ibadah pemuda Sabtu 17.00 **secara daring**" juga sudah diluruskan jadi bergilir di rumah anggota, karena bertentangan dengan `/jadwal` (template `pemuda_remaja` = `rumah`). Butir "latihan paduan suara Jumat 19.30" — acara yang tak ada di jadwal manapun — dihapus.
+
+**Yang MASIH perlu keputusan pengurus:** ketiga warta tetap memuat pengumuman karangan lain yang belum disentuh, karena menghapus semuanya akan mengosongkan `/warta` — dan itu keputusan produk, bukan keputusan teknis. Yang masih tayang antara lain: pelantikan pelayan Kolom 1–4 "dalam ibadah hari ini", persembahan diakonia khusus mahasiswa, Ibadah Syukur HUT ke-81 Kemerdekaan RI Senin 18.00 dengan makan bersama, dan pendaftaran katekisasi "dibuka hari ini sampai 6 September 2026". Semuanya terbit, di sitemap, terindeks.
+
+Tiga pilihan, silakan pilih satu sebelum situs dipromosikan ke jemaat:
+1. **Ganti dengan warta sungguhan** (paling baik; butuh materi dari BPMJ).
+2. **Set `status: 'draft'`** pada ketiganya → `/warta` menampilkan empty state sampai ada warta asli. Perlu menyesuaikan e2e yang mengasersi isi warta.
+3. **Tandai jelas-jelas contoh** — mis. prefiks judul `[CONTOH]` dan satu kalimat pembuka di tiap body. Jujur, tapi terlihat belum jadi.
 
 ### 4.3 Galeri
 
-`src/db/seed/gallery.ts` — 1 album terbit "Ibadah Jemaat & Kegiatan" (2026-08-16). Ketiga fotonya menunjuk ke `/hero/hero-poster.jpg` yang sama, dan item ke-4 adalah video YouTube `https://www.youtube.com/watch?v=dQw4w9WgXcQ` — **itu Rick Astley, "Never Gonna Give You Up"**, bercaption "Cuplikan ibadah Minggu (video contoh)". Live di `/galeri` dan bisa diputar di lightbox. Ganti atau hapus.
+`src/db/seed/gallery.ts` — 1 album terbit "Ibadah Jemaat & Kegiatan" (2026-08-16), berisi 3 foto yang semuanya menunjuk ke `/hero/hero-poster.jpg` yang sama (masih perlu foto sungguhan).
+
+Item ke-4 dulu adalah video YouTube `dQw4w9WgXcQ` — **Rick Astley, "Never Gonna Give You Up"** — bercaption "Cuplikan ibadah Minggu (video contoh)", live dan bisa diputar di lightbox. **Sudah dihapus** dari seed; ketiadaan item video dikunci test. Tipe `youtube` tetap didukung komponen galeri, tinggal diisi lewat dashboard (Rencana 3) saat ada video ibadah sungguhan.
 
 ### 4.4 Data keuangan & kontak
 

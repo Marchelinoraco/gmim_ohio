@@ -123,7 +123,12 @@ describe('PLACEHOLDER_DEVOTIONALS', () => {
     for (const s of slugs) expect(s).toMatch(/^[a-z0-9-]+$/)
   })
 
-  it('tiap entri lengkap, published, dan authorName dari daftar yang diharapkan', () => {
+  // `authorName` WAJIB byline non-personal. Renungan di seed ini teks karangan;
+  // memberinya nama pendeta jemaat yang sungguhan (spec §1 mencatat Pdt. Allan
+  // Robot, S.Th. sebagai pendeta GMIM Musafir) berarti menaruh tulisan di mulut
+  // orang nyata. Menyebut beliau sebagai pendeta di `/tentang` tetap sah — itu
+  // fakta dari spec; yang dilarang adalah atribusi karya yang tidak beliau tulis.
+  it('tiap entri lengkap, published, dan authorName bukan nama orang sungguhan', () => {
     for (const d of PLACEHOLDER_DEVOTIONALS) {
       expect(d.titleId.trim().length).toBeGreaterThan(0)
       expect(d.titleEn.trim().length).toBeGreaterThan(0)
@@ -131,7 +136,7 @@ describe('PLACEHOLDER_DEVOTIONALS', () => {
       expect(d.excerptEn.trim().length).toBeGreaterThan(0)
       expect(d.publishedDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
       expect(d.status).toBe('published')
-      expect(['Pdt. Allan Robot, S.Th.', 'Tim Renungan']).toContain(d.authorName)
+      expect(d.authorName).toBe('Tim Renungan')
     }
   })
 
@@ -182,25 +187,26 @@ describe('SCHEDULE_TEMPLATES', () => {
 })
 
 describe('galeri placeholder', () => {
-  it('1 album published dengan cover, 4 item (3 image + 1 youtube) urut 0..3', () => {
+  it('1 album published dengan cover, 3 item image urut 0..2', () => {
     expect(PLACEHOLDER_ALBUM.status).toBe('published')
     expect(PLACEHOLDER_ALBUM.coverImageUrl).toBe('/hero/hero-poster.jpg')
 
-    expect(PLACEHOLDER_ALBUM_ITEMS).toHaveLength(4)
-    expect(PLACEHOLDER_ALBUM_ITEMS.map((i) => i.sortOrder)).toEqual([0, 1, 2, 3])
-    expect(PLACEHOLDER_ALBUM_ITEMS.filter((i) => i.type === 'image')).toHaveLength(3)
-    expect(PLACEHOLDER_ALBUM_ITEMS.filter((i) => i.type === 'youtube')).toHaveLength(1)
+    expect(PLACEHOLDER_ALBUM_ITEMS).toHaveLength(3)
+    expect(PLACEHOLDER_ALBUM_ITEMS.map((i) => i.sortOrder)).toEqual([0, 1, 2])
 
     for (const i of PLACEHOLDER_ALBUM_ITEMS) {
-      if (i.type === 'image') {
-        expect(i.imageUrl).toBe('/hero/hero-poster.jpg')
-        expect(i.youtubeUrl).toBeNull()
-      } else {
-        expect(i.youtubeUrl).toMatch(/^https:\/\/www\.youtube\.com\//)
-        expect(i.imageUrl).toBeNull()
-      }
+      expect(i.imageUrl).toBe('/hero/hero-poster.jpg')
+      expect(i.youtubeUrl).toBeNull()
       expect((i.captionId ?? '').length).toBeGreaterThan(0)
       expect((i.captionEn ?? '').length).toBeGreaterThan(0)
     }
+  })
+
+  // Seed sengaja TIDAK memuat item `youtube`. Placeholder lamanya adalah video
+  // YouTube populer yang tak ada hubungannya dengan gereja, bercaption
+  // "Cuplikan ibadah Minggu" — di situs jemaat sungguhan itu terbaca sebagai
+  // lelucon, bukan placeholder jujur. Asersi ini menguncinya.
+  it('tidak ada item video placeholder', () => {
+    expect(PLACEHOLDER_ALBUM_ITEMS.every((i) => i.type === 'image')).toBe(true)
   })
 })

@@ -6,8 +6,8 @@ import { buildSitemapXml, type SitemapEntry } from '@/lib/sitemap'
  * mengiklankannya, jadi crawler PASTI menjemputnya di produksi).
  *
  * Sejak Rencana 2b (`SITE.comingSoon = false`), sitemap SELALU memancarkan
- * seluruh path statis publik + entri dinamis konten terbit (warta, renungan,
- * galeri, jadwal ibadah) — tanpa gerbang.
+ * seluruh path statis publik + halaman kategori `/pelayanan/*` + entri dinamis
+ * konten terbit (warta, renungan, galeri, jadwal ibadah) — tanpa gerbang.
  */
 
 // 10 route publik. `/pelayanan` dan `/jadwal` ditambahkan Rencana 2b begitu

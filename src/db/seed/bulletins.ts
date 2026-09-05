@@ -50,7 +50,7 @@ export const PLACEHOLDER_BULLETINS = [
       '<ul>' +
       '<li>Pelantikan pelayan Kolom 1 sampai 4 dalam ibadah hari ini.</li>' +
       '<li>Persembahan diakonia khusus untuk mahasiswa dan perantau baru.</li>' +
-      '<li>Ibadah Kategorial Kaum Ibu Kamis pukul 10.00 di gedung gereja.</li>' +
+      '<li>Ibadah Kategorial Kaum Ibu Kamis pukul 10.00, bergilir di rumah anggota jemaat.</li>' +
       '</ul>',
     bodyEn:
       '<h2>Service Theme: Called to Serve</h2>' +
@@ -59,7 +59,7 @@ export const PLACEHOLDER_BULLETINS = [
       '<ul>' +
       '<li>Installation of Kolom 1 through 4 servants during today’s service.</li>' +
       '<li>Special diaconal offering for students and newcomers.</li>' +
-      '<li>Women’s Fellowship service Thursday at 10:00 AM at the church building.</li>' +
+      '<li>Women’s Fellowship service Thursday at 10:00 AM, rotating between members’ homes.</li>' +
       '</ul>',
     pdfUrl: null,
     status: 'published',

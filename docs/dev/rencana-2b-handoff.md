@@ -85,6 +85,8 @@ Spec §1 mencatat **Pdt. Allan Robot, S.Th. sebagai pendeta GMIM Musafir yang su
 - `src/db/seed/devotionals.ts` — dulu dua renungan karangan (`renungan-1`, `renungan-3`) memakai `authorName: 'Pdt. Allan Robot, S.Th.'`. **Sudah diganti** jadi `'Tim Renungan'` (byline non-personal yang memang sudah dipakai renungan ketiga). Dikunci oleh test di `tests/unit/seed-data.test.ts` — `authorName` wajib non-personal.
 - `src/db/seed/bulletins.ts` — warta `2026-08-30` dulu memuat *"Minggu depan, 6 September 2026, ibadah dipimpin oleh Pdt. Allan Robot, S.Th., … Konsistori mengundang seluruh jemaat hadir tepat waktu"*. **Paragraf itu sudah dihapus.** Klaim "ibadah pemuda Sabtu 17.00 **secara daring**" juga sudah diluruskan jadi bergilir di rumah anggota, karena bertentangan dengan `/jadwal` (template `pemuda_remaja` = `rumah`). Butir "latihan paduan suara Jumat 19.30" — acara yang tak ada di jadwal manapun — dihapus.
 
+  Satu butir sejenis lolos di putaran pertama dan ditemukan re-review: warta `2026-08-23` menulis "Ibadah Kategorial Kaum Ibu Kamis pukul 10.00 **di gedung gereja**" padahal template `kaum_ibu` = `rumah` — sudah diluruskan juga. Butir Kaum Bapa, Kolom, dan Pemuda kini konsisten dengan jadwal; **butir jadwal di ketiga warta sudah bersih dari kontradiksi.** Yang tersisa di bawah bukan kontradiksi jadwal, melainkan acara karangan.
+
 **Yang MASIH perlu keputusan pengurus:** ketiga warta tetap memuat pengumuman karangan lain yang belum disentuh, karena menghapus semuanya akan mengosongkan `/warta` — dan itu keputusan produk, bukan keputusan teknis. Yang masih tayang antara lain: pelantikan pelayan Kolom 1–4 "dalam ibadah hari ini", persembahan diakonia khusus mahasiswa, Ibadah Syukur HUT ke-81 Kemerdekaan RI Senin 18.00 dengan makan bersama, dan pendaftaran katekisasi "dibuka hari ini sampai 6 September 2026". Semuanya terbit, di sitemap, terindeks.
 
 Tiga pilihan, silakan pilih satu sebelum situs dipromosikan ke jemaat:
@@ -116,7 +118,7 @@ Item ke-4 dulu adalah video YouTube `dQw4w9WgXcQ` — **Rick Astley, "Never Gonn
 
 ## 5. ⚠️ Untuk Rencana 3 — index `ws_template_date_uq` salah bentuk
 
-`src/db/schema/worship.ts:92`:
+`src/db/schema/worship.ts:93`:
 
 ```ts
 uniqueIndex('ws_template_date_uq').on(t.templateId, t.serviceDate)

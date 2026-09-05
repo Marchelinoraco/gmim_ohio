@@ -4,7 +4,7 @@ import { WORSHIP_CATEGORIES } from '@/db/seed/categories'
 import { PLACEHOLDER_DEVOTIONALS } from '@/db/seed/devotionals'
 import { PLACEHOLDER_ALBUM, PLACEHOLDER_ALBUM_ITEMS } from '@/db/seed/gallery'
 import { PLACEHOLDER_KOLOM } from '@/db/seed/kolom'
-import { SCHEDULE_TEMPLATES } from '@/db/seed/schedule'
+import { buildService, SCHEDULE_TEMPLATES } from '@/db/seed/schedule'
 import { DEFAULT_SETTINGS } from '@/db/seed/settings'
 
 // Tag yang diizinkan sanitizer rich-text (`src/lib/sanitize.ts`). Body warta &
@@ -208,5 +208,40 @@ describe('galeri placeholder', () => {
   // lelucon, bukan placeholder jujur. Asersi ini menguncinya.
   it('tidak ada item video placeholder', () => {
     expect(PLACEHOLDER_ALBUM_ITEMS.every((i) => i.type === 'image')).toBe(true)
+  })
+})
+
+// Invarian integritas konten yang sudah GAGAL tiga kali di proyek ini (nama
+// pelayan, nama tuan rumah, atribusi renungan): seed TIDAK PERNAH mengarang
+// data tentang orang sungguhan. `buildService` diekspor khusus supaya invarian
+// itu dikunci test, bukan sekadar prosa di docblock.
+describe('buildService — tanpa fabrikasi orang', () => {
+  type Args = Parameters<typeof buildService>[0]
+  const cat = { id: 'cat-1' } as Args['cat']
+  const asTpl = (t: (typeof SCHEDULE_TEMPLATES)[number]): Args['tpl'] =>
+    ({ ...t, id: 'tpl-1', categoryId: 'cat-1' }) as Args['tpl']
+
+  it('baris rumah TIDAK punya tuan rumah maupun alamat', () => {
+    const tpl = SCHEDULE_TEMPLATES.find((t) => t.defaultLocationType === 'rumah')!
+    for (let seq = 0; seq < 12; seq++) {
+      const row = buildService({
+        tpl: asTpl(tpl),
+        cat,
+        kolomRow: { id: 'kolom-1' } as Args['kolomRow'],
+        date: '2026-09-09',
+        seq,
+      })
+      expect(row.locationType).toBe('rumah')
+      expect(row.hostFamilyName).toBeNull()
+      expect(row.hostAddress).toBeNull()
+    }
+  })
+
+  it('pelayan firman & pemimpin ibadah tak pernah dikarang', () => {
+    for (const tpl of SCHEDULE_TEMPLATES) {
+      const row = buildService({ tpl: asTpl(tpl), cat, kolomRow: null, date: '2026-09-09', seq: 0 })
+      expect(row.preacherName).toBeNull()
+      expect(row.liturgistName).toBeNull()
+    }
   })
 })

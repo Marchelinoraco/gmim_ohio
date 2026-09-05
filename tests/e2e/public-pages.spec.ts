@@ -26,7 +26,8 @@ import { test, expect, type Page } from '@playwright/test'
  *     diverifikasi manual: `task-12-report.md` mencatat `contact_messages` 0→3
  *     dengan id baris, submisi ke-4 kena rate-limit, baris uji lalu dihapus.
  *  6. `/sitemap.xml` — 200, content-type xml, memuat daftar lengkap path publik
- *     (statis + entri dinamis warta/renungan/galeri/jadwal) + namespace `xhtml`.
+ *     (statis + `/pelayanan/*` + entri dinamis warta/renungan/galeri/jadwal) +
+ *     namespace `xhtml`.
  *
  * RULING 1: TIDAK ada assertion 404 untuk `/tokens`. `playwright.config.ts`
  * menjalankan `webServer: { command: 'pnpm dev' }`, jadi e2e mengeksekusi

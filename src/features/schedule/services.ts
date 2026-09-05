@@ -4,11 +4,7 @@ import type { kolom, worshipCategories, worshipServices } from '@/db/schema'
 /**
  * Lapisan tipe + query baca untuk `worship_services` (jadwal ibadah).
  *
- * `listUpcomingServices` mengembalikan baris `worship_services` TERBIT yang jatuh
- * pada hari ini (Eastern) atau setelahnya, lengkap dengan kategori (nama/warna/
- * key/slug) dan kolom bila ada, dibatasi `limit` (default 6).
- *
- * `listServices` adalah versi berfilter (kategori/kolom/rentang tanggal) untuk
+ * `listServices` adalah query berfilter (kategori/kolom/rentang tanggal) untuk
  * `/jadwal`, `/pelayanan/*`, `sitemap.xml`, section "Ibadah Minggu Ini" di
  * Beranda (jendela 7 hari), dan `/ibadah-live` (kategori `ibadah-jemaat`).
  * `getService` mengambil satu ibadah terbit berdasarkan id untuk halaman detail.
@@ -40,27 +36,6 @@ export type UpcomingService = typeof worshipServices.$inferSelect & {
   >
   kolom: Pick<typeof kolom.$inferSelect, 'id' | 'name'> | null
 }
-
-/**
- * Daftar ibadah terbit dari hari ini (Eastern) ke depan, urut `serviceDate` asc
- * lalu `startTime` asc. `limit` opsional, default 6.
- */
-export const listUpcomingServices = createServerFn({ method: 'GET' })
-  .validator((limit: number = 6) => limit)
-  .handler(async ({ data: limit }): Promise<UpcomingService[]> => {
-    const { db } = await import('@/db')
-    const { todayEastern } = await import('@/lib/datetime')
-    const today = todayEastern()
-    return db.query.worshipServices.findMany({
-      where: (s, { and, eq, gte }) => and(eq(s.status, 'published'), gte(s.serviceDate, today)),
-      orderBy: (s, { asc }) => [asc(s.serviceDate), asc(s.startTime)],
-      limit,
-      with: {
-        category: { columns: { key: true, nameId: true, nameEn: true, color: true, slug: true } },
-        kolom: { columns: { id: true, name: true } },
-      },
-    })
-  })
 
 /** Filter opsional untuk `listServices` — semua field opsional (default = tanpa filter). */
 export type ServiceFilter = {

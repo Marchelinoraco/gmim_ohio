@@ -120,7 +120,7 @@ interface TemplateRow {
  * `templateId` SENGAJA tidak diisi (selalu NULL) — lihat catatan di
  * `seedSchedule()` soal index unik `ws_template_date_uq`.
  */
-function buildService({
+export function buildService({
   tpl,
   cat,
   kolomRow,

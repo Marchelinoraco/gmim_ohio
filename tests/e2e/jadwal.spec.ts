@@ -9,8 +9,11 @@ import { test, expect } from '@playwright/test'
  *  2. Filter kategori "Kaum Ibu" (`<select>` NATIVE, `schedule-filters.tsx`) —
  *     URL `?kategori=kaum-ibu` + setiap badge kategori yang tampil berbunyi
  *     "Wanita/Kaum Ibu" (nama seed `kaum_ibu`, `src/db/seed/categories.ts`).
- *  3. Toggle Kalender — URL `?view=kalender`, grid muncul, klik tanggal
- *     berisi ibadah → panel di bawah menampilkan kartu.
+ *  3. Toggle Kalender — URL `?view=kalender`, grid muncul; klik tanggal ibadah
+ *     KEDUA (beda dari tanggal yang di-pre-select SSR) → judul panel berpindah
+ *     ke tanggal itu (bukti `onSelectDate` benar-benar hidup), panel berisi
+ *     kartu. Tahan batas bulan: maju ke bulan berikutnya bila bulan berjalan
+ *     punya <2 hari ibadah.
  *  4. `/jadwal` → klik kartu pertama → `/jadwal/<uuid>` → tema (h1) + badge
  *     kategori tampil.
  *  5. `/jadwal/bukan-uuid` → 404 (guard `UUID_RE` di `jadwal_.$id.tsx`, bukan
@@ -64,13 +67,17 @@ test('/jadwal: filter kategori "Kaum Ibu" → URL + badge kategori', async ({ pa
     .filter({ hasText: /Kaum Bapa|Kaum Ibu|Ibadah Jemaat|Pemuda|Sekolah Minggu|Kolom/ })
   const ibuBadges = categoryBadges.filter({ hasText: 'Wanita/Kaum Ibu' })
 
-  await expect.poll(() => categoryBadges.count()).toBeGreaterThan(0)
+  // Guard `> 0` di-fold ke callback yang sama — `count === count` vakum-true
+  // kalau dua-duanya 0 (loader belum jalan / filter belum berefek).
   await expect
-    .poll(async () => (await categoryBadges.count()) === (await ibuBadges.count()))
+    .poll(async () => {
+      const total = await categoryBadges.count()
+      return total > 0 && total === (await ibuBadges.count())
+    })
     .toBe(true)
 })
 
-test('/jadwal: toggle Kalender → grid, klik tanggal berisi ibadah → panel kartu', async ({
+test('/jadwal: toggle Kalender → klik tanggal ibadah ke-2 → judul panel berpindah', async ({
   page,
 }) => {
   await page.goto('/jadwal')
@@ -87,14 +94,43 @@ test('/jadwal: toggle Kalender → grid, klik tanggal berisi ibadah → panel ka
   await expect(page.locator('[aria-live="polite"]')).toBeVisible()
 
   // Sel kalender kosong = <div> biasa; HANYA sel berisi ≥1 ibadah jadi
-  // <button aria-label="{tanggal}, {jumlah} ibadah">. Kata "ibadah" tak muncul
-  // di label tombol navigasi bulan, jadi aman jadi pembeda. JANGAN hardcode
+  // <button aria-label="{tanggal}, {jumlah} ibadah"> (kata "ibadah" tak muncul
+  // di label tombol navigasi bulan, jadi aman jadi pembeda). JANGAN hardcode
   // tanggal — seed relatif ke tanggal jalan.
-  const dayWithService = page.getByRole('button', { name: /ibadah/ }).first()
-  await expect(dayWithService).toBeVisible()
-  await dayWithService.click()
+  //
+  // Seed CI same-day (`from = todayEastern()`, `src/db/seed/schedule.ts`):
+  // `worship_services` hanya punya baris `serviceDate >= hari ini`, dan hari
+  // ibadah cuma {Minggu, Rabu, Kamis, Sabtu}. Kalau run jatuh di akhir bulan &
+  // sisa harinya {Senin, Selasa, Jumat} saja, bulan berjalan bisa punya <2
+  // tombol ibadah → maju ke bulan berikutnya dulu (window seed 55 hari selalu
+  // memuat bulan berikutnya secara penuh, jadi minimal ada beberapa hari Minggu).
+  const dayButtons = page.getByRole('button', { name: /ibadah/ })
+  if ((await dayButtons.count()) < 2) {
+    await page.getByRole('button', { name: 'Bulan berikutnya' }).click()
+  }
+  await expect(dayButtons.nth(1)).toBeVisible({ timeout: 15000 })
 
-  // Panel di bawah kalender menampilkan minimal satu kartu untuk tanggal terpilih.
+  // Route meng-inisialisasi `selectedDate` di SSR ke tanggal ibadah PALING AWAL
+  // di bulan itu (`src/routes/jadwal.tsx`), dan sel dirender kronologis — jadi
+  // tombol PERTAMA = tanggal yang SUDAH terpilih sejak SSR & panel di bawah
+  // sudah menampilkan kartunya sebelum klik apa pun. Untuk benar-benar menguji
+  // `onSelectDate` (bukan asersi vakum): klik tombol KEDUA (tanggal berbeda) &
+  // buktikan judul panel BERPINDAH ke tanggal itu.
+  const stripCount = (label: string | null) => (label ?? '').replace(/, \d+ ibadah$/, '')
+  const firstDate = stripCount(await dayButtons.first().getAttribute('aria-label'))
+  const secondDate = stripCount(await dayButtons.nth(1).getAttribute('aria-label'))
+  expect(secondDate).not.toBe('')
+  expect(secondDate).not.toBe(firstDate)
+
+  // Panel tanggal terpilih = <SectionTitle> → <h2> berisi
+  // `formatDateLong(selectedGroup.date, locale)` (`jadwal.tsx`) — string dengan
+  // FORMAT SAMA dengan bagian tanggal `aria-label` tombol kalender.
+  const panelHeading = page.locator('main').getByRole('heading', { level: 2 })
+  await expect(panelHeading).toHaveText(firstDate) // mulai di tanggal SSR paling awal
+  await dayButtons.nth(1).click()
+  await expect(panelHeading).toHaveText(secondDate) // klik → panel berpindah ke tanggal ke-2
+
+  // Panel tanggal terpilih memang berisi kartu ibadah.
   await expect(page.locator('main a[href^="/jadwal/"]').first()).toBeVisible()
 })
 
@@ -147,10 +183,11 @@ test('/pelayanan/kolom: 200, daftar kolom tampil', async ({ page }) => {
   // Heading section "Daftar Kolom" (pesan `pelayanan_kolom_list_title`) + nama
   // kolom seed (`src/db/seed/kolom.ts`: "Kolom 1"..."Kolom 4"). "Kolom 1" juga
   // muncul sebagai heading section jadwal per-kolom (`<SectionTitle as="h3">`)
-  // di bawahnya — scope eksplisit ke `<ul>` daftar kolom (satu-satunya `<ul>`
-  // di halaman ini) supaya tak bentrok strict-mode dengan heading itu.
+  // di bawahnya — scope eksplisit ke `<ul>` daftar kolom di dalam `<main>`
+  // (satu-satunya `main ul` di halaman ini) supaya tak bentrok strict-mode
+  // dengan heading itu.
   await expect(page.getByRole('heading', { name: 'Daftar Kolom' })).toBeVisible()
-  await expect(page.locator('ul').getByText('Kolom 1', { exact: true })).toBeVisible()
+  await expect(page.locator('main ul').getByText('Kolom 1', { exact: true })).toBeVisible()
 })
 
 test('/en/jadwal: 200, <html lang="en">', async ({ page }) => {

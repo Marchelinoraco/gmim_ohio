@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import * as m from '@/paraglide/messages'
 import { Logo } from '@/components/layout/logo'
+import { HeroMedia } from '@/components/site/hero-media'
 import { SITE } from '@/config/site'
 
 /**
@@ -199,33 +200,13 @@ export function ComingSoon() {
           SiteHeader coming-soon: py-3 + min-h-11 + border = ~4.3rem; 5rem beri
           margin aman. */}
       <section className="bg-primary relative flex min-h-[calc(100svh-5rem)] flex-col overflow-hidden">
-        {/* TODO(2b): ekstrak <HeroMedia> bersama (poster + sources + scrim) —
-            src/components/site/beranda.tsx menduplikasi blok ini. 2b menghapus
-            file ini, jadi itu momen alaminya. */}
-        {hasVideo ? (
-          <video
-            ref={videoRef}
-            className="absolute inset-0 h-full w-full object-cover"
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            poster={SITE.hero.poster}
-            aria-hidden="true"
-          >
-            {SITE.hero.sources.map((s) => (
-              <source key={s.src} src={s.src} type={s.type} />
-            ))}
-          </video>
-        ) : (
-          <div className="from-primary to-primary-hover absolute inset-0 bg-gradient-to-br" />
-        )}
-
-        {/* Scrim — cukup pekat agar teks putih ≥ 4.5:1 di atas frame video
-            paling terang, di light MAUPUN dark (video sama di kedua tema). */}
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/65 to-black/85"
-          aria-hidden="true"
+        <HeroMedia
+          poster={SITE.hero.poster}
+          sources={SITE.hero.sources}
+          fallback={
+            <div className="from-primary to-primary-hover absolute inset-0 bg-gradient-to-br" />
+          }
+          videoRef={videoRef}
         />
 
         <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-6 px-4 py-24 text-center text-white [text-shadow:0_2px_12px_rgb(0_0_0_/_0.55)]">

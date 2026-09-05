@@ -10,8 +10,8 @@ import { SITE } from '@/config/site'
 // 1 sengaja membuat `/api/auth` lazy supaya `/` tetap boot dengan `DATABASE_URL`
 // kosong). `social_links.facebook` di seed pun generik (`https://www.facebook.com/`)
 // — lebih buruk dari `SITE.facebookUrl`. Entri tanpa URL disembunyikan.
-// TODO(2b): pindah ke Site Settings begitu root punya loader (Rencana 2b/3), dan
-// tambah Instagram/YouTube saat URL-nya masuk.
+// TODO(Rencana 3): pindah ke Site Settings begitu root punya loader, dan tambah
+// Instagram/YouTube saat URL-nya masuk.
 const SOCIAL_LINKS = [{ key: 'facebook', label: 'Facebook', href: SITE.facebookUrl }].filter(
   (s) => s.href.length > 0,
 )

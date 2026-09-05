@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { getLocale, localizeHref } from '@/paraglide/runtime'
 import { Button } from '@/components/ui/button'
@@ -7,17 +8,10 @@ import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { Logo } from '@/components/layout/logo'
 import { SITE } from '@/config/site'
 
-// Rencana 2 membuat route asli untuk path di bawah ini (`/tentang`, `/pelayanan`,
-// dst.). Sampai saat itu nav dirender sebagai <a> biasa + `localizeHref` — pola
-// yang sama dengan LanguageSwitcher — sehingga `pnpm typecheck` lolos tanpa perlu
-// route stub, tetap dwibahasa (di `/en` link ikut di bawah `/en`), dan resolve ke
-// halaman 404 hingga Rencana 2 mengisi route-nya.
-// TODO(2b): naikkan ke `<Link to="/tentang">` TanStack Router yang typed begitu
-// route tersebut ada. INI COUPLING BERKONSEKUENSI PALING TINGGI di branch:
-// `NAV_ITEMS` di bawah memuat `/pelayanan` dan `/jadwal` — route yang BELUM ADA
-// di 2a. Membalik `SITE.comingSoon = false` sebelum kedua route itu dibangun
-// memasang dua tautan 404 di SETIAP halaman situs live. 2b harus membuat route
-// tsb LEBIH DULU, baru membalik flag.
+// Semua tujuh route nav sudah ada sejak Rencana 2b, jadi tiap item dipetakan ke
+// `<Link to={item.path}>` TanStack Router yang typed (lihat render nav di bawah).
+// `LanguageSwitcher`, brand (logo), dan CTA `liveHref`/`giveHref` TETAP `<a>` +
+// `localizeHref` — bukan bagian NAV_ITEMS, di luar cakupan perubahan ini.
 const NAV_ITEMS = [
   { key: 'home', label: () => m.nav_home(), path: '/' },
   { key: 'about', label: () => m.nav_about(), path: '/tentang' },
@@ -106,13 +100,13 @@ export function SiteHeader() {
         {/* Nav desktop — selalu di DOM, tampil sejak breakpoint lg. */}
         <nav aria-label={m.nav_menu_label()} className="hidden items-center gap-0.5 lg:flex">
           {NAV_ITEMS.map((item) => (
-            <a
+            <Link
               key={item.key}
-              href={localizeHref(item.path, { locale })}
+              to={item.path}
               className="text-ink hover:bg-surface-2 hover:text-primary inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium"
             >
               {item.label()}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -149,13 +143,13 @@ export function SiteHeader() {
           <ul className="flex flex-col">
             {NAV_ITEMS.map((item) => (
               <li key={item.key}>
-                <a
-                  href={localizeHref(item.path, { locale })}
+                <Link
+                  to={item.path}
                   onClick={() => setOpen(false)}
                   className="border-border text-ink hover:text-primary flex min-h-11 items-center border-b text-sm font-medium last:border-b-0"
                 >
                   {item.label()}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

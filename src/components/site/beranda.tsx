@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
-import { getLocale, localizeHref } from '@/paraglide/runtime'
+import { getLocale } from '@/paraglide/runtime'
 import type { BulletinSummary } from '@/features/content/bulletins'
 import type { SiteSettings } from '@/features/content/site-settings'
 import type { UpcomingService } from '@/features/schedule/services'
@@ -9,6 +9,7 @@ import { SITE } from '@/config/site'
 import { Button } from '@/components/ui/button'
 import { BulletinCard } from '@/components/site/bulletin-card'
 import { Container } from '@/components/site/container'
+import { HeroMedia } from '@/components/site/hero-media'
 import { Paragraphs } from '@/components/site/paragraphs'
 import { Section, SectionTitle } from '@/components/site/section'
 import { ServiceCard } from '@/components/schedule/service-card'
@@ -44,7 +45,7 @@ export function Beranda({ settings, bulletins, services }: BerandaProps) {
 
   return (
     <main>
-      <BerandaHero title={heroTitle} tagline={heroTagline} image={hero.image} locale={locale} />
+      <BerandaHero title={heroTitle} tagline={heroTagline} image={hero.image} />
 
       {/* Strip jam ibadah — pita ringkas tepat di bawah hero. */}
       <div className="bg-primary text-surface">
@@ -101,17 +102,7 @@ export function Beranda({ settings, bulletins, services }: BerandaProps) {
  * atribut `autoplay` di markup) dan menghormati `prefers-reduced-motion`. Bila
  * `hero.image` diisi (seed = `''`), gambar itu dipakai menggantikan video.
  */
-function BerandaHero({
-  title,
-  tagline,
-  image,
-  locale,
-}: {
-  title: string
-  tagline: string
-  image: string
-  locale: 'id' | 'en'
-}) {
+function BerandaHero({ title, tagline, image }: { title: string; tagline: string; image: string }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   // `hero.image` kosong (seed) → video; diisi → gambar. `SITE.hero.sources` selalu
   // ≥ 1 (`as const`), jadi tak ada cabang fallback ketiga.
@@ -127,38 +118,18 @@ function BerandaHero({
 
   return (
     <section className="bg-primary relative flex min-h-[70svh] flex-col overflow-hidden">
-      {/* TODO(2b): ekstrak <HeroMedia> bersama (poster + sources + scrim) —
-          src/components/site/coming-soon.tsx menduplikasi blok ini. 2b menghapus
-          coming-soon.tsx, jadi itu momen alaminya. */}
-      {hasVideo ? (
-        <video
-          ref={videoRef}
-          className="absolute inset-0 h-full w-full object-cover"
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          poster={SITE.hero.poster}
-          aria-hidden="true"
-        >
-          {SITE.hero.sources.map((s) => (
-            <source key={s.src} src={s.src} type={s.type} />
-          ))}
-        </video>
-      ) : (
-        <img
-          src={image}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Scrim — sama dengan coming-soon: teks putih ≥ 4.5:1 di atas frame video
-          paling terang, di light MAUPUN dark. */}
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/65 to-black/85"
-        aria-hidden="true"
+      <HeroMedia
+        poster={SITE.hero.poster}
+        sources={hasVideo ? SITE.hero.sources : []}
+        fallback={
+          <img
+            src={image}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            aria-hidden="true"
+          />
+        }
+        videoRef={videoRef}
       />
 
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-6 px-4 py-24 text-center text-white [text-shadow:0_2px_12px_rgb(0_0_0_/_0.55)]">
@@ -168,8 +139,9 @@ function BerandaHero({
           {/* Dua fill solid (primary/secondary) supaya terbaca di atas scrim di
               kedua tema — tak bergantung pada warna permukaan. */}
           <Button asChild variant="primary" size="lg" className="h-11">
-            {/* TODO(2b): ganti jadi <Link to="/jadwal"> setelah route-nya ada */}
-            <a href={localizeHref('/jadwal', { locale })}>{m.nav_schedule()}</a>
+            <Link to="/jadwal" search={{ view: 'daftar' }}>
+              {m.nav_schedule()}
+            </Link>
           </Button>
           <Button asChild variant="secondary" size="lg" className="h-11">
             <Link to="/kunjungi">{m.home_visit_cta()}</Link>

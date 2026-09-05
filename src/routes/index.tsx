@@ -1,106 +1,54 @@
 import { createFileRoute } from '@tanstack/react-router'
-import * as m from '@/paraglide/messages'
 import { getLocale } from '@/paraglide/runtime'
 import { listBulletins } from '@/features/content/bulletins'
-import { listUpcomingServices } from '@/features/schedule/services'
+import { listServices } from '@/features/schedule/services'
 import { getSiteSettings } from '@/features/content/site-settings'
+import { addDays, todayEastern } from '@/lib/datetime'
 import { pageMeta } from '@/lib/seo'
-import { SITE } from '@/config/site'
 import { Beranda } from '@/components/site/beranda'
-import { ComingSoon } from '@/components/site/coming-soon'
 
 /**
- * `/` — switch antara halaman "segera hadir" (produksi live selama
- * `SITE.comingSoon`) dan `<Beranda>` penuh.
+ * `/` — Beranda penuh (sejak Rencana 2b, `SITE.comingSoon = false`). Loader
+ * memuat settings + warta + jadwal ibadah paralel; `head` memakai `pageMeta`
+ * tanpa syarat.
  *
- * `SITE.comingSoon` adalah literal `true`, jadi TS mempersempit setiap ternary di
- * bawah dan menganggap cabang `!comingSoon` unreachable (`loader` ter-narrow ke
- * `undefined`, `<Beranda>` dianggap kode mati). Dibaca lewat indireksi bertipe
- * `boolean` supaya KEDUA cabang tetap ter-typecheck. `SITE.comingSoon` TIDAK
- * diubah: di produksi tetap `true` dan `/` merender coming-soon byte-identik
- * dengan sebelumnya (bukti byte-identik: task-14-report.md §2b).
- * `<Beranda>` hanya terlihat lewat `/beranda` (file `_dev.beranda.tsx`) sampai
- * Rencana 2b menyetel `SITE.comingSoon = false`.
- *
- * TODO(2b): saat flag dibalik, HAPUS indireksi `comingSoon` di bawah, kedua
- * ternary di `loader`/`head`, dan seluruh blok "coming-soon head" — `/` cukup
- * `loader: () => Promise.all([...])` + `head: () => pageMeta({ path: '/', ... })`.
- * (Komentar saja di sini — jangan ubah kode di 2a.) Catatan: canonical `/`
- * berubah dari `…/` (trailing slash, head coming-soon) ke `…` tanpa slash
- * (`pageMeta`) — no-slash memang canonical yang lebih baik, disengaja.
+ * Section "Ibadah Minggu Ini" memakai `listServices` dengan JENDELA 7 HARI
+ * (`[todayEastern(), +6]`), BUKAN `listUpcomingServices()` yang limit-nya buta
+ * (default 6). Alasannya aritmetika jadwal itu sendiri: kategori `kolom`
+ * menghasilkan 4 ibadah pada satu tanggal (satu per kolom aktif), sehingga enam
+ * kartu pertama sering habis SEBELUM hari Minggu — dari Senin/Selasa/Rabu,
+ * Ibadah Jemaat Minggu 10.00 (ibadah yang paling dicari pengunjung baru, dan
+ * satu-satunya yang disiarkan) jatuh di posisi ke-7/ke-8 dan tak muncul sama
+ * sekali di section yang judulnya justru "Ibadah Minggu Ini". Jendela 7 hari
+ * membuat judul itu harfiah benar dan menjamin hari Minggu selalu masuk. Empat
+ * kartu kolom tetap ditampilkan apa adanya — itu empat ibadah nyata di empat
+ * rumah berbeda, bukan derau. Tipe kembaliannya sama (`UpcomingService[]`),
+ * jadi props `<Beranda>` tak berubah.
  */
-const comingSoon: boolean = SITE.comingSoon
-
 export const Route = createFileRoute('/')({
-  // Cabang coming-soon TIDAK memasang loader (bukan `() => null`): tanpa loader,
-  // state hidrasi router keluar byte-identik dengan sebelum switch — `l:null` pun
-  // tak ikut. Cabang Beranda memuat ketiga server fn paralel.
-  loader: comingSoon
-    ? undefined
-    : () => Promise.all([getSiteSettings(), listBulletins(), listUpcomingServices()]),
-  head: () => {
-    if (!comingSoon) {
-      return pageMeta({
-        path: '/',
-        titleId: 'Beranda',
-        titleEn: 'Home',
-        descId:
-          'GMIM Musafir Columbus Ohio — jemaat perantauan GMIM yang menaungi keluarga Minahasa-Indonesia di Columbus, Ohio: jadwal ibadah, warta, dan cara berkunjung.',
-        descEn:
-          'GMIM Musafir Columbus Ohio — a GMIM diaspora congregation for Minahasan-Indonesian families in Columbus, Ohio: service times, bulletins, and how to visit.',
-        locale: getLocale(),
-      })
-    }
-
-    // ---- coming-soon head (byte-identik dengan versi sebelum switch) ----
-    // `m.*` + `getLocale()` di sini resolve ke locale request (Paraglide
-    // AsyncLocalStorage), jadi <title>/OG/canonical ikut id vs /en. Judul =
-    // nama + status "segera hadir".
-    const title = `${SITE.name} — ${m.coming_soon_status()}`
-    const description = m.coming_soon_body()
-    const locale = getLocale()
-    // CTA situs = "bagikan ke Facebook", jadi unfurl link harus rapi: URL
-    // absolut untuk og:image / og:url / canonical / hreflang.
-    const idUrl = `${SITE.url}/`
-    const enUrl = `${SITE.url}/en`
-    const canonical = locale === 'en' ? enUrl : idUrl
-    const ogImage = `${SITE.url}${SITE.hero.poster}`
-    const ogLocale = locale === 'en' ? 'en_US' : 'id_ID'
-    return {
-      meta: [
-        { title },
-        { name: 'description', content: description },
-        { property: 'og:title', content: title },
-        { property: 'og:description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:image', content: ogImage },
-        { property: 'og:url', content: canonical },
-        { property: 'og:site_name', content: SITE.name },
-        { property: 'og:locale', content: ogLocale },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: title },
-        { name: 'twitter:description', content: description },
-      ],
-      links: [
-        // Poster = elemen LCP halaman ini — preload agar muncul secepat mungkin.
-        { rel: 'preload', as: 'image', href: SITE.hero.poster },
-        { rel: 'canonical', href: canonical },
-        // Kunci ditulis lowercase `hreflang` agar atribut HTML keluar idiomatis
-        // (serializer head TanStack memakai kunci apa adanya).
-        { rel: 'alternate', hreflang: 'id', href: idUrl },
-        { rel: 'alternate', hreflang: 'en', href: enUrl },
-        { rel: 'alternate', hreflang: 'x-default', href: idUrl },
-      ],
-    }
+  loader: () => {
+    const from = todayEastern()
+    return Promise.all([
+      getSiteSettings(),
+      listBulletins(),
+      listServices({ data: { from, to: addDays(from, 6) } }),
+    ])
   },
+  head: () =>
+    pageMeta({
+      path: '/',
+      titleId: 'Beranda',
+      titleEn: 'Home',
+      descId:
+        'GMIM Musafir Columbus Ohio — jemaat perantauan GMIM yang menaungi keluarga Minahasa-Indonesia di Columbus, Ohio: jadwal ibadah, warta, dan cara berkunjung.',
+      descEn:
+        'GMIM Musafir Columbus Ohio — a GMIM diaspora congregation for Minahasan-Indonesian families in Columbus, Ohio: service times, bulletins, and how to visit.',
+      locale: getLocale(),
+    }),
   component: Home,
 })
 
 function Home() {
-  const data = Route.useLoaderData()
-  // Tanpa loader (coming-soon) → `data` undefined → coming-soon (produksi).
-  // Ada loader (Beranda) → tuple 3 elemen.
-  if (!data) return <ComingSoon />
-  const [settings, bulletins, services] = data
+  const [settings, bulletins, services] = Route.useLoaderData()
   return <Beranda settings={settings} bulletins={bulletins} services={services} />
 }

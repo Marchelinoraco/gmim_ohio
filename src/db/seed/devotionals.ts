@@ -13,7 +13,7 @@ export const PLACEHOLDER_DEVOTIONALS = [
     slug: 'renungan-1',
     titleId: 'Gembala yang Menuntun di Perantauan',
     titleEn: 'The Shepherd Who Leads Us Far from Home',
-    authorName: 'Pdt. Allan Robot, S.Th.',
+    authorName: 'Tim Renungan',
     publishedDate: '2026-08-28',
     coverImageUrl: null,
     excerptId:
@@ -63,7 +63,7 @@ export const PLACEHOLDER_DEVOTIONALS = [
     slug: 'renungan-3',
     titleId: 'Bersyukur dalam Segala Keadaan',
     titleEn: 'Give Thanks in All Circumstances',
-    authorName: 'Pdt. Allan Robot, S.Th.',
+    authorName: 'Tim Renungan',
     publishedDate: '2026-08-14',
     coverImageUrl: null,
     excerptId:

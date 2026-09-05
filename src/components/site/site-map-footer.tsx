@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
-import { getLocale, localizeHref } from '@/paraglide/runtime'
 
 /**
  * Peta situs footer — kolom tautan ke SEMUA halaman publik. Dirender oleh
@@ -8,18 +7,14 @@ import { getLocale, localizeHref } from '@/paraglide/runtime'
  * coming-soon, menautkan ke `/tentang`, `/warta`, dst. berarti mengiklankan
  * halaman yang belum diluncurkan — persis yang dicegah `SITE.comingSoon`.
  *
- * Delapan halaman sudah punya route → `<Link to>` TanStack yang typed (rewrite
- * router melokalkan href-nya di `/en`). `/pelayanan` dan `/jadwal` BELUM ada
- * sampai Rencana 2b — `<Link to>` ke situ tak akan ter-compile — jadi dirender
- * sebagai `<a>` biasa + `localizeHref` (pola sama dengan `site-header.tsx`),
- * resolve ke 404 sampai route-nya dibuat.
+ * Semua sepuluh halaman sudah punya route sejak Rencana 2b → seluruh tautan
+ * dirender lewat `<Link to>` TanStack yang typed (rewrite router melokalkan
+ * href-nya di `/en`).
  */
 
 const LINK_CLASS = 'text-muted hover:text-primary inline-flex min-h-11 items-center text-sm'
 
 export function SiteMapFooter() {
-  const locale = getLocale()
-
   return (
     <nav
       aria-label={m.footer_sitemap_label()}
@@ -39,10 +34,9 @@ export function SiteMapFooter() {
             </Link>
           </li>
           <li>
-            {/* TODO(2b): ganti jadi <Link to="/pelayanan"> setelah route-nya ada */}
-            <a href={localizeHref('/pelayanan', { locale })} className={LINK_CLASS}>
+            <Link to="/pelayanan" className={LINK_CLASS}>
               {m.nav_ministries()}
-            </a>
+            </Link>
           </li>
         </ul>
       </div>
@@ -72,10 +66,9 @@ export function SiteMapFooter() {
         <h2 className="text-ink font-serif text-sm font-semibold">{m.footer_worship()}</h2>
         <ul aria-label={m.footer_worship()} className="flex flex-col">
           <li>
-            {/* TODO(2b): ganti jadi <Link to="/jadwal"> setelah route-nya ada */}
-            <a href={localizeHref('/jadwal', { locale })} className={LINK_CLASS}>
+            <Link to="/jadwal" search={{ view: 'daftar' }} className={LINK_CLASS}>
               {m.nav_schedule()}
-            </a>
+            </Link>
           </li>
           <li>
             <Link to="/kunjungi" className={LINK_CLASS}>

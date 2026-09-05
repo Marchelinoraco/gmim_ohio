@@ -7,10 +7,22 @@ test('header & footer tampil di beranda', async ({ page }) => {
   await expect(page.getByRole('contentinfo')).toContainText('895 Old Diley Road')
 })
 
-test('mode coming-soon: nav utama 7-menu disembunyikan', async ({ page }) => {
+/**
+ * Pengganti POSITIF untuk test "nav 7-menu disembunyikan" yang hilang saat
+ * peluncuran (`SITE.comingSoon = false`) tanpa penggantinya — tanpa ini nav
+ * header bisa lenyap total tanpa satu test pun merah.
+ *
+ * Nav desktop selalu ada di DOM dan tampil sejak breakpoint `lg`
+ * (`site-header.tsx`); viewport default Playwright 1280px sudah melewatinya.
+ * Panel mobile hanya dirender saat hamburger dibuka, jadi di viewport ini
+ * `<nav aria-label="Navigasi">` (pesan `nav_menu_label`) tepat satu — tak perlu
+ * scope tambahan untuk menghindari strict-mode.
+ */
+test('header merender tujuh tautan nav', async ({ page }) => {
   await page.goto('/')
-  // Task 8c: sampai Rencana 2 mengisi route asli, nav 7-menu tidak dirender.
-  await expect(page.getByRole('navigation', { name: /menu|navigasi/i })).toHaveCount(0)
+  const nav = page.getByRole('banner').getByRole('navigation', { name: 'Navigasi' })
+  await expect(nav).toBeVisible()
+  await expect(nav.getByRole('link')).toHaveCount(7)
 })
 
 test('halaman tak dikenal menampilkan 404', async ({ page }) => {

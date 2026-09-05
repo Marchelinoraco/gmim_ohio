@@ -1,45 +1,48 @@
 import { test, expect, type Page } from '@playwright/test'
 
 /**
- * e2e halaman publik Rencana 2a — jalan di kedua project Playwright
- * (`chromium` + `reduced-motion`).
+ * e2e halaman publik — jalan di kedua project Playwright (`chromium` +
+ * `reduced-motion`).
  *
  * Cakupan:
- *  1. Tabel 8 route publik — 200, tepat satu `<h1>` non-kosong, `<html lang="id">`;
+ *  1. Tabel 10 route publik — 200, tepat satu `<h1>` non-kosong, `<html lang="id">`;
  *     lalu varian `/en/...` — 200 + `<html lang="en">`.
- *  2. `/warta` daftar → detail — klik kartu pertama, URL jadi `/warta/<uuid>`,
+ *  2. `/` hero video (`<HeroMedia>`, komponen BERSAMA dipakai `<Beranda>`) —
+ *     markup SSR tanpa atribut `autoplay`; di project `reduced-motion`, video
+ *     tetap di poster (tak diputar). Cakupan ini dulu ada di
+ *     `coming-soon.spec.ts` (dihapus bersama flag `SITE.comingSoon`) — invarian
+ *     `<HeroMedia>`-nya sendiri generik dan masih berlaku penuh di `<Beranda>`,
+ *     jadi diporting ke sini alih-alih ikut terbuang bersama file lama.
+ *  3. `/warta` daftar → detail — klik kartu pertama, URL jadi `/warta/<uuid>`,
  *     body tersanitasi (`.prose-gmim`) tampil dengan heading seed yang dikenal.
- *  3. `/galeri/<id>` lightbox — buka album, klik tile pertama, dialog Radix
+ *  4. `/galeri/<id>` lightbox — buka album, klik tile pertama, dialog Radix
  *     muncul, ArrowRight maju ke gambar berikutnya, Escape menutup. Satu-satunya
  *     komponen interaktif di rencana ini yang belum punya cakupan e2e.
- *  4. `/kunjungi` form kontak — JALUR HONEYPOT (RULING): isi field valid + isi
+ *  5. `/kunjungi` form kontak — JALUR HONEYPOT (RULING): isi field valid + isi
  *     honeypot `website` tersembunyi, submit, harap pesan sukses. Ini menggerakkan
  *     round-trip klien→server→klien penuh tapi menulis NOL baris ke Neon dev dan
  *     memakai NOL jatah rate-limit — CI kalau tidak akan menumpuk baris sampah
  *     dan akhirnya me-rate-limit dirinya sendiri. Jalur tulis sungguhan sudah
  *     diverifikasi manual: `task-12-report.md` mencatat `contact_messages` 0→3
  *     dengan id baris, submisi ke-4 kena rate-limit, baris uji lalu dihapus.
- *  5. `/sitemap.xml` — 200, content-type xml, memuat `<loc>` home + namespace
- *     `xhtml`. Meng-assert BENTUK coming-soon (home saja): per RULING 2, selama
- *     `SITE.comingSoon` true daftar lengkap TIDAK dipancarkan. Rencana 2b yang
- *     memperluas assertion ini saat flag dibalik.
+ *  6. `/sitemap.xml` — 200, content-type xml, memuat daftar lengkap path publik
+ *     (statis + `/pelayanan/*` + entri dinamis warta/renungan/galeri/jadwal) +
+ *     namespace `xhtml`.
  *
- * RULING 1: TIDAK ada assertion 404 untuk `/tokens` atau `/beranda`.
- * `playwright.config.ts` menjalankan `webServer: { command: 'pnpm dev' }`, jadi
- * e2e mengeksekusi terhadap server DEV — di sana `import.meta.env.PROD` bernilai
- * `false` sehingga `/tokens` dan `/beranda` sengaja mengembalikan 200. Gerbang
- * PROD (`beforeLoad` melempar `notFound()`) TIDAK bisa dilatih di bawah
- * `pnpm dev`; verifikasinya = inspeksi kode + bukti collapse build di
- * `task-14-report.md`. Membangun test yang men-grep bundle di sini rapuh dan
- * tak sepadan — sengaja tidak dilakukan.
+ * RULING 1: TIDAK ada assertion 404 untuk `/tokens`. `playwright.config.ts`
+ * menjalankan `webServer: { command: 'pnpm dev' }`, jadi e2e mengeksekusi
+ * terhadap server DEV — di sana `import.meta.env.PROD` bernilai `false`
+ * sehingga `/tokens` sengaja mengembalikan 200. Gerbang PROD (`beforeLoad`
+ * melempar `notFound()`) TIDAK bisa dilatih di bawah `pnpm dev`; verifikasinya
+ * = inspeksi kode + bukti collapse build di `task-14-report.md`. Membangun
+ * test yang men-grep bundle di sini rapuh dan tak sepadan — sengaja tidak
+ * dilakukan.
  */
 
-// 8 route publik yang dibangun Rencana 2a. `/beranda` (file `_dev.beranda.tsx`,
-// URL `/beranda` — `_dev` segmen layout pathless) memberi `<Beranda>` cakupan
-// e2e selama `SITE.comingSoon` masih `true`.
-// TODO(2b): saat `SITE.comingSoon = false`, `PUBLIC_PATHS` harus MEMBUANG
-// `/beranda` (route-nya dihapus) dan MENAMBAH `/` (kini merender `<Beranda>`).
+// 10 route publik (sejak Rencana 2b: `/` merender `<Beranda>` penuh,
+// `/pelayanan` + `/jadwal` diluncurkan bersama flag `SITE.comingSoon = false`).
 const PUBLIC_PATHS = [
+  '/',
   '/tentang',
   '/warta',
   '/renungan',
@@ -47,7 +50,8 @@ const PUBLIC_PATHS = [
   '/kunjungi',
   '/persembahan',
   '/ibadah-live',
-  '/beranda',
+  '/jadwal',
+  '/pelayanan',
 ] as const
 
 for (const path of PUBLIC_PATHS) {
@@ -72,6 +76,30 @@ for (const path of PUBLIC_PATHS) {
 }
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+
+// `<HeroMedia>` (dipakai `<Beranda>` di `/`) — invarian yang dulu dilatih di
+// `coming-soon.spec.ts` (dihapus bersama `<ComingSoon>`) TAPI komponennya
+// sendiri masih dipakai penuh oleh Beranda; port di sini alih-alih dibuang.
+test('/ markup SSR tidak mengandung atribut autoplay pada video', async ({ page }) => {
+  const res = await page.goto('/')
+  const html = (await res?.text()) ?? ''
+  const videoTag = html.slice(html.indexOf('<video'), html.indexOf('</video>'))
+  expect(videoTag).not.toContain('autoplay')
+})
+
+test('reduced-motion: hero video tidak autoplay, tetap di poster', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'reduced-motion', 'hanya bermakna di project reduced-motion')
+  await page.goto('/')
+  const video = page.locator('video')
+  await expect(video).toHaveCount(1)
+
+  // Tak ada atribut autoplay di markup SSR.
+  expect(await video.getAttribute('autoplay')).toBeNull()
+
+  // Video tidak diputar otomatis — tetap di poster (`BerandaHero`'s effect
+  // mengecek `prefers-reduced-motion` sebelum memanggil `v.play()`).
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true)
+})
 
 test('/warta: klik kartu pertama → /warta/<uuid> + body tersanitasi tampil', async ({ page }) => {
   await page.goto('/warta')
@@ -172,7 +200,7 @@ test('/kunjungi: form kontak jalur honeypot → pesan sukses (nol baris DB)', as
   }).toPass({ timeout: 20000 })
 })
 
-test('/sitemap.xml: 200, content-type xml, bentuk coming-soon (home saja)', async ({ page }) => {
+test('/sitemap.xml: 200, content-type xml, daftar lengkap path publik', async ({ page }) => {
   const res = await page.goto('/sitemap.xml')
   expect(res?.status()).toBe(200)
   expect(res?.headers()['content-type']).toContain('xml')
@@ -181,8 +209,22 @@ test('/sitemap.xml: 200, content-type xml, bentuk coming-soon (home saja)', asyn
   expect(body).toContain('<loc>https://gmimmusafir.org</loc>')
   expect(body).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"')
 
-  // RULING 2: selama SITE.comingSoon true, hanya home yang dipancarkan.
-  // TODO(2b): saat flag dibalik, perluas ke <loc>…/tentang</loc>, /warta, dst.
-  expect(body).not.toContain('/tentang')
-  expect((body.match(/<loc>/g) ?? []).length).toBe(1)
+  for (const path of [
+    '/tentang',
+    '/warta',
+    '/renungan',
+    '/galeri',
+    '/kunjungi',
+    '/persembahan',
+    '/ibadah-live',
+    '/pelayanan',
+    '/jadwal',
+  ]) {
+    expect(body).toContain(`<loc>https://gmimmusafir.org${path}</loc>`)
+  }
+  // 10 = 10 path statis; entri dinamis warta/renungan/galeri/jadwal menambah
+  // lebih banyak lagi tergantung isi seed saat ini — `toBeGreaterThanOrEqual`
+  // sengaja dipakai supaya tes tak rapuh terhadap perubahan seed.
+  const locCount = (body.match(/<loc>/g) ?? []).length
+  expect(locCount).toBeGreaterThanOrEqual(10)
 })

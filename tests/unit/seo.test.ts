@@ -39,9 +39,7 @@ describe('pageMeta', () => {
     })
     expect(links.find((l) => l.rel === 'canonical')?.href).toBe('https://gmimmusafir.org/en')
   })
-  // TODO(2b): saat `SITE.comingSoon = false`, `pageMeta` berhenti memancarkan
-  // meta robots — assertion ini ikut berubah jadi `expect(robots).toBeUndefined()`.
-  it('coming-soon: menyisipkan <meta name="robots" content="noindex, follow">', () => {
+  it('setelah peluncuran: TIDAK menyisipkan meta robots noindex', () => {
     const { meta } = pageMeta({
       path: '/warta',
       titleId: 'Warta',
@@ -51,7 +49,7 @@ describe('pageMeta', () => {
       locale: 'id',
     })
     const robots = meta.find((m) => m.name === 'robots')
-    expect(robots?.content).toBe('noindex, follow')
+    expect(robots).toBeUndefined()
   })
 })
 

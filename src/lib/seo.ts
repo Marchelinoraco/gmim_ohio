@@ -14,7 +14,8 @@
  * sempat diubah ke `hrefLang`, halaman konten memancarkan literal
  * `<link ... hrefLang="id" ...>`, sementara head coming-soon `/` yang tak
  * tersentuh tetap `hreflang="id"` — serializer yang sama, render path yang sama,
- * ejaan kunci yang berbeda → atribut yang berbeda.
+ * ejaan kunci yang berbeda → atribut yang berbeda. (Head coming-soon itu sendiri
+ * sudah tidak ada sejak Rencana 2b; paragraf ini catatan bukti historis.)
  *
  * Akibatnya React mencatat `Invalid DOM property 'hreflang'. Did you mean
  * 'hrefLang'?` di dev. Warning itu DITERIMA dengan sengaja: ia cuma derau konsol
@@ -31,18 +32,22 @@
 import { SITE } from '@/config/site'
 
 /**
- * Selagi `SITE.comingSoon` true, tiap halaman yang memanggil `pageMeta` memancar
- * `<meta name="robots" content="noindex, follow">` — gerbang `comingSoon` yang
- * lain (header, footer, sitemap.xml) mencegah PENEMUAN dari situs ini, tapi tak
- * menghentikan crawler mengindeks URL yang di-paste langsung (mis. ke WhatsApp /
- * Facebook). `follow` (bukan `nofollow`) supaya ekuitas tautan tetap mengalir.
- * Di-key ke flag → hilang sendiri saat 2b (`false`), tanpa item lockstep baru.
- * `src/routes/index.tsx` head coming-soon TIDAK memanggil `pageMeta`, jadi `/`
- * yang live tetap terindeks — memang disengaja.
+ * Gerbang `noindex`. `SITE.comingSoon` sekarang `false` (situs diluncurkan di
+ * Rencana 2b), jadi jalur ini TIDAK aktif: `pageMeta` tidak memancarkan tag
+ * `robots` sama sekali dan seluruh situs terindeks normal.
  *
- * Indireksi bertipe `boolean` (sama seperti `index.tsx` / `site-footer.tsx` /
- * `sitemap[.]xml.ts`): `SITE` `as const` menyempitkan `SITE.comingSoon` ke
- * literal `true`, menetapkan ke const bertipe `boolean` melebarkannya lagi.
+ * Kalau flag itu dibalik ke `true`, tiap halaman yang memanggil `pageMeta` akan
+ * memancarkan `<meta name="robots" content="noindex, follow">` — `follow`
+ * (bukan `nofollow`) supaya ekuitas tautan tetap mengalir. Kodenya SENGAJA
+ * dipertahankan sebagai satu-satunya bagian gerbang `comingSoon` yang masih
+ * benar-benar bermakna; tapi lihat docblock `SITE.comingSoon`
+ * (`src/config/site.ts`): membalik flag itu TIDAK lagi mengembalikan halaman
+ * "segera hadir" dan BUKAN cara sah untuk menutup situs — `/` tetap merender
+ * Beranda penuh dan `sitemap.xml` tetap memancarkan seluruh path statis.
+ *
+ * Indireksi bertipe `boolean` (sama seperti `site-footer.tsx` /
+ * `site-header.tsx`): `SITE` `as const` menyempitkan `SITE.comingSoon` ke
+ * literal `false`, menetapkan ke const bertipe `boolean` melebarkannya lagi.
  */
 const comingSoon: boolean = SITE.comingSoon
 
@@ -115,8 +120,8 @@ export function pageMeta(opts: PageMetaOpts): { meta: MetaTag[]; links: LinkDesc
 
   return {
     meta: [
-      // Lihat docblock `comingSoon` di atas: noindex selagi belum diluncurkan,
-      // `follow` supaya ekuitas tautan tetap mengalir. Hilang sendiri di 2b.
+      // Lihat docblock `comingSoon` di atas. Flag `false` sejak peluncuran, jadi
+      // hari ini array ini selalu kosong dan tak ada tag `robots` yang keluar.
       ...(comingSoon ? [{ name: 'robots', content: 'noindex, follow' }] : []),
       { title },
       { name: 'description', content: description },

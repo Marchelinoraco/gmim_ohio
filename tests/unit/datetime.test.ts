@@ -3,9 +3,14 @@ import {
   toInstant,
   formatServiceDateTime,
   formatDateLong,
+  formatMonthYear,
   isoWeekStart,
   datesForWeekday,
   todayEastern,
+  addDays,
+  lastDayOfMonth,
+  easternOffset,
+  weekdayNamesShort,
 } from '@/lib/datetime'
 
 describe('toInstant', () => {
@@ -84,5 +89,59 @@ describe('datesForWeekday', () => {
   })
   it('rentang tanpa kecocokan mengembalikan array kosong', () => {
     expect(datesForWeekday('2026-09-07', '2026-09-12', 0)).toEqual([])
+  })
+})
+
+describe('lastDayOfMonth', () => {
+  it('bulan 30 hari', () => expect(lastDayOfMonth('2026-09')).toBe('2026-09-30'))
+  it('bulan 31 hari', () => expect(lastDayOfMonth('2026-12')).toBe('2026-12-31'))
+  it('Februari tahun kabisat', () => expect(lastDayOfMonth('2028-02')).toBe('2028-02-29'))
+  it('Februari tahun biasa', () => expect(lastDayOfMonth('2026-02')).toBe('2026-02-28'))
+})
+
+describe('formatMonthYear', () => {
+  it('id', () => expect(formatMonthYear('2026-09', 'id')).toBe('September 2026'))
+  it('en', () => expect(formatMonthYear('2026-01', 'en')).toBe('January 2026'))
+  it('id, Desember (indeks bulan)', () =>
+    expect(formatMonthYear('2026-12', 'id')).toBe('Desember 2026'))
+  it('en, December (indeks bulan)', () =>
+    expect(formatMonthYear('2026-12', 'en')).toBe('December 2026'))
+})
+
+describe('easternOffset', () => {
+  it('musim panas = EDT', () => expect(easternOffset('2026-07-01')).toBe('-04:00'))
+  it('musim dingin = EST', () => expect(easternOffset('2026-01-15')).toBe('-05:00'))
+})
+
+describe('addDays', () => {
+  it('menambah hari biasa', () => {
+    expect(addDays('2026-09-04', 7)).toBe('2026-09-11')
+  })
+  it('menyeberang pergantian bulan', () => {
+    expect(addDays('2026-08-30', 5)).toBe('2026-09-04')
+  })
+  it('menyeberang pergantian tahun', () => {
+    expect(addDays('2026-12-30', 3)).toBe('2027-01-02')
+  })
+})
+
+describe('weekdayNamesShort', () => {
+  it('id: tujuh singkatan mulai Minggu', () => {
+    expect(weekdayNamesShort('id')).toEqual(['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'])
+  })
+  it('en: tujuh singkatan mulai Sunday', () => {
+    expect(weekdayNamesShort('en')).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+  })
+  it('indeksnya sejajar getUTCDay() (kolom 0 = Minggu)', () => {
+    // Grid kalender memetakan kolom ke-i ke tanggal ber-`getUTCDay() === i`,
+    // jadi header hanya sejajar bila urutan array-nya sama.
+    const names = weekdayNamesShort('en')
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(Date.UTC(2026, 8, 6 + i)) // 2026-09-06 = Minggu
+      expect(date.getUTCDay()).toBe(i)
+      expect(names[i]).toBe(
+        new Intl.DateTimeFormat('en-GB', { weekday: 'short', timeZone: 'UTC' }).format(date),
+      )
+    }
   })
 })

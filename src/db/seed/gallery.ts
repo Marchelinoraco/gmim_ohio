@@ -41,15 +41,12 @@ export const PLACEHOLDER_ALBUM_ITEMS = [
     captionEn: 'Indonesian Independence Day thanksgiving service',
     sortOrder: 2,
   },
-  {
-    type: 'youtube',
-    imageUrl: null,
-    // TODO ganti dengan video gereja bila sudah ada
-    youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    captionId: 'Cuplikan ibadah Minggu (video contoh)',
-    captionEn: 'Sunday service highlights (placeholder video)',
-    sortOrder: 3,
-  },
+  // Item video sengaja TIDAK di-seed. Placeholder sebelumnya memakai video
+  // YouTube populer yang tak ada hubungannya dengan gereja (bercaption
+  // "Cuplikan ibadah Minggu") — di situs jemaat sungguhan itu terbaca sebagai
+  // lelucon atau kelalaian, bukan placeholder yang jujur. Tipe `youtube`
+  // tetap didukung komponen galeri; pengurus mengisinya lewat dashboard
+  // (Rencana 3) saat video ibadah sungguhan sudah ada.
 ] as const
 
 /**

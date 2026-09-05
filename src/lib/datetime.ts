@@ -94,6 +94,26 @@ const MONTH_ID = [
   'Desember',
 ] as const
 
+/** Singkatan nama hari (id), Minggu → Sabtu — sejajar indeks `Date.getUTCDay()`. */
+const DOW_SHORT_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'] as const
+
+/**
+ * Tujuh singkatan nama hari, Minggu → Sabtu, sesuai `locale` — untuk baris
+ * header grid kalender (`<MonthCalendar>`). Indeks array = `Date.getUTCDay()`,
+ * jadi bisa dipetakan langsung ke kolom grid yang juga dimulai hari Minggu.
+ *
+ * Ada DI SINI, bukan sebagai array literal di komponen: modul ini pemilik semua
+ * logika tanggal, dan hanya di sini nama hari `en` bisa diturunkan lewat `Intl`
+ * (bukan diketik ulang) dengan `timeZone: 'UTC'` yang membuatnya deterministik
+ * lintas mesin — pola sama dengan `formatDateLong`. `1970-01-04` adalah hari
+ * Minggu, jadi `+ i` menyapu satu minggu penuh mulai Minggu.
+ */
+export function weekdayNamesShort(locale: 'id' | 'en'): string[] {
+  if (locale === 'id') return [...DOW_SHORT_ID]
+  const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', timeZone: 'UTC' })
+  return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(Date.UTC(1970, 0, 4 + i))))
+}
+
 /**
  * Gabung `YYYY-MM-DD` + `HH:mm[:ss]` sebagai wall-clock Eastern → `Date`
  * (instant UTC yang benar, memperhitungkan DST: EDT = UTC-4, EST = UTC-5).
@@ -150,6 +170,18 @@ export function formatServiceDateTime(
   return `${formatDateLong(serviceDate, 'en')} · ${time}`
 }
 
+/** Offset UTC Eastern pada `date` (`YYYY-MM-DD`) — `-04:00` (EDT) atau `-05:00` (EST), tergantung DST. */
+export function easternOffset(date: string): string {
+  const { year, month, day } = parseDate(date)
+  const zoned = new TZDate(year, month - 1, day, 12, 0, 0, EASTERN) // tengah hari — jauh dari batas DST manapun
+  const offsetMinutes = -zoned.getTimezoneOffset()
+  const sign = offsetMinutes >= 0 ? '+' : '-'
+  const abs = Math.abs(offsetMinutes)
+  const hh = String(Math.floor(abs / 60)).padStart(2, '0')
+  const mm = String(abs % 60).padStart(2, '0')
+  return `${sign}${hh}:${mm}`
+}
+
 /**
  * Tanggal Eastern "hari ini" sebagai `"YYYY-MM-DD"` (wall-clock Eastern). Kolom
  * `serviceDate` juga wall-clock Eastern, jadi membandingkannya dengan tanggal
@@ -164,6 +196,34 @@ export function todayEastern(now: Date = new Date()): string {
   const month = String(zoned.getMonth() + 1).padStart(2, '0')
   const day = String(zoned.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+/** `YYYY-MM-DD` sejumlah `days` setelah `date`. Kalender murni, tanpa jam. */
+export function addDays(date: string, days: number): string {
+  const dt = utcMidnight(parseDate(date))
+  dt.setUTCDate(dt.getUTCDate() + days)
+  return dt.toISOString().slice(0, 10)
+}
+
+/** Tanggal terakhir (`YYYY-MM-DD`) dari bulan `YYYY-MM`. */
+export function lastDayOfMonth(month: string): string {
+  const year = Number(month.slice(0, 4))
+  const monthNum = Number(month.slice(5, 7))
+  const nextMonth =
+    monthNum === 12 ? `${year + 1}-01` : `${year}-${String(monthNum + 1).padStart(2, '0')}`
+  return addDays(`${nextMonth}-01`, -1)
+}
+
+/** "Desember 2026" (id) / "December 2026" (en) — nama bulan penuh + tahun. */
+export function formatMonthYear(month: string, locale: 'id' | 'en'): string {
+  const year = Number(month.slice(0, 4))
+  const monthIndex = Number(month.slice(5, 7)) - 1
+  if (locale === 'id') return `${at(MONTH_ID, monthIndex)} ${year}`
+  return new Intl.DateTimeFormat('en-GB', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, monthIndex, 1)))
 }
 
 /** Senin (`YYYY-MM-DD`) dari minggu yang memuat `date`. Idempoten bila `date` sudah Senin. */

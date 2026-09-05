@@ -103,6 +103,7 @@
   "live_offline": "There is no live stream right now.",
   "live_watch_archive": "Watch a past service",
   "live_next_note": "The live stream starts shortly before Sunday worship. See the worship schedule for the full times.",
+  "live_next_service": "Next service: {when} — {category}",
   "home_services_this_week": "This Week's Services",
   "home_about_blurb": "GMIM Musafir Columbus Ohio is a diaspora congregation of the Evangelical Christian Church in Minahasa (GMIM) for Minahasan-Indonesian families in the Columbus, Ohio area — a place to worship, grow in faith, and support one another far from home.",
   "home_about_cta": "More about us",

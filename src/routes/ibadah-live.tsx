@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { getLocale } from '@/paraglide/runtime'
 import { getSiteSettings } from '@/features/content/site-settings'
+import { listUpcomingServices } from '@/features/schedule/services'
+import { formatServiceDateTime } from '@/lib/datetime'
 import { pageMeta } from '@/lib/seo'
 import { liveEmbedSrc } from '@/lib/video'
 import { Button } from '@/components/ui/button'
@@ -19,11 +21,12 @@ import { Section } from '@/components/site/section'
  * `isLive` true TAPI `liveEmbedSrc` mengembalikan `null` (host tak dikenal) juga
  * jatuh ke cabang offline — fallback aman yang disengaja: domain gereja tidak
  * meng-`<iframe>` origin sembarangan. Data dari `site_settings` lewat loader
- * `getSiteSettings`. `<PageHero>` menyuplai satu-satunya `<h1>`.
+ * `getSiteSettings`, digabung dengan ibadah terbit berikutnya (`listUpcomingServices`,
+ * limit 1) untuk cabang offline. `<PageHero>` menyuplai satu-satunya `<h1>`.
  */
 
 export const Route = createFileRoute('/ibadah-live')({
-  loader: () => getSiteSettings(),
+  loader: () => Promise.all([getSiteSettings(), listUpcomingServices({ data: 1 })]),
   head: () =>
     pageMeta({
       path: '/ibadah-live',
@@ -41,7 +44,10 @@ export const Route = createFileRoute('/ibadah-live')({
 })
 
 function IbadahLive() {
-  const { liveStream } = Route.useLoaderData()
+  const [settings, services] = Route.useLoaderData()
+  const { liveStream } = settings
+  const nextService = services[0] ?? null
+  const locale = getLocale()
 
   // `isLive` false / `url` kosong → `null` tanpa memanggil `liveEmbedSrc`.
   // `isLive` true + host tak dikenal → `liveEmbedSrc` juga `null` → cabang offline.
@@ -75,8 +81,19 @@ function IbadahLive() {
                   </a>
                 </Button>
               ) : null}
-              {/* TODO(2b): ganti dengan jadwal ibadah berikutnya dari worship_services */}
-              <p className="text-muted">{m.live_next_note()}</p>
+              <p className="text-muted">
+                {nextService
+                  ? m.live_next_service({
+                      when: formatServiceDateTime(
+                        nextService.serviceDate,
+                        nextService.startTime,
+                        locale,
+                      ),
+                      category:
+                        locale === 'id' ? nextService.category.nameId : nextService.category.nameEn,
+                    })
+                  : m.live_next_note()}
+              </p>
             </div>
           )}
         </Section>

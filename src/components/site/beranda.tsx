@@ -5,14 +5,13 @@ import { getLocale, localizeHref } from '@/paraglide/runtime'
 import type { BulletinSummary } from '@/features/content/bulletins'
 import type { SiteSettings } from '@/features/content/site-settings'
 import type { UpcomingService } from '@/features/schedule/services'
-import { formatServiceDateTime } from '@/lib/datetime'
 import { SITE } from '@/config/site'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { BulletinCard } from '@/components/site/bulletin-card'
 import { Container } from '@/components/site/container'
 import { Paragraphs } from '@/components/site/paragraphs'
 import { Section, SectionTitle } from '@/components/site/section'
+import { ServiceCard } from '@/components/schedule/service-card'
 
 /**
  * `<Beranda>` — komponen halaman depan penuh. Props-driven: `src/routes/index.tsx`
@@ -20,9 +19,9 @@ import { Section, SectionTitle } from '@/components/site/section'
  * data dari `getSiteSettings()` + `listBulletins()` + `listUpcomingServices()`.
  *
  * Section: Hero (video/scrim, teks dari `hero.*` settings) → strip jam ibadah →
- * "Ibadah Minggu Ini" (disembunyikan bila `services` kosong — TANPA <EmptyState>,
- * dan memang kosong di Rencana 2a) → "Tentang ringkas" → "Warta Terbaru" (3
- * terbaru; disembunyikan bila kosong).
+ * "Ibadah Minggu Ini" (kartu `<ServiceCard>` bersama, data nyata sejak Rencana 2b;
+ * disembunyikan bila `services` kosong — TANPA <EmptyState>) → "Tentang ringkas" →
+ * "Warta Terbaru" (3 terbaru; disembunyikan bila kosong).
  *
  * Teks & tombol hero berada di atas scrim gelap paksa — pengecualian warna yang
  * sama & terdokumentasi seperti halaman coming-soon.
@@ -57,32 +56,9 @@ export function Beranda({ settings, bulletins, services }: BerandaProps) {
           <Section id="ibadah-minggu-ini">
             <SectionTitle>{m.home_services_this_week()}</SectionTitle>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {services.map((s) => {
-                // Beranda sengaja hanya pakai nama kategori; `category.color`/`key`
-                // dan `kolom` ikut di-fetch untuk halaman `/jadwal` (Rencana 2b).
-                const categoryName = locale === 'id' ? s.category.nameId : s.category.nameEn
-                // Ibadah rumah: "Di rumah <keluarga>", atau "Lokasi menyusul" bila
-                // nama tuan rumah belum diisi (JANGAN jatuh ke alamat gereja — itu
-                // menyesatkan). Ibadah gedung: nama gereja, supaya kedua kasus jelas
-                // beda bagi pembaca.
-                const where =
-                  s.locationType === 'rumah'
-                    ? s.hostFamilyName
-                      ? m.home_location_home({ host: s.hostFamilyName })
-                      : m.home_location_tba()
-                    : SITE.name
-                return (
-                  <Card key={s.id} className="h-full">
-                    <CardHeader>
-                      <CardDescription>
-                        {formatServiceDateTime(s.serviceDate, s.startTime, locale)}
-                      </CardDescription>
-                      <CardTitle className="font-serif text-xl">{categoryName}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-muted text-sm">{where}</CardContent>
-                  </Card>
-                )
-              })}
+              {services.map((s) => (
+                <ServiceCard key={s.id} service={s} locale={locale} linkToDetail />
+              ))}
             </div>
           </Section>
         )}

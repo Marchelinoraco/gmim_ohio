@@ -1,5 +1,11 @@
 import * as m from '@/paraglide/messages'
-import { addDays, formatDateLong, formatMonthYear, lastDayOfMonth } from '@/lib/datetime'
+import {
+  addDays,
+  formatDateLong,
+  formatMonthYear,
+  lastDayOfMonth,
+  weekdayNamesShort,
+} from '@/lib/datetime'
 
 /**
  * `groupByDate` + `monthGrid` + `<MonthCalendar>` — dua fungsi murni + satu
@@ -115,8 +121,23 @@ type CalendarService = { serviceDate: string; category: { color: string } }
  * bukan `YYYY-MM-DD` mentah.
  *
  * `locale` (baru di Task 8) dipakai untuk `formatMonthYear` (label bulan/tahun
- * di antara tombol navigasi — jawaban atas "kalender ini bulan apa") dan
- * `formatDateLong` di `aria-label`.
+ * di antara tombol navigasi — jawaban atas "kalender ini bulan apa"),
+ * `weekdayNamesShort` (baris header nama hari), dan `formatDateLong` di
+ * `aria-label`.
+ *
+ * Baris header nama hari (Min/Sen/Sel/… — `weekdayNamesShort` dari
+ * `@/lib/datetime`, BUKAN array literal di sini: modul itu pemilik semua logika
+ * tanggal dan satu-satunya tempat sisi `en` diturunkan lewat `Intl`) memakai
+ * grid 7 kolom yang SAMA dengan grid tanggal di bawahnya, jadi kolomnya selalu
+ * sejajar. Ia `aria-hidden="true"`: `aria-label` tiap sel sudah menyebut tanggal
+ * lengkap berikut nama harinya, jadi membacakan header lagi hanya menambah
+ * derau bagi pembaca layar tanpa menambah informasi.
+ *
+ * Sel terpilih dibedakan `bg-surface-2` PLUS `border-primary` — `bg-surface-2`
+ * sendirian nyaris tak terlihat di kedua tema (di light ia ungu sangat muda di
+ * atas putih). Border memakai token yang sudah ada, bukan hex, dan menggantikan
+ * `border-border` pada sel yang sama sehingga tak menggeser layout satu piksel
+ * pun.
  *
  * Label bulan/tahun sengaja `<p aria-live="polite">`, BUKAN `<h3>`/heading apa
  * pun — ia keterangan widget kalender (pola sama dengan date-picker aksesibel
@@ -145,6 +166,7 @@ export function MonthCalendar({
   onChangeMonth: (nextMonth: string) => void
 }) {
   const weeks = monthGrid(month)
+  const weekdays = weekdayNamesShort(locale)
 
   return (
     <div className="flex flex-col gap-3">
@@ -170,6 +192,16 @@ export function MonthCalendar({
         </button>
       </div>
 
+      {/* Nama hari — grid 7 kolom & gap yang sama dengan grid tanggal di bawah
+          supaya kolomnya sejajar. `aria-hidden`: lihat docblock. */}
+      <div aria-hidden="true" className="grid grid-cols-7 gap-1">
+        {weekdays.map((day) => (
+          <span key={day} className="text-muted py-1 text-center text-xs font-medium">
+            {day}
+          </span>
+        ))}
+      </div>
+
       <div className="grid grid-cols-7 gap-1">
         {weeks.flat().map((date) => {
           const outsideMonth = date.slice(0, 7) !== month
@@ -181,9 +213,11 @@ export function MonthCalendar({
 
           const cellClass = [
             'flex min-h-14 flex-col items-center gap-1 rounded-md border p-1.5 text-sm',
-            'border-border',
             outsideMonth ? 'text-muted' : 'text-ink',
-            isSelected ? 'bg-surface-2' : 'bg-surface',
+            // `bg-surface-2` sendirian nyaris tak terlihat; border token yang
+            // mengambil alih `border-border` (bukan menumpuk) yang membuat sel
+            // terpilih terbaca di terang MAUPUN gelap, tanpa geser layout.
+            isSelected ? 'border-primary bg-surface-2' : 'border-border bg-surface',
           ].join(' ')
 
           const dots = colors.length > 0 && (
@@ -210,6 +244,10 @@ export function MonthCalendar({
             <button
               key={date}
               type="button"
+              // Toggle-like: sel yang sedang dipilih menyetir panel jadwal di
+              // bawah kalender, jadi statusnya harus terbaca pembaca layar —
+              // pembeda visualnya saja tak cukup.
+              aria-pressed={isSelected}
               aria-label={m.jadwal_calendar_day_label({
                 date: formatDateLong(date, locale),
                 count: dayServices.length,

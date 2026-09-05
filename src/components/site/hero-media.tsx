@@ -1,13 +1,17 @@
 import type { ReactNode, RefObject } from 'react'
 
 /**
- * Blok media hero bersama — `<video>`+`<source>`+scrim gelap, dipakai
- * `coming-soon.tsx` (halaman `/` LIVE selama `SITE.comingSoon`) dan
- * `beranda.tsx` (`<Beranda>` penuh). `sources` kosong → render `fallback`
- * (gradien di coming-soon, `<img>` CMS di Beranda) TANPA `<video>` sama
- * sekali. `videoRef` opsional diteruskan ke elemen `<video>` supaya pemanggil
- * bisa mengontrol playback (autoplay-on-mount di kedua pemanggil, plus
- * toggle suara/reduced-motion di coming-soon).
+ * Blok media hero bersama — `<video>`+`<source>`+scrim gelap. Satu-satunya
+ * pemanggil hari ini adalah `beranda.tsx` (`<Beranda>` penuh); pemanggil kedua
+ * dulu adalah `coming-soon.tsx`, yang DIHAPUS di Rencana 2b bersama peluncuran
+ * situs. Komponen ini tetap terpisah karena invariannya (scrim, `object-cover`,
+ * tanpa atribut `autoplay` di markup SSR) sudah punya cakupan e2e sendiri di
+ * `tests/e2e/public-pages.spec.ts` dan tak seharusnya larut ke dalam Beranda.
+ *
+ * `sources` kosong → render `fallback` (`<img>` dari CMS di Beranda) TANPA
+ * `<video>` sama sekali. `videoRef` opsional diteruskan ke elemen `<video>`
+ * supaya pemanggil bisa mengontrol playback (autoplay-on-mount, dihormati
+ * terhadap `prefers-reduced-motion`).
  */
 export function HeroMedia({
   poster,

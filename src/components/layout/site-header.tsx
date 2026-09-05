@@ -72,9 +72,12 @@ export function SiteHeader() {
     </a>
   )
 
-  // Mode coming-soon (Task 8c): sembunyikan 7 nav + CTA + hamburger — route-nya
-  // belum ada. Sisakan brand + kontrol tema/bahasa. Rencana 2 menyetel
-  // `SITE.comingSoon = false` dan header penuh di bawah kembali aktif.
+  // Cabang coming-soon (Rencana 1 Task 8c): sembunyikan 7 nav + CTA + hamburger,
+  // sisakan brand + kontrol tema/bahasa. Rencana 2b sudah menyetel
+  // `SITE.comingSoon = false`, jadi cabang ini TIDAK aktif dan header penuh di
+  // bawahlah yang dirender. Perhatikan: flag ini bukan lagi kill-switch situs
+  // (lihat docblock `SITE.comingSoon` di `src/config/site.ts`) — menyembunyikan
+  // nav di sini tidak menyembunyikan halamannya.
   if (SITE.comingSoon) {
     return (
       <header className="border-border bg-surface border-b">

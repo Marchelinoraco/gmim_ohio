@@ -16,8 +16,11 @@ const SOCIAL_LINKS = [{ key: 'facebook', label: 'Facebook', href: SITE.facebookU
   (s) => s.href.length > 0,
 )
 
-// `SITE.comingSoon` literal `true` → dibaca lewat indireksi bertipe `boolean`
-// (alasan lengkap di `src/routes/index.tsx`).
+// `SITE` `as const` menyempitkan `SITE.comingSoon` ke literal `false` → dibaca
+// lewat indireksi bertipe `boolean` supaya `!comingSoon` di bawah tidak dianggap
+// kondisi konstan (alasan lengkap di docblock `comingSoon`, `src/lib/seo.ts`;
+// pointer lama ke `src/routes/index.tsx` sudah tak berlaku sejak halaman
+// coming-soon dihapus).
 const comingSoon: boolean = SITE.comingSoon
 
 // Dievaluasi sekali saat modul dimuat — sama di server & klien untuk umur proses,
@@ -27,12 +30,10 @@ const CURRENT_YEAR = new Date().getFullYear()
 export function SiteFooter() {
   return (
     <footer className="border-border bg-surface-2 mt-16 border-t">
-      {/* Mode coming-soon (simetris dengan `site-header.tsx`, ~baris 77): peta
-          situs disembunyikan — menautkan ke /tentang, /warta, dst. berarti
-          mengiklankan halaman yang belum diluncurkan, persis yang dicegah
-          `SITE.comingSoon`. Selagi coming-soon, footer merender persis seperti
-          sebelumnya (brand, alamat, sosial, bahasa). Rencana 2b menyetel
-          `SITE.comingSoon = false` dan peta situs muncul. */}
+      {/* Cabang coming-soon (simetris dengan `site-header.tsx`): peta situs
+          disembunyikan — menautkan ke /tentang, /warta, dst. berarti
+          mengiklankan halaman yang belum diluncurkan. Rencana 2b SUDAH menyetel
+          `SITE.comingSoon = false`, jadi peta situs tampil. */}
       {!comingSoon && <SiteMapFooter />}
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">

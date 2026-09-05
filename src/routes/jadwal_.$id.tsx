@@ -145,8 +145,13 @@ function JadwalDetail() {
 
           {/* Lokasi: baris tebal polos tanpa label, pola sama dengan <ServiceCard>. */}
           <p className="text-ink mt-6 font-medium">{location}</p>
-          {service.locationType === 'rumah' && service.hostAddress && (
-            <p className="text-muted text-sm">{service.hostAddress}</p>
+          {/* Alamat disalurkan lewat `loc`, BUKAN dibaca langsung dari field —
+              `loc.kind === 'home'` sudah menjamin ada tuan rumah. Membaca
+              `service.hostAddress` langsung membuat baris `rumah` tanpa
+              `hostFamilyName` tapi beralamat menampilkan "Lokasi menyusul" di
+              atas alamat yang tercetak persis di bawahnya. */}
+          {loc.kind === 'home' && loc.hostAddress && (
+            <p className="text-muted text-sm">{loc.hostAddress}</p>
           )}
           {service.locationNote && <p className="text-muted text-sm">{service.locationNote}</p>}
 

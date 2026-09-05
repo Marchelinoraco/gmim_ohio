@@ -94,6 +94,26 @@ const MONTH_ID = [
   'Desember',
 ] as const
 
+/** Singkatan nama hari (id), Minggu → Sabtu — sejajar indeks `Date.getUTCDay()`. */
+const DOW_SHORT_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'] as const
+
+/**
+ * Tujuh singkatan nama hari, Minggu → Sabtu, sesuai `locale` — untuk baris
+ * header grid kalender (`<MonthCalendar>`). Indeks array = `Date.getUTCDay()`,
+ * jadi bisa dipetakan langsung ke kolom grid yang juga dimulai hari Minggu.
+ *
+ * Ada DI SINI, bukan sebagai array literal di komponen: modul ini pemilik semua
+ * logika tanggal, dan hanya di sini nama hari `en` bisa diturunkan lewat `Intl`
+ * (bukan diketik ulang) dengan `timeZone: 'UTC'` yang membuatnya deterministik
+ * lintas mesin — pola sama dengan `formatDateLong`. `1970-01-04` adalah hari
+ * Minggu, jadi `+ i` menyapu satu minggu penuh mulai Minggu.
+ */
+export function weekdayNamesShort(locale: 'id' | 'en'): string[] {
+  if (locale === 'id') return [...DOW_SHORT_ID]
+  const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', timeZone: 'UTC' })
+  return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(Date.UTC(1970, 0, 4 + i))))
+}
+
 /**
  * Gabung `YYYY-MM-DD` + `HH:mm[:ss]` sebagai wall-clock Eastern → `Date`
  * (instant UTC yang benar, memperhitungkan DST: EDT = UTC-4, EST = UTC-5).

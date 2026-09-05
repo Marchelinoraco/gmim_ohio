@@ -6,6 +6,7 @@ import { getLocale, localizeHref } from '@/paraglide/runtime'
 import { Button } from '@/components/ui/button'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
+import { ErrorPage } from '@/components/site/error-page'
 import { THEME_INIT_SCRIPT } from '@/lib/theme'
 import { churchJsonLd } from '@/lib/seo'
 
@@ -24,6 +25,10 @@ export const Route = createRootRoute({
     ],
   }),
   notFoundComponent: NotFound,
+  // Menangkap error yang dilempar ROOT route saja. Route anak ditangani
+  // `defaultErrorComponent` di `src/router.tsx` — komponen yang sama; lihat
+  // docblock `<ErrorPage>` soal kenapa satu titik pasang tidak cukup.
+  errorComponent: ErrorPage,
   component: RootComponent,
 })
 

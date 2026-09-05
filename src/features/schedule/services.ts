@@ -6,11 +6,12 @@ import type { kolom, worshipCategories, worshipServices } from '@/db/schema'
  *
  * `listUpcomingServices` mengembalikan baris `worship_services` TERBIT yang jatuh
  * pada hari ini (Eastern) atau setelahnya, lengkap dengan kategori (nama/warna/
- * key/slug) dan kolom bila ada. Dipakai section "Ibadah Minggu Ini" di Beranda.
+ * key/slug) dan kolom bila ada, dibatasi `limit` (default 6).
  *
  * `listServices` adalah versi berfilter (kategori/kolom/rentang tanggal) untuk
- * `/jadwal` dan `/pelayanan/*`. `getService` mengambil satu ibadah terbit
- * berdasarkan id untuk halaman detail.
+ * `/jadwal`, `/pelayanan/*`, `sitemap.xml`, section "Ibadah Minggu Ini" di
+ * Beranda (jendela 7 hari), dan `/ibadah-live` (kategori `ibadah-jemaat`).
+ * `getService` mengambil satu ibadah terbit berdasarkan id untuk halaman detail.
  *
  * `@/db` di-import lazy DI DALAM handler supaya modul route yang memuat server fn
  * ini tidak ikut meng-evaluasi `@/lib/env` saat bundling. Query relasional
@@ -18,8 +19,11 @@ import type { kolom, worshipCategories, worshipServices } from '@/db/schema'
  * `drizzle-orm` tak perlu di-import terpisah — pola sama dengan
  * `@/features/content/gallery`. Semua query difilter `status = 'published'`.
  *
- * Tabel `worship_services` masih KOSONG sampai Rencana 2b mengisinya — hari ini
- * fn-fn ini mengembalikan `[]`/`null` dan section Beranda menyembunyikan dirinya.
+ * `worship_services` diisi `src/db/seed/schedule.ts` (8 minggu ke depan, relatif
+ * tanggal `pnpm db:seed` dijalankan). Kalau jendela seed itu habis dan belum
+ * diperpanjang, fn-fn ini mengembalikan `[]`/`null` lagi TANPA error dan section
+ * Beranda menyembunyikan dirinya — lihat "Jendela kedaluwarsa data jadwal" di
+ * `docs/dev/rencana-2b-handoff.md`.
  */
 
 /**

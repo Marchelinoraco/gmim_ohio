@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { getLocale } from '@/paraglide/runtime'
 import { getSiteSettings } from '@/features/content/site-settings'
-import { listUpcomingServices } from '@/features/schedule/services'
+import { listServices } from '@/features/schedule/services'
 import { formatServiceDateTime } from '@/lib/datetime'
 import { pageMeta } from '@/lib/seo'
 import { liveEmbedSrc } from '@/lib/video'
@@ -21,12 +21,26 @@ import { Section } from '@/components/site/section'
  * `isLive` true TAPI `liveEmbedSrc` mengembalikan `null` (host tak dikenal) juga
  * jatuh ke cabang offline — fallback aman yang disengaja: domain gereja tidak
  * meng-`<iframe>` origin sembarangan. Data dari `site_settings` lewat loader
- * `getSiteSettings`, digabung dengan ibadah terbit berikutnya (`listUpcomingServices`,
- * limit 1) untuk cabang offline. `<PageHero>` menyuplai satu-satunya `<h1>`.
+ * `getSiteSettings`. `<PageHero>` menyuplai satu-satunya `<h1>`.
+ *
+ * Cabang offline menampilkan ibadah berikutnya yang BENAR-BENAR DISIARKAN, yaitu
+ * kategori `ibadah-jemaat` saja (`listServices({ categorySlug })`, ambil elemen
+ * pertama — `listServices` sudah default `from = todayEastern()` ke depan dan
+ * urut tanggal+jam). Sebelumnya halaman ini memakai "ibadah berikutnya" TANPA
+ * filter, sehingga Ibadah Kolom Rabu malam di rumah anggota — yang tidak pernah
+ * disiarkan — bisa tampil di halaman siaran langsung dan membuat pengunjung
+ * menyimpulkan ada siaran Rabu malam.
+ *
+ * Baris jadwal itu dan catatan statis `live_next_note` ("siaran dimulai
+ * menjelang ibadah Minggu") dirender BERDAMPINGAN, bukan saling menggantikan:
+ * pada versi lama catatan itu hanya muncul saat tak ada ibadah sama sekali,
+ * sehingga informasi paling berguna di halaman ini justru hilang begitu jadwal
+ * terisi.
  */
 
 export const Route = createFileRoute('/ibadah-live')({
-  loader: () => Promise.all([getSiteSettings(), listUpcomingServices({ data: 1 })]),
+  loader: () =>
+    Promise.all([getSiteSettings(), listServices({ data: { categorySlug: 'ibadah-jemaat' } })]),
   head: () =>
     pageMeta({
       path: '/ibadah-live',
@@ -81,19 +95,20 @@ function IbadahLive() {
                   </a>
                 </Button>
               ) : null}
-              <p className="text-muted">
-                {nextService
-                  ? m.live_next_service({
+              <div className="text-muted space-y-1">
+                {nextService && (
+                  <p>
+                    {m.live_next_service({
                       when: formatServiceDateTime(
                         nextService.serviceDate,
                         nextService.startTime,
                         locale,
                       ),
-                      category:
-                        locale === 'id' ? nextService.category.nameId : nextService.category.nameEn,
-                    })
-                  : m.live_next_note()}
-              </p>
+                    })}
+                  </p>
+                )}
+                <p>{m.live_next_note()}</p>
+              </div>
             </div>
           )}
         </Section>

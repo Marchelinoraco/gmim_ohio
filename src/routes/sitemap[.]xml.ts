@@ -39,30 +39,40 @@ function toYmd(value: Date): string {
 }
 
 /**
- * Entri `/warta/<id>`, `/renungan/<slug>`, `/galeri/<id>`, `/jadwal/<id>` untuk
- * konten terbit.
+ * Entri `/warta/<id>`, `/renungan/<slug>`, `/galeri/<id>`, `/jadwal/<id>`, dan
+ * `/pelayanan/<slug>` untuk konten terbit.
  *
  * Memakai server fn fitur yang sudah ada (`listBulletins` / `listDevotionals` /
- * `listGalleryAlbums` / `listServices`) alih-alih query langsung: keempatnya
- * sudah mengunci filter `status = 'published'` dan disiplin `await
- * import('@/db')` lazy yang dipakai seluruh repo, dan sudah punya cakupan test
- * sendiri. `listServices({ data: {} })` tanpa filter = seluruh ibadah terbit
- * dari hari ini (Eastern) ke depan. Dipanggil dari server route handler =
- * eksekusi handler langsung (bukan HTTP round-trip). `lastmod` = `updatedAt`
- * baris (kapan konten halaman terakhir berubah — yang paling bermakna untuk
- * crawler).
+ * `listGalleryAlbums` / `listServices` / `listCategories`) alih-alih query
+ * langsung: semuanya sudah mengunci filter `status = 'published'` di mana
+ * relevan dan disiplin `await import('@/db')` lazy yang dipakai seluruh repo,
+ * dan sudah punya cakupan test sendiri. `listServices({ data: {} })` tanpa
+ * filter = seluruh ibadah terbit dari hari ini (Eastern) ke depan. Dipanggil
+ * dari server route handler = eksekusi handler langsung (bukan HTTP
+ * round-trip). `lastmod` = `updatedAt` baris (kapan konten halaman terakhir
+ * berubah — yang paling bermakna untuk crawler).
+ *
+ * Enam halaman kategori Pelayanan diturunkan dari `listCategories()` (6 baris
+ * di-seed, slug-nya stabil): kategori ber-`key === 'kolom'` dipetakan ke
+ * `/pelayanan/kolom` (route-nya memang terpisah, lihat `pelayanan.tsx`), sisanya
+ * ke `/pelayanan/<slug>`. Sebelumnya sitemap memuat 72 URL `/jadwal/<uuid>` yang
+ * tipis & fana tapi TIDAK satu pun halaman kategori yang stabil & kaya konten —
+ * asimetri SEO yang tak disengaja. Indeks `/pelayanan` sendiri sudah ada di
+ * `STATIC_PATHS`, dan tak ada kategori ber-slug kosong, jadi tak ada duplikat.
  */
 async function listPublishedEntries(): Promise<SitemapEntry[]> {
   const { listBulletins } = await import('@/features/content/bulletins')
   const { listDevotionals } = await import('@/features/content/devotionals')
   const { listGalleryAlbums } = await import('@/features/content/gallery')
   const { listServices } = await import('@/features/schedule/services')
+  const { listCategories } = await import('@/features/schedule/taxonomy')
 
-  const [bulletins, devotionals, albums, services] = await Promise.all([
+  const [bulletins, devotionals, albums, services, categories] = await Promise.all([
     listBulletins(),
     listDevotionals(),
     listGalleryAlbums(),
     listServices({ data: {} }),
+    listCategories(),
   ])
 
   return [
@@ -70,6 +80,10 @@ async function listPublishedEntries(): Promise<SitemapEntry[]> {
     ...devotionals.map((d) => ({ path: `/renungan/${d.slug}`, lastmod: toYmd(d.updatedAt) })),
     ...albums.map((a) => ({ path: `/galeri/${a.id}`, lastmod: toYmd(a.updatedAt) })),
     ...services.map((s) => ({ path: `/jadwal/${s.id}`, lastmod: toYmd(s.updatedAt) })),
+    ...categories.map((c) => ({
+      path: c.key === 'kolom' ? '/pelayanan/kolom' : `/pelayanan/${c.slug}`,
+      lastmod: toYmd(c.updatedAt),
+    })),
   ]
 }
 

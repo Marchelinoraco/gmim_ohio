@@ -10,6 +10,7 @@ import {
   addDays,
   lastDayOfMonth,
   easternOffset,
+  weekdayNamesShort,
 } from '@/lib/datetime'
 
 describe('toInstant', () => {
@@ -121,5 +122,26 @@ describe('addDays', () => {
   })
   it('menyeberang pergantian tahun', () => {
     expect(addDays('2026-12-30', 3)).toBe('2027-01-02')
+  })
+})
+
+describe('weekdayNamesShort', () => {
+  it('id: tujuh singkatan mulai Minggu', () => {
+    expect(weekdayNamesShort('id')).toEqual(['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'])
+  })
+  it('en: tujuh singkatan mulai Sunday', () => {
+    expect(weekdayNamesShort('en')).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+  })
+  it('indeksnya sejajar getUTCDay() (kolom 0 = Minggu)', () => {
+    // Grid kalender memetakan kolom ke-i ke tanggal ber-`getUTCDay() === i`,
+    // jadi header hanya sejajar bila urutan array-nya sama.
+    const names = weekdayNamesShort('en')
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(Date.UTC(2026, 8, 6 + i)) // 2026-09-06 = Minggu
+      expect(date.getUTCDay()).toBe(i)
+      expect(names[i]).toBe(
+        new Intl.DateTimeFormat('en-GB', { weekday: 'short', timeZone: 'UTC' }).format(date),
+      )
+    }
   })
 })

@@ -17,7 +17,13 @@ import { ServiceCard } from '@/components/schedule/service-card'
 /**
  * `<Beranda>` — komponen halaman depan penuh. Props-driven: `src/routes/index.tsx`
  * memberinya data dari `getSiteSettings()` + `listBulletins()` +
- * `listUpcomingServices()`.
+ * `listServices({ from: hari ini, to: +6 hari })`.
+ *
+ * `services` = JENDELA 7 HARI Eastern, bukan "N ibadah berikutnya": dengan limit
+ * buta, empat ibadah Kolom pada satu tanggal bisa mendorong Ibadah Jemaat hari
+ * Minggu keluar dari daftar (alasan lengkap di docblock `src/routes/index.tsx`).
+ * Jumlah kartu karena itu BERVARIASI menurut hari — dari Senin bisa 9, dari Sabtu
+ * bisa 3 — dan section ini merender semuanya apa adanya tanpa memotong.
  *
  * Section: Hero (video/scrim, teks dari `hero.*` settings) → strip jam ibadah →
  * "Ibadah Minggu Ini" (kartu `<ServiceCard>` bersama, data nyata sejak Rencana 2b;

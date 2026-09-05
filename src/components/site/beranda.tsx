@@ -16,8 +16,8 @@ import { ServiceCard } from '@/components/schedule/service-card'
 
 /**
  * `<Beranda>` — komponen halaman depan penuh. Props-driven: `src/routes/index.tsx`
- * (saat `!SITE.comingSoon`) DAN `src/routes/_dev.beranda.tsx` sama-sama memberinya
- * data dari `getSiteSettings()` + `listBulletins()` + `listUpcomingServices()`.
+ * memberinya data dari `getSiteSettings()` + `listBulletins()` +
+ * `listUpcomingServices()`.
  *
  * Section: Hero (video/scrim, teks dari `hero.*` settings) → strip jam ibadah →
  * "Ibadah Minggu Ini" (kartu `<ServiceCard>` bersama, data nyata sejak Rencana 2b;
@@ -25,7 +25,7 @@ import { ServiceCard } from '@/components/schedule/service-card'
  * "Warta Terbaru" (3 terbaru; disembunyikan bila kosong).
  *
  * Teks & tombol hero berada di atas scrim gelap paksa — pengecualian warna yang
- * sama & terdokumentasi seperti halaman coming-soon.
+ * disengaja untuk keterbacaan di atas video/gambar hero.
  */
 
 type BerandaProps = {

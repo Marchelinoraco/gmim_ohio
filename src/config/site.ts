@@ -3,19 +3,15 @@
  *
  * `comingSoon` — saat `true`, `/` merender halaman "segera hadir" dan
  * `SiteHeader` menyembunyikan 7 nav + CTA + hamburger (route-nya belum ada).
- * Rencana 2 menyetel `false` begitu route asli (`/tentang`, `/jadwal`, dst.)
- * tersedia.
+ * Rencana 2b menyetelnya `false`: situs publik penuh sudah diluncurkan.
+ * Flag ini TETAP ada sebagai kill-switch kalau situs perlu "coming soon"
+ * lagi di masa depan — bukan kode mati yang harus dihapus.
  *
  * Data di sini adalah placeholder yang bisa diedit tanpa sentuh komponen; di
  * Rencana 2 sebagian pindah ke tabel Site Settings.
  */
 export const SITE = {
-  // TODO(2b): setel `false` untuk meluncurkan situs publik. Titik masuk 2b =
-  // `grep -rn "TODO(2b)" src/ tests/` — SEMUA yang harus berubah bersama flag
-  // ini ada di sana (nav header, peta situs footer, switch `/`, sitemap.xml,
-  // robots noindex di `seo.ts`, hapus `_dev.beranda.tsx`, e2e `PUBLIC_PATHS`).
-  // Route `/pelayanan` + `/jadwal` HARUS ada sebelum flag dibalik.
-  comingSoon: true,
+  comingSoon: false,
   name: 'GMIM Musafir Columbus Ohio',
   // Base URL produksi (tanpa trailing slash) — sumber tunggal untuk URL absolut
   // di OG tags, canonical, dan hreflang. Jangan sebar literal domain di tempat lain.

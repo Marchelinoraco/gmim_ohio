@@ -53,16 +53,6 @@ export const SCHEDULE_TEMPLATES = [
   },
 ] as const
 
-/** Nama keluarga placeholder (Minahasa) — dipakai berputar untuk `hostFamilyName`. */
-const HOST_FAMILIES = [
-  'Kel. Mamahit',
-  'Kel. Rorimpandey',
-  'Kel. Tumbelaka',
-  'Kel. Wowor',
-  'Kel. Sondakh',
-  'Kel. Lumintang',
-] as const
-
 /** Tema ibadah placeholder (id/en berpasangan) — berputar per ibadah yang dibuat. */
 const THEMES = [
   { id: 'Hidup dalam Syukur', en: 'Living in Gratitude' },
@@ -101,9 +91,9 @@ interface TemplateRow {
 /**
  * Susun satu baris `worship_services` untuk template+tanggal (+kolom bila
  * kategori `kolom`). `seq` = penghitung global lintas semua ibadah yang
- * dibuat pada run ini, dipakai untuk memutar tema/bacaan/tuan rumah secara
- * deterministik (`seq % daftar.length`) — bukan acak, supaya hasil seed bisa
- * diverifikasi ulang.
+ * dibuat pada run ini, dipakai untuk memutar tema/bacaan secara deterministik
+ * (`seq % daftar.length`) — bukan acak, supaya hasil seed bisa diverifikasi
+ * ulang.
  *
  * `preacherName`/`liturgistName` SENGAJA selalu NULL — siapa yang berkhotbah
  * atau melayani liturgi adalah data riil, bukan sesuatu yang boleh dikarang
@@ -111,6 +101,21 @@ interface TemplateRow {
  * di `/tentang`" dan rekening `XXXX-XXXX-XXXX`: placeholder yang realistis
  * justru lebih berbahaya daripada yang jelas-jelas kosong). Halaman jadwal
  * (Task 4) merender "Akan diumumkan"/"To be announced" untuk field NULL ini.
+ *
+ * INVARIAN: baris `rumah` hasil seed SELALU tanpa `hostFamilyName` DAN tanpa
+ * `hostAddress` (keduanya NULL) — kebalikan dari invarian lama, yang memutar
+ * enam marga Minahasa "realistis" sebagai tuan rumah. Alasannya paralel dengan
+ * pelayan/pemimpin ibadah di atas, dan bahkan lebih kuat: jemaat ini kecil dan
+ * marga Minahasa tidak banyak, jadi nama karangan besar kemungkinan menabrak
+ * keluarga sungguhan — dan situs live lalu mengumumkan ibadah diadakan di rumah
+ * mereka, termasuk sebagai `Place.name` pada JSON-LD `Event` yang di-crawl lewat
+ * `sitemap.xml`. Alamat rumah anggota apalagi: itu data pribadi.
+ *
+ * Konsekuensi tampilan sudah ditangani dan TIDAK butuh cabang baru:
+ * `resolveServiceLocation` (`@/components/schedule/service-location`) memetakan
+ * `rumah` tanpa tuan rumah → `{ kind: 'unknown' }` → `m.home_location_tba()`
+ * ("Lokasi menyusul"), dan JSON-LD `Event` melewatkan `location` sama sekali.
+ * Pengurus mengisi tuan rumah sungguhan lewat dashboard (Rencana 3).
  *
  * `templateId` SENGAJA tidak diisi (selalu NULL) — lihat catatan di
  * `seedSchedule()` soal index unik `ws_template_date_uq`.
@@ -131,8 +136,6 @@ function buildService({
   const theme = THEMES[seq % THEMES.length]
   const reading = BIBLE_READINGS[seq % BIBLE_READINGS.length]
   const locationType = tpl.defaultLocationType
-  const hostFamilyName =
-    locationType === 'rumah' ? (HOST_FAMILIES[seq % HOST_FAMILIES.length] ?? null) : null
 
   return {
     categoryId: cat.id,
@@ -142,7 +145,8 @@ function buildService({
     startTime: tpl.startTime,
     endTime: tpl.endTime,
     locationType,
-    hostFamilyName,
+    // Lihat INVARIAN di docblock: tuan rumah & alamatnya tak pernah dikarang.
+    hostFamilyName: null,
     hostAddress: null,
     locationNote: kolomRow ? `Digilir di ${kolomRow.name}` : null,
     themeId: theme?.id ?? null,

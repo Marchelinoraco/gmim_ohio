@@ -172,7 +172,10 @@ describe('SCHEDULE_TEMPLATES', () => {
     }
   })
 
-  it('kategori kolom memakai lokasi rumah (tuan rumah wajib diisi generator)', () => {
+  // Tuan rumah SENGAJA tak pernah diisi generator (lihat INVARIAN di
+  // `buildService`, `src/db/seed/schedule.ts`) — yang diuji di sini hanya
+  // bahwa kolom memang ibadah rumah, bukan di gedung gereja.
+  it('kategori kolom memakai lokasi rumah', () => {
     const kolomTpl = SCHEDULE_TEMPLATES.find((t) => t.categoryKey === 'kolom')
     expect(kolomTpl?.defaultLocationType).toBe('rumah')
   })

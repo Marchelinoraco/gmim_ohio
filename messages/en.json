@@ -19,21 +19,15 @@
   "notfound_title": "Page not found",
   "notfound_body": "Sorry, the page you are looking for does not exist or has moved.",
   "notfound_home": "Back to home",
+  "error_title": "This page could not be loaded",
+  "error_body": "Sorry, this page cannot be shown right now. Please reload in a moment.",
+  "error_home": "Back to home",
   "lang_id": "Indonesia",
   "lang_en": "English",
   "theme_toggle_label": "Toggle theme",
   "theme_light": "Light",
   "theme_dark": "Dark",
   "theme_system": "System",
-  "coming_soon_status": "Coming Soon",
-  "coming_soon_tagline": "Growing together in the love of Christ.",
-  "coming_soon_body": "The congregation's official website is under construction. Coming soon.",
-  "coming_soon_facebook": "Follow us on Facebook",
-  "coming_soon_maps": "View map",
-  "coming_soon_play": "Play video",
-  "coming_soon_pause": "Pause video",
-  "coming_soon_sound_on": "Unmute",
-  "coming_soon_sound_off": "Mute",
   "about_title": "About Us",
   "about_subtitle": "GMIM Musafir Columbus Ohio is a diaspora congregation of the Evangelical Christian Church in Minahasa (GMIM), serving Minahasan-Indonesian families in the Columbus, Ohio area.",
   "about_history_title": "A Brief History",
@@ -103,7 +97,7 @@
   "live_offline": "There is no live stream right now.",
   "live_watch_archive": "Watch a past service",
   "live_next_note": "The live stream starts shortly before Sunday worship. See the worship schedule for the full times.",
-  "live_next_service": "Next service: {when} — {category}",
+  "live_next_service": "Next congregational service: {when}.",
   "home_services_this_week": "This Week's Services",
   "home_about_blurb": "GMIM Musafir Columbus Ohio is a diaspora congregation of the Evangelical Christian Church in Minahasa (GMIM) for Minahasan-Indonesian families in the Columbus, Ohio area — a place to worship, grow in faith, and support one another far from home.",
   "home_about_cta": "More about us",
@@ -127,7 +121,22 @@
   "jadwal_filter_kolom": "Kolom",
   "jadwal_calendar_prev_month": "Previous month",
   "jadwal_calendar_next_month": "Next month",
-  "jadwal_calendar_day_label": "{date}, {count} services",
+  "jadwal_calendar_day_label": [
+    {
+      "declarations": [
+        "input date",
+        "input count",
+        "local countPlural = count: plural"
+      ],
+      "selectors": [
+        "countPlural"
+      ],
+      "match": {
+        "countPlural=one": "{date}, {count} service",
+        "countPlural=*": "{date}, {count} services"
+      }
+    }
+  ],
   "jadwal_title": "Worship Schedule",
   "jadwal_subtitle": "The congregational, category, and kolom worship schedule of GMIM Musafir Columbus Ohio, with themes and Bible readings.",
   "jadwal_empty": "No services scheduled yet.",
@@ -136,12 +145,12 @@
   "jadwal_back": "Back to the schedule",
   "jadwal_share_wa": "Share on WhatsApp",
   "pelayanan_title": "Ministries",
-  "pelayanan_subtitle": "The six category ministries of GMIM Musafir Columbus Ohio: congregational worship at the church building, plus the Men's, Women's, Youth & Teens, Sunday School, and Kolom fellowships, which hold services in rotation at members' homes.",
+  "pelayanan_subtitle": "The six category ministries of GMIM Musafir Columbus Ohio: congregational worship and Sunday School at the church building, plus the Men's, Women's, Youth & Teens, and Kolom fellowships, which hold services in rotation at members' homes.",
   "pelayanan_desc_ibadah_jemaat": "The Sunday service for the whole congregation, held at the church building — where we come together to hear the Word, pray, and celebrate the sacraments as one body in Christ.",
   "pelayanan_desc_kaum_bapa": "A fellowship for the congregation's fathers and men, strengthening one another in faith and in their calling as heads of the family, with services that rotate from home to home.",
   "pelayanan_desc_kaum_ibu": "A fellowship for the congregation's mothers and women, growing together in faith and supporting one another as wives and mothers, with services that move from one member's home to the next.",
   "pelayanan_desc_pemuda_remaja": "Faith formation for the congregation's teens and young people, helping them know Christ more and preparing them to serve, with services hosted in turn at members' homes.",
-  "pelayanan_desc_sekolah_minggu": "Faith teaching for the congregation's children from an early age through stories and songs suited to them, with services held in turn at members' homes.",
+  "pelayanan_desc_sekolah_minggu": "Faith teaching for the congregation's children from an early age through stories and songs suited to them, with services held at the church building alongside congregational worship.",
   "pelayanan_desc_kolom": "Household worship organized by the neighborhood zone where members live — a closer, more intimate space for fellowship and prayer, rotating from home to home within the same kolom.",
   "pelayanan_schedule_title": "Schedule",
   "pelayanan_coordinator": "Coordinator Contact",

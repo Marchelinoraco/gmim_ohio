@@ -3,6 +3,8 @@
 **Tanggal:** 2026-08-30
 **Status:** semua task (1–14) selesai, di-review, di-merge ke `master`, `gmimmusafir.org` live sebagai coming-soon.
 
+> ⚠️ **BASI sejak Rencana 2b.** Situs sudah **diluncurkan** (`SITE.comingSoon = false`) — baris status di atas dan item 4 di RUNBOOK bawah tidak berlaku lagi. Status peluncuran terkini, semantik `SITE.comingSoon` yang sebenarnya, jendela kedaluwarsa data jadwal, inventaris konten placeholder yang kini terindeks, dan pertanyaan terbuka soal jalur data produksi ada di **`docs/dev/rencana-2b-handoff.md`**. Sisa dokumen ini (utang teknis, catatan auth/Neon/Vercel) masih berlaku.
+
 ## Apa yang sudah jadi
 
 | Area | Status |
@@ -34,7 +36,7 @@ Jalankan **berurutan**:
    - `pnpm db:migrate` → `pnpm db:seed` → `pnpm seed:admin` (pakai `SEED_ADMIN_PASSWORD` yang KUAT & baru di `.env`)
    - `neon checkout dev` untuk balik ke branch dev (dev lokal)
 3. **Verifikasi** `POST https://gmimmusafir.org/api/auth/sign-in/email` → 200 dengan kredensial admin, SEBELUM membuat halaman login.
-4. `SITE.comingSoon` (`src/config/site.ts`) → set `false` saat halaman publik Rencana 2 siap (mengaktifkan nav 7-menu).
+4. ~~`SITE.comingSoon` (`src/config/site.ts`) → set `false` saat halaman publik Rencana 2 siap (mengaktifkan nav 7-menu).~~ **SELESAI di Rencana 2b.** Flag sudah `false`; ia juga bukan lagi kill-switch situs — lihat `docs/dev/rencana-2b-handoff.md` §2 sebelum menyentuhnya.
 
 ## Utang teknis / catatan untuk Rencana 2–3
 

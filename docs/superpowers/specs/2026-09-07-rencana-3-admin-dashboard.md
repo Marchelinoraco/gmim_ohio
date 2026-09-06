@@ -63,6 +63,7 @@ Diambil bersama pemilik proyek sebelum implementasi:
 | Editor warta/renungan | Rich text sederhana, sanitasi di server |
 | Urutan | Fondasi → **jadwal** (menutup tenggat 29 Oktober) → konten → galeri → master data |
 | Upload berkas | **Vercel Blob** — keputusan lama Rencana 1; `BLOB_READ_WRITE_TOKEN` sudah ada di `.env`, batasan "hanya free tier" tercatat di plan |
+| Bentuk antarmuka | Pola `shadcnuikit.com/dashboard/file-manager` — shell sidebar + topbar, kartu ringkasan, tabel beraksi. Polanya saja, bukan kodenya |
 | Pemicu generator | **Tombol + pratinjau**, bukan cron |
 | Form library | **Tidak menambah** — `useState` + Zod, pola `contact-form.tsx` |
 
@@ -96,9 +97,50 @@ Gerbang ada di **server fn**, bukan hanya di route. Route yang dijaga tidak meng
 
 Validasi Zod juga menutup satu lubang yang sudah dicatat: `datetime.ts` `parseDate` menerima tanggal mustahil seperti `2026-02-30`. Lapisan Zod menolaknya sebelum sampai helper.
 
-### Komponen UI
+### Bentuk antarmuka
 
-Dibangun di atas `radix-ui` yang sudah jadi dependency, mengikuti pola `button.tsx`: `input`, `textarea`, `select`, `dialog`, `table`, `toast`. Tetap prettier-ignored seperti isi `src/components/ui/**` yang lain.
+Referensi yang diberikan pemilik proyek: **`shadcnuikit.com/dashboard/file-manager`** — diambil **polanya**, bukan kodenya (itu template pihak ketiga; tak ada satu baris pun disalin).
+
+Yang diadopsi:
+
+- **Shell dua panel** — sidebar kiri persisten berisi navigasi per domain (Jadwal, Warta, Renungan, Galeri, Master Data, Pesan), plus topbar berisi identitas pengguna dan tombol keluar. Sidebar menyusut jadi drawer di layar sempit.
+- **Kartu ringkasan** di beranda admin — jumlah per domain, berapa yang masih draft, dan "jadwal terisi sampai <tanggal>".
+- **Tabel padat dengan aksi kontekstual** per baris (ubah, terbitkan, hapus) sebagai bentuk utama tiap daftar.
+- **Nuansa netral** — cocok dengan palet yang ada, terutama sejak dark mode dilepas dari ungu.
+
+Yang **tidak** diadopsi: bagan/statistik dekoratif dari referensi. Dashboard ini alat kerja pengurus, bukan panel analitik; angka yang tidak menuntun ke tindakan hanya menambah beban baca.
+
+### Sistem komponen
+
+`components.json` sudah menyatakan shadcn/ui (style `new-york`, ikon `lucide`), dan `button.tsx` mengikuti polanya. Tapi dua hal membuat `npx shadcn add <komponen>` **tidak bisa langsung dipakai** hari ini:
+
+**1. Token shadcn tidak ada.** `app.css` mendefinisikan `--color-primary`, `--color-surface`, `--color-ink`, `--color-muted`, `--color-border` — dan tak satu pun dari `--background`, `--foreground`, `--card`, `--popover`, `--destructive`, `--input`, `--ring` yang diasumsikan setiap komponen shadcn. Komponen yang ditarik CLI akan tampil tanpa warna. `button.tsx` menghindarinya dengan adaptasi manual, tapi mengulang itu untuk enam komponen berikutnya melelahkan dan mudah melenceng.
+
+Solusinya **lapisan alias** di `@theme inline`: nama shadcn dipetakan ke token GMIM yang sudah ada.
+
+```
+--color-background      → var(--color-surface)
+--color-foreground      → var(--color-ink)
+--color-card            → var(--color-surface)
+--color-muted-foreground→ var(--color-muted)
+--color-input           → var(--color-border)
+--color-ring            → var(--color-secondary)
+```
+
+Sekali dipasang, komponen shadcn berikutnya bisa ditarik CLI dan langsung benar warnanya di kedua tema — tanpa menduplikasi satu nilai warna pun, karena alias menunjuk ke token yang sama.
+
+**2. `destructive` belum ada di palet.** Admin butuh aksi hapus, dan tak ada warna untuk itu. Ditambahkan sebagai token baru di kedua tema, rasio dihitung bukan diperkirakan:
+
+| Token | Nilai | Kontras |
+|---|---|---|
+| `--color-destructive` (light) | `#b91c1c` | putih di atasnya 6.47:1 |
+| `--dark-destructive` | `#f87171` | 6.45:1 di `--dark-surface` |
+
+Versi dark sengaja lebih jenuh daripada `--dark-cat-jemaat` (`#fca5a5`, 9.40:1) supaya tombol hapus tidak terbaca seperti badge kategori. Keduanya masuk `tests/unit/dark-palette.test.ts` seperti token lain.
+
+**3. Ikon.** `components.json` menyebut lucide tapi paketnya tak pernah dipasang; tujuh ikon yang ada ditulis tangan sebagai SVG inline. Dashboard ini butuh puluhan, jadi `lucide-react` ditambahkan sebagai dependency. Ikon yang sudah ada dibiarkan — menggantinya tak memberi apa pun dan menyentuh komponen publik yang sudah stabil.
+
+Komponen yang ditarik: `input`, `textarea`, `label`, `select`, `dialog`, `table`, `dropdown-menu`, `sonner` (toast). Tetap prettier-ignored seperti isi `src/components/ui/**` yang lain.
 
 Form memakai `useState` + Zod seperti `contact-form.tsx` — tidak menambah form library. Bentuk formnya lurus, dan polanya sudah terbukti di repo.
 
@@ -122,11 +164,13 @@ Memblokir sisanya.
 
 ### Fase 1 — fondasi admin
 
+- **Lapisan alias token** + token `destructive` di kedua tema, masuk `dark-palette.test.ts`. Ini lebih dulu dari komponen mana pun — tanpa alias, tiap komponen shadcn yang ditarik harus diadaptasi tangan.
+- `lucide-react` sebagai dependency.
+- Komponen UI: `input`, `textarea`, `label`, `select`, `dialog`, `table`, `dropdown-menu`, `sonner`.
 - `/admin/login` — form masuk, memakai better-auth yang sudah jalan.
-- Layout `/admin` + gerbang `ensureAdmin()` di `beforeLoad`, dan `ensureAdmin` jadi lazy import.
-- Komponen UI baru.
+- **Shell admin**: layout sidebar + topbar, gerbang `ensureAdmin()` di `beforeLoad`, dan `ensureAdmin` jadi lazy import.
 - `rateLimit.storage: 'database'` — default in-memory tak berarti apa-apa di Vercel, tempat tiap lambda punya memorinya sendiri. Ini baru penting begitu form login sungguhan live.
-- Beranda admin: ringkasan isi + **"jadwal terisi sampai <tanggal>"**, supaya tenggat seperti temuan 2 tidak pernah lagi datang tanpa peringatan.
+- Beranda admin: kartu ringkasan per domain + **"jadwal terisi sampai <tanggal>"**, supaya tenggat seperti temuan 2 tidak pernah lagi datang tanpa peringatan.
 
 ### Fase 2 — jadwal
 
@@ -172,6 +216,7 @@ Tambahan per fase:
 - **Gerbang** (e2e): `/admin/*` menolak akses tanpa sesi. Invarian keamanan yang paling mudah rusak diam-diam — satu route baru yang lupa ditempatkan di bawah layout dan gerbangnya bocor tanpa satu test pun merah.
 - **Alur** (e2e): login → buat → terbit → muncul di halaman publik → hapus.
 - **Sanitasi** (unit): HTML berbahaya dari editor tidak pernah sampai ke database.
+- **Palet**: `--color-destructive` dan `--dark-destructive` masuk `dark-palette.test.ts` — kontras di kedua tema, dan versi dark tetap bukan ungu. Alias token tidak diuji nilainya (ia menunjuk token yang sudah diuji), tapi keberadaan tiap alias yang dipakai komponen shadcn diuji, supaya komponen baru tak pernah tampil tanpa warna.
 
 ## Batasan yang diwarisi
 

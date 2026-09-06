@@ -159,7 +159,11 @@ Tiap fase berdiri sendiri: selesai, hijau, bisa di-merge.
 Memblokir sisanya.
 
 - **Migrasi `0002`**: `ws_template_date_uq` → `(templateId, serviceDate, kolomId)`. Termasuk memulihkan `templateId` pada baris yang ada, yang selama ini di-`NULL`-kan sebagai penghindaran.
-- **Pagar seed**: `pnpm db:seed` berhenti dengan pesan jelas bila database tujuan sudah memuat konten hasil editan, kecuali dijalankan dengan env eksplisit `SEED_ALLOW_NON_EMPTY=1`. Deteksinya sederhana dan tidak menebak: ada baris di tabel konten yang `updatedAt` ≠ `createdAt` (pernah disunting setelah dibuat). Handoff memperingatkan jalur "hapus-dan-seed-ulang" akan menghapus editan pengurus; begitu dashboard ada, jalur itu harus mustahil ditempuh tanpa sengaja — dan karena produksi memakai database yang sama dengan pengembangan, pagarnya harus di kode, bukan di kehati-hatian.
+- **Pagar seed**: `pnpm db:seed` berhenti dengan pesan jelas bila tabel konten **sudah berisi apa pun**, kecuali dijalankan dengan env eksplisit `SEED_ALLOW_NON_EMPTY=1`.
+
+  Deteksinya sengaja sekasar itu — kosong atau tidak — karena alternatif yang lebih pintar tidak bisa dipercaya: menandai baris "pernah disunting" lewat `updatedAt` ≠ `createdAt` bergantung pada setiap mutasi disiplin menyetel `updatedAt`, dan Drizzle tidak melakukannya sendiri. Satu mutasi yang lupa akan membuat pagar diam-diam berhenti menjaga. Pemeriksaan "kosong atau tidak" tidak punya mode gagal seperti itu.
+
+  Konsekuensinya memang seed pertama jalan bebas dan seed berikutnya selalu menuntut flag — dan itu justru yang diinginkan: begitu dashboard ada, `pnpm db:seed` tidak boleh lagi dijalankan tanpa keputusan sadar. Handoff memperingatkan jalur "hapus-dan-seed-ulang" akan menghapus editan pengurus, dan karena produksi memakai database yang sama dengan pengembangan, pagarnya harus ada di kode, bukan di kehati-hatian.
 - **Dokumentasi**: keputusan "produksi memakai Neon `dev`" ditulis eksplisit di handoff, menutup §6 yang selama ini terbuka.
 
 ### Fase 1 — fondasi admin

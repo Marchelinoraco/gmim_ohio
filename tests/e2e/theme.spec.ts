@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 
-const DARK_BG = 'rgb(22, 18, 33)' // #161221
+const DARK_BG = 'rgb(26, 23, 20)' // #1a1714 — --dark-surface (netral hangat)
 const LIGHT_BG = 'rgb(255, 255, 255)' // #ffffff
 
 const bodyBg = (page: Page) => page.evaluate(() => getComputedStyle(document.body).backgroundColor)

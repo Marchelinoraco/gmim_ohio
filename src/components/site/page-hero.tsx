@@ -18,10 +18,12 @@ export function PageHero({
   children?: ReactNode
 }) {
   return (
-    <section className="bg-surface-2 py-14 sm:py-20">
+    <section className="border-border bg-surface-2 border-b py-10 sm:py-14">
       <Container className="text-center">
         <h1 className="text-ink text-4xl text-balance sm:text-5xl">{title}</h1>
-        {subtitle ? <p className="text-muted mx-auto mt-4 max-w-2xl text-lg">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className="text-muted mx-auto mt-3 max-w-2xl text-lg text-pretty">{subtitle}</p>
+        ) : null}
         {children ? (
           <div className="mt-6 flex flex-wrap justify-center gap-3">{children}</div>
         ) : null}

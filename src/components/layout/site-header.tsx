@@ -16,8 +16,8 @@ const NAV_ITEMS = [
   { key: 'home', label: () => m.nav_home(), path: '/' },
   { key: 'about', label: () => m.nav_about(), path: '/tentang' },
   { key: 'ministries', label: () => m.nav_ministries(), path: '/pelayanan' },
-  { key: 'schedule', label: () => m.nav_schedule(), path: '/jadwal' },
-  { key: 'bulletin', label: () => m.nav_bulletin(), path: '/warta' },
+  { key: 'schedule', label: () => m.nav_schedule_short(), path: '/jadwal' },
+  { key: 'bulletin', label: () => m.nav_bulletin_short(), path: '/warta' },
   { key: 'gallery', label: () => m.nav_gallery(), path: '/galeri' },
   { key: 'visit', label: () => m.nav_visit(), path: '/kunjungi' },
 ] as const
@@ -64,10 +64,23 @@ export function SiteHeader() {
   const homeHref = localizeHref('/', { locale })
 
   const brand = (
-    <a href={homeHref} className="text-ink flex min-h-11 items-center gap-2.5">
+    <a
+      href={homeHref}
+      aria-label={m.site_name()}
+      className="text-ink hover:text-primary flex min-h-11 shrink-0 items-center gap-2.5 transition-colors duration-150"
+    >
       <Logo variant="full" size={40} />
-      <span className="font-serif text-base leading-tight font-semibold sm:text-lg">
-        {m.site_name()}
+      {/* Lockup dua baris yang DISENGAJA. Nama penuh dalam satu baris serif
+          memakan 316px dari 1120px yang tersedia dan membuat header meluap;
+          dibiarkan membungkus sendiri, ia pecah jadi empat baris acak. Memecah
+          identitas (baris atas) dari lokasi (baris bawah) menyusut ke ~165px
+          dan terbaca sebagai wordmark, bukan teks yang kepanjangan.
+          Nama penuh tetap jadi nama aksesibel lewat `aria-label` di <a>. */}
+      <span className="flex flex-col leading-none whitespace-nowrap">
+        <span className="font-serif text-base font-semibold sm:text-lg">{m.site_name_short()}</span>
+        <span className="text-muted mt-0.5 text-[0.6875rem] font-medium tracking-[0.08em] uppercase">
+          {m.site_location_short()}
+        </span>
       </span>
     </a>
   )
@@ -81,7 +94,7 @@ export function SiteHeader() {
   if (SITE.comingSoon) {
     return (
       <header className="border-border bg-surface border-b">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           {brand}
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -96,24 +109,24 @@ export function SiteHeader() {
   const giveHref = localizeHref('/persembahan', { locale })
 
   return (
-    <header className="border-border bg-surface border-b">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+    <header className="border-border bg-surface shadow-header sticky top-0 z-40 border-b">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         {brand}
 
         {/* Nav desktop — selalu di DOM, tampil sejak breakpoint lg. */}
-        <nav aria-label={m.nav_menu_label()} className="hidden items-center gap-0.5 lg:flex">
+        <nav aria-label={m.nav_menu_label()} className="hidden items-center gap-0.5 xl:flex">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.key}
               to={item.path}
-              className="text-ink hover:bg-surface-2 hover:text-primary inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium"
+              className="text-ink hover:bg-surface-2 hover:text-primary inline-flex min-h-11 items-center rounded-md px-2.5 text-sm font-medium transition-colors duration-150"
             >
               {item.label()}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-2 xl:flex">
           <Button asChild variant="outline" size="md" className="h-11">
             <a href={liveHref}>{m.cta_live()}</a>
           </Button>
@@ -126,7 +139,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="text-ink hover:bg-surface-2 inline-flex h-11 w-11 items-center justify-center rounded-md lg:hidden"
+          className="text-ink hover:bg-surface-2 inline-flex h-11 w-11 items-center justify-center rounded-md xl:hidden"
           aria-expanded={open}
           aria-controls="primary-nav-mobile"
           aria-label={m.nav_toggle_menu()}
@@ -141,7 +154,7 @@ export function SiteHeader() {
         <nav
           id="primary-nav-mobile"
           aria-label={m.nav_menu_label()}
-          className="border-border border-t px-4 py-3 lg:hidden"
+          className="border-border border-t px-4 py-3 xl:hidden"
         >
           <ul className="flex flex-col">
             {NAV_ITEMS.map((item) => (

@@ -17,11 +17,14 @@
   --color-secondary-hover: #6d28d9;
   --color-accent: #9333ea; /* badge "live", highlight (hemat) — putih 5.38:1 */
 
+  /* Netral HANGAT, bukan berpigmen ungu. Ungu disimpan untuk aksi & aksen
+     saja; netral yang ikut keunguan membuat ungu terasa ada di mana-mana dan
+     halaman jadi ramai. Rasio di bawah dihitung, bukan diperkirakan. */
   --color-surface: #ffffff;
-  --color-surface-2: #f5f3ff; /* section selang-seling, ungu sangat muda */
-  --color-border: #d9cff1; /* garis dekoratif (kartu punya shadow juga) */
-  --color-ink: #1c1a26; /* teks utama — 17.14:1 di putih */
-  --color-muted: #5b5670; /* teks sekunder — 6.98:1 di putih */
+  --color-surface-2: #faf7f2; /* section selang-seling — ink 16.02:1, muted 5.66:1 */
+  --color-border: #e6dfd5; /* garis dekoratif (kartu punya shadow juga) */
+  --color-ink: #1f1b16; /* teks utama — 17.12:1 di putih */
+  --color-muted: #6b6157; /* teks sekunder — 6.05:1 di putih */
 
   /* Badge 6 kategori ibadah — putih di atasnya, semua ≥ 5:1 di LIGHT */
   --color-cat-jemaat: #5b21b6;
@@ -34,6 +37,23 @@
   --radius: 0.625rem;
 
   /* ===================================================================
+     MOTION — satu sumber durasi & easing. Komponen memakai token ini,
+     bukan angka lepas, supaya seluruh situs terasa satu tangan.
+     Dihormati `prefers-reduced-motion` lewat blok global di bawah.
+     =================================================================== */
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms; /* hover, fokus */
+  --dur-base: 240ms; /* buka-tutup, transisi tema */
+  --dur-slow: 420ms; /* section reveal */
+
+  /* Elevasi — kartu bersandar pada bayangan, bukan garis berwarna.
+     Versi gelap dibuat lebih pekat karena bayangan nyaris tak terlihat
+     di atas permukaan gelap. */
+  --shadow-card: 0 1px 2px rgb(31 27 22 / 0.06), 0 2px 8px rgb(31 27 22 / 0.05);
+  --shadow-card-hover: 0 2px 4px rgb(31 27 22 / 0.08), 0 8px 24px rgb(31 27 22 / 0.1);
+  --shadow-header: 0 1px 3px rgb(31 27 22 / 0.08);
+
+  /* ===================================================================
      DARK — ungu-hitam. SUMBER TUNGGAL nilai dark.
      Kedua selector dark di bawah HANYA me-remap --color-* -> var(--dark-*).
      Tak ada nilai hex yang diduplikasi, jadi tak mungkin drift.
@@ -44,11 +64,13 @@
   --dark-secondary-hover: #b39dfb;
   --dark-accent: #c4b5fd;
 
-  --dark-surface: #161221;
-  --dark-surface-2: #1f1830;
-  --dark-border: #403659;
-  --dark-ink: #f1eef8; /* 16.04:1 di #161221 */
-  --dark-muted: #a79fb8; /* 7.26:1 di #161221 */
+  /* Netral gelap ikut dihangatkan supaya kedua tema terasa satu keluarga.
+     `--dark-primary` (#a78bfa) di atas --dark-surface baru = 6.56:1. */
+  --dark-surface: #1a1714;
+  --dark-surface-2: #241f1a;
+  --dark-border: #3b352e;
+  --dark-ink: #f4efe8; /* 15.60:1 di #1a1714 */
+  --dark-muted: #b3a99c; /* 7.71:1 di #1a1714 */
 
   /* Kategori ibadah versi dark — dipakai sebagai aksen/teks/latar-badge;
      semua ≥ 9:1 terhadap kedua permukaan gelap. */
@@ -58,6 +80,10 @@
   --dark-cat-pemuda: #5eead4;
   --dark-cat-sekolah-minggu: #fcd34d;
   --dark-cat-kolom: #d8b4fe;
+
+  --dark-shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.32);
+  --dark-shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.48), 0 8px 24px rgb(0 0 0 / 0.4);
+  --dark-shadow-header: 0 1px 3px rgb(0 0 0 / 0.5);
 }
 
 /* --- Jalur 1: OS dark, user belum memilih tema secara eksplisit --- */
@@ -79,6 +105,9 @@
     --color-cat-pemuda: var(--dark-cat-pemuda);
     --color-cat-sekolah-minggu: var(--dark-cat-sekolah-minggu);
     --color-cat-kolom: var(--dark-cat-kolom);
+    --shadow-card: var(--dark-shadow-card);
+    --shadow-card-hover: var(--dark-shadow-card-hover);
+    --shadow-header: var(--dark-shadow-header);
   }
 }
 
@@ -102,6 +131,9 @@
   --color-cat-pemuda: var(--dark-cat-pemuda);
   --color-cat-sekolah-minggu: var(--dark-cat-sekolah-minggu);
   --color-cat-kolom: var(--dark-cat-kolom);
+  --shadow-card: var(--dark-shadow-card);
+  --shadow-card-hover: var(--dark-shadow-card-hover);
+  --shadow-header: var(--dark-shadow-header);
 }
 
 /* `@theme inline` memetakan CSS variable :root di atas ke token Tailwind, jadi
@@ -124,6 +156,10 @@
   --color-muted: var(--color-muted);
   --font-serif: 'Fraunces Variable', ui-serif, Georgia, serif;
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-header: var(--shadow-header);
+  --ease-smooth: var(--ease-smooth);
   /* Tailwind v4 memakai key `--radius` (bukan `--radius-DEFAULT` ala v3) untuk
      utility `rounded`. */
   --radius: var(--radius);
@@ -140,6 +176,73 @@ h2,
 h3,
 h4 {
   font-family: var(--font-serif);
+}
+
+/* ===================================================================
+   REDUCED MOTION — gerbang global, bukan tambalan per komponen.
+   Siapa pun yang menambah animasi baru otomatis ikut menghormatinya.
+   =================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  /* Section reveal. Elemen TIDAK disembunyikan lewat default CSS — tanpa itu,
+     pengunjung tanpa JS dan crawler akan melihat halaman kosong. `<Reveal>`
+     yang memasang `data-reveal="hidden"` dari klien sebelum paint, lalu
+     membalikkannya ke "shown" saat elemen masuk viewport (sekali saja).
+     Render server tidak membawa atribut ini sama sekali → konten terlihat
+     penuh apa pun keadaannya. */
+  [data-reveal] {
+    transition:
+      opacity var(--dur-slow) var(--ease-smooth),
+      transform var(--dur-slow) var(--ease-smooth);
+  }
+  [data-reveal='hidden'] {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  /* Hero: teks masuk bertahap saat halaman dibuka. Animasi (bukan transisi)
+     karena dijalankan sekali tanpa perubahan state — dan `animation-fill-mode:
+     both` menahan keadaan awal sampai `animation-delay` habis, jadi tak ada
+     kedipan pada elemen yang tertunda. Blok reduced-motion global memangkasnya
+     jadi ~0ms sehingga elemen langsung berada di keadaan akhir. */
+  .hero-in {
+    animation: hero-in var(--dur-slow) var(--ease-smooth) both;
+  }
+
+  .hero-cue {
+    animation: hero-cue 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-cue {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
 }
 
 /* ===================================================================

@@ -26,7 +26,10 @@ export function CategoryBadge({
 }) {
   return (
     <span
-      className="text-surface inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold"
+      // `w-fit` WAJIB: di dalam flex-column (mis. `CardHeader` pada kartu
+      // `/pelayanan`) default `align-items: stretch` membuat pil ini melar
+      // selebar kartu dan terbaca seperti bilah rusak, bukan badge.
+      className="text-surface inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
       style={{ backgroundColor: category.color }}
     >
       {locale === 'id' ? category.nameId : category.nameEn}

@@ -24,6 +24,17 @@ function token(name: string): string {
   return hex.toLowerCase()
 }
 
+/**
+ * Alias menunjuk token lain (`var(--color-surface)`), bukan hex — jadi `token()`
+ * yang mencari `#rrggbb` tidak menemukannya. Helper ini hanya memastikan
+ * deklarasinya ADA; nilainya sudah diuji lewat token yang ditunjuknya.
+ */
+function aliasTarget(name: string): string {
+  const found = CSS.match(new RegExp(`--${name}:\\s*(var\\(--[a-z0-9-]+\\)|#[0-9a-fA-F]{6})`))
+  if (!found?.[1]) throw new Error(`alias --${name} tidak ditemukan di app.css`)
+  return found[1]
+}
+
 /** Tuple, bukan `number[]`: destructuring array biasa memberi `number | undefined`. */
 function channels(hex: string): [number, number, number] {
   const c = hex.replace('#', '')
@@ -172,4 +183,50 @@ describe('palet light tidak ikut berubah', () => {
   function UNGU_LIGHT(h: number) {
     return h >= 260 && h <= 330
   }
+})
+
+describe('warna destructive — aksi hapus di admin', () => {
+  it('light: teks putih di atasnya lolos AA', () => {
+    expect(contrast(token('color-destructive'), '#ffffff')).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('dark: lolos AA di kedua permukaan gelap', () => {
+    expect(contrast(token('dark-destructive'), SURFACE())).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(token('dark-destructive'), SURFACE_2())).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('dark: tetap bukan ungu', () => {
+    const hex = token('dark-destructive')
+    if (chroma(hex) < 0.12) return
+    expect(hue(hex) >= 260 && hue(hex) <= 330).toBe(false)
+  })
+
+  // Badge kategori Jemaat juga merah. Keduanya tak pernah berdampingan (satu di
+  // halaman publik, satu di tombol hapus admin), tapi jaraknya tetap dijaga
+  // supaya tombol hapus tidak terbaca seperti badge.
+  it('dark: cukup berbeda terang dari cat-jemaat', () => {
+    const beda = contrast(token('dark-destructive'), token('dark-cat-jemaat'))
+    expect(beda).toBeGreaterThanOrEqual(1.3)
+  })
+})
+
+describe('alias token shadcn', () => {
+  // Komponen shadcn yang ditarik CLI memakai nama-nama ini. Kalau salah satu
+  // hilang, komponennya tampil tanpa warna — dan tak ada yang merah tanpa test
+  // ini, karena class Tailwind yang tak dikenal gagal diam-diam.
+  it.each([
+    'color-background',
+    'color-foreground',
+    'color-card',
+    'color-card-foreground',
+    'color-popover',
+    'color-popover-foreground',
+    'color-muted-foreground',
+    'color-input',
+    'color-ring',
+    'color-destructive',
+    'color-destructive-foreground',
+  ])('--%s terdefinisi', (name) => {
+    expect(() => aliasTarget(name)).not.toThrow()
+  })
 })

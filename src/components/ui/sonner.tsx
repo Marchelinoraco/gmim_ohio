@@ -1,5 +1,6 @@
 "use client"
 
+import { useSyncExternalStore } from "react"
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -7,15 +8,21 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
+import {
+  readThemePref,
+  serverThemePref,
+  subscribeThemePref,
+} from "@/lib/theme"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  // SSR-safe: useSyncExternalStore memakai serverThemePref ('system') saat render
+  // server, lalu beralih ke readThemePref (localStorage) di klien tanpa mismatch.
+  const pref = useSyncExternalStore(subscribeThemePref, readThemePref, serverThemePref)
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={pref as ToasterProps["theme"]}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
@@ -26,9 +33,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
+          "--normal-bg": "var(--color-popover)",
+          "--normal-text": "var(--color-popover-foreground)",
+          "--normal-border": "var(--color-border)",
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }

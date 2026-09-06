@@ -98,7 +98,7 @@
   /* 6.45:1 di --dark-surface. Sengaja lebih jenuh daripada --dark-cat-jemaat
      (#fca5a5) supaya tombol hapus tidak terbaca seperti badge kategori. */
   --dark-destructive: #f87171;
-  --dark-destructive-foreground: #000000;
+  --dark-destructive-foreground: #1a1714;
 
   /* Warna teks di atas tombol primary & accent di dark mode — kontras cukup */
   --dark-primary-foreground: #1a1714;

@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { pgTable, text, timestamp, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, boolean, index, uniqueIndex, integer, bigint } from 'drizzle-orm/pg-core'
 
 // Skema auth. Regenerasi lewat `pnpm auth:generate` → menulis
 // `auth.generated.ts` (artefak diff yang bisa direview); rekonsiliasi manual
@@ -112,3 +112,17 @@ export const accountRelations = relations(account, ({ one }) => ({
     references: [user.id],
   }),
 }))
+
+/**
+ * Tabel rate_limit untuk better-auth. Nama kolom dan tipe ditentukan oleh
+ * implementasi better-auth di node_modules/better-auth/dist/api/rate-limiter/index.mjs:
+ * - `count` integer: increment/compare dengan operasi aritmetika (baris 30, 56, 47)
+ * - `lastRequest` bigint number: simpan epoch milliseconds dari Date.now() (baris 31, 41, 37)
+ * Jangan ubah nama/tipe tanpa verifikasi di file rate-limiter implementation.
+ */
+export const rateLimit = pgTable('rate_limit', {
+  id: text('id').primaryKey(),
+  key: text('key').notNull().unique(),
+  count: integer('count').notNull(),
+  lastRequest: bigint('last_request', { mode: 'number' }).notNull(),
+})

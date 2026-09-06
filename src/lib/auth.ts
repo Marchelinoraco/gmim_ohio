@@ -24,6 +24,15 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true,
   },
+  /**
+   * Default better-auth = penyimpanan in-memory, yang di Vercel berarti tiap
+   * lambda punya hitungannya sendiri — praktis tak membatasi apa pun. Baru
+   * penting sekarang, karena form login sungguhan mulai live di Rencana 3.
+   */
+  rateLimit: {
+    enabled: true,
+    storage: 'database',
+  },
   user: {
     additionalFields: {
       role: { type: 'string', defaultValue: 'admin', input: false },

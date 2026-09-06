@@ -134,6 +134,19 @@ Bentuk yang benar adalah **`(templateId, serviceDate, kolomId)`**.
 
 ## 6. Pertanyaan terbuka untuk pemilik proyek — jalur data produksi
 
+> **TERJAWAB 2026-09-07 (Rencana 3).** Produksi memakai Neon branch **`dev`** —
+> bukan `production`. Buktinya: beranda live menampilkan seed galeri yang
+> di-commit dari mesin lokal, dan `dev` adalah satu-satunya branch yang tercatat
+> pernah dimigrasi. Pemilik proyek memilih menerima keadaan ini alih-alih
+> memindahkan produksi, karena jemaat sekecil ini tidak menuntut pemisahan.
+>
+> Konsekuensinya dijaga kode, bukan kehati-hatian: `pnpm db:seed` kini berhenti
+> bila tabel konten sudah berisi apa pun, kecuali dijalankan dengan
+> `SEED_ALLOW_NON_EMPTY=1` (lihat `src/db/seed/guard.ts`).
+>
+> Pertanyaan 1–4 di bawah dibiarkan sebagai riwayat bagaimana keputusan ini
+> sampai diambil.
+
 `.neon` ter-pin ke branch **`dev`** (`{"projectId":"late-night-27741746","branch":"dev"}`), `.env` `NEON_BRANCH=dev`, dan `pnpm db:seed` menulis ke `DATABASE_URL` **apa pun yang sedang aktif** — tanpa konfirmasi, tanpa gerbang environment. Semua verifikasi di rencana ini dilakukan terhadap `dev`.
 
 Belum terjawab, dan **jangan ditebak**:

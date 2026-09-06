@@ -28,7 +28,8 @@ import { ServiceCard } from '@/components/schedule/service-card'
  * Section: Hero (video/scrim, teks dari `hero.*` settings) → strip jam ibadah →
  * "Ibadah Minggu Ini" (kartu `<ServiceCard>` bersama, data nyata sejak Rencana 2b;
  * disembunyikan bila `services` kosong — TANPA <EmptyState>) → "Tentang ringkas" →
- * "Warta Terbaru" (3 terbaru; disembunyikan bila kosong).
+ * "Sekilas Kebersamaan" (6 foto terbaru lintas album terbit; disembunyikan bila
+ * kosong) → "Warta Terbaru" (3 terbaru; disembunyikan bila kosong).
  *
  * Teks & tombol hero berada di atas scrim gelap paksa — pengecualian warna yang
  * disengaja untuk keterbacaan di atas video/gambar hero.

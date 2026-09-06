@@ -61,7 +61,29 @@ function CheckIcon({ className }: { className?: string }) {
   )
 }
 
-export function ThemeToggle() {
+/**
+ * `placement` menentukan ke arah mana panel pilihan tema memekar. Dua nilai,
+ * masing-masing untuk satu tempat pemakaian — bukan opsi bebas:
+ *
+ * - `bottom-end` (default) — header desktop. Tombolnya duduk di ujung KANAN
+ *   header, jadi panel `min-w-44` (176px, tombolnya cuma 44px) harus memekar ke
+ *   kiri-bawah agar tetap di dalam layar.
+ * - `top-start` — panel menu mobile. Di sana tombolnya di ujung KIRI baris
+ *   TERBAWAH panel, jadi arahnya berkebalikan pada kedua sumbu. Ke kanan, karena
+ *   `end` melempar panel keluar tepi kiri viewport (terukur -116px). Ke atas,
+ *   karena panel nav-nya `overflow-y-auto` — apa pun yang meluber melewati tepi
+ *   bawahnya terpotong, bukan sekadar tergulir keluar pandangan.
+ */
+type ThemeTogglePlacement = 'bottom-end' | 'top-start'
+
+const PLACEMENT_CLASS: Record<ThemeTogglePlacement, string> = {
+  'bottom-end': 'top-full right-0 mt-1',
+  'top-start': 'bottom-full left-0 mb-1',
+}
+
+type ThemeToggleProps = { placement?: ThemeTogglePlacement }
+
+export function ThemeToggle({ placement = 'bottom-end' }: ThemeToggleProps) {
   // SSR-safe: `useSyncExternalStore` memakai `serverThemePref` ('system') saat
   // render server + hydrasi, lalu beralih ke `readThemePref` (localStorage) di
   // klien tanpa mismatch. Tak ada akses window/localStorage saat render server.
@@ -128,7 +150,10 @@ export function ThemeToggle() {
         <div
           role="menu"
           aria-label={m.theme_toggle_label()}
-          className="border-border bg-surface absolute right-0 z-50 mt-1 min-w-44 rounded-md border p-1 shadow-lg"
+          className={[
+            'border-border bg-surface absolute z-50 min-w-44 rounded-md border p-1 shadow-lg',
+            PLACEMENT_CLASS[placement],
+          ].join(' ')}
         >
           {THEME_PREFS.map((opt) => (
             <button

@@ -103,3 +103,56 @@ test('kembali ke "Ikuti sistem" menghapus data-theme', async ({ page }) => {
   expect(await page.locator('html').getAttribute('data-theme')).toBeNull()
   expect(await page.evaluate(() => localStorage.getItem('gmim-theme'))).toBe('system')
 })
+
+/**
+ * Regresi: menu tema terpotong tepi kiri layar di panel nav mobile.
+ *
+ * Panelnya `min-w-44` (176px) sedangkan tombolnya 44px. Dengan penjajaran
+ * `right-0` yang benar untuk header desktop, di panel mobile — tempat tombol
+ * duduk di ujung KIRI — panel memekar ke kiri sampai keluar viewport dan dua
+ * pilihan temanya tak bisa dibaca maupun ditekan.
+ *
+ * Diasersi lewat bounding box, bukan nama class: yang dijamin adalah panelnya
+ * benar-benar utuh di dalam layar, bagaimanapun cara penjajarannya ditulis.
+ */
+test('mobile: menu tema di panel nav tetap utuh di dalam viewport', async ({ page }) => {
+  const width = 390 // iPhone 14/15 — di bawah breakpoint `xl`, jadi nav = panel mobile
+  await page.setViewportSize({ width, height: 844 })
+  await page.goto('/')
+
+  // Panel mobile hanya ADA di DOM saat terbuka; klik bisa mendahului hidrasi.
+  const panel = page.locator('#primary-nav-mobile')
+  const burger = page.getByRole('button', { name: /buka atau tutup menu|toggle menu/i })
+  await expect(async () => {
+    if (!(await panel.isVisible())) await burger.click({ timeout: 1000 })
+    await expect(panel).toBeVisible({ timeout: 1000 })
+  }).toPass({ timeout: 15000 })
+
+  // Di-scope ke panel: ThemeToggle desktop tetap di DOM (`hidden xl:flex`), jadi
+  // pencarian tanpa scope kena strict-mode dengan dua kecocokan.
+  const themeButton = panel.getByRole('button', { name: /ganti tema|toggle theme/i })
+  const menu = panel.getByRole('menu')
+  await expect(async () => {
+    if (!(await menu.isVisible())) await themeButton.click({ timeout: 1000 })
+    await expect(menu).toBeVisible({ timeout: 1000 })
+  }).toPass({ timeout: 15000 })
+
+  const box = await menu.boundingBox()
+  expect(box).not.toBeNull()
+  expect(box!.x).toBeGreaterThanOrEqual(0)
+  expect(box!.x + box!.width).toBeLessThanOrEqual(width)
+
+  // Bounding box saja TIDAK cukup, dan sempat lolos dari satu bug sungguhan:
+  // `overflow-y-auto` pada panel nav memotong menu ini secara visual tanpa
+  // menggeser koordinatnya sedikit pun, sehingga asersi di atas tetap hijau
+  // sementara dua dari tiga pilihan tak terlihat. Hit-test tiap pilihan di titik
+  // tengahnya menangkap pemotongan itu — dan juga hal apa pun yang menutupinya.
+  const semuaBisaDitekan = await menu.evaluate((el) =>
+    [...el.querySelectorAll('[role="menuitemradio"]')].every((opt) => {
+      const r = opt.getBoundingClientRect()
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+      return hit !== null && opt.contains(hit)
+    }),
+  )
+  expect(semuaBisaDitekan).toBe(true)
+})

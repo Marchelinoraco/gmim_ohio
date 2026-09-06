@@ -89,7 +89,14 @@ function useOverlayHeader() {
 export function SiteHeader() {
   const locale = getLocale()
   const [open, setOpen] = useState(false)
-  const { overlay, fixed } = useOverlayHeader()
+  const { overlay: overlayAtTop, fixed } = useOverlayHeader()
+
+  // Menu mobile terbuka MEMBATALKAN overlay. Panel nav-nya solid, jadi tanpa ini
+  // baris brand di atasnya tetap transparan: brand + tombol tutup melayang putih
+  // di atas video hero sementara daftar nav tepat di bawahnya putih solid —
+  // header yang sama terbelah jadi dua, dan brand-nya hilang begitu frame video
+  // yang lewat kebetulan terang.
+  const overlay = overlayAtTop && !open
 
   const homeHref = localizeHref('/', { locale })
 
@@ -208,7 +215,12 @@ export function SiteHeader() {
         <nav
           id="primary-nav-mobile"
           aria-label={m.nav_menu_label()}
-          className="border-border bg-surface text-ink border-t px-4 py-3 xl:hidden"
+          // Panel digulir SENDIRI saat lebih tinggi dari sisa layar. Di beranda
+          // header `fixed`, jadi isi yang melimpah keluar viewport tidak bisa
+          // dijangkau dengan menggulir halaman — pada ponsel landscape (~380px)
+          // "Persembahan" dan pemilih tema/bahasa benar-benar tak bisa ditekan.
+          // 4.5rem ≈ tinggi baris brand di atasnya.
+          className="border-border bg-surface text-ink max-h-[calc(100svh-4.5rem)] overflow-y-auto border-t px-4 py-3 xl:hidden"
         >
           <ul className="flex flex-col">
             {NAV_ITEMS.map((item) => (
@@ -232,7 +244,10 @@ export function SiteHeader() {
             </Button>
           </div>
           <div className="mt-3 flex items-center gap-3">
-            <ThemeToggle />
+            {/* Baris TERBAWAH panel, dan tombolnya di ujung kiri — menu tema
+                harus memekar ke atas-kanan; default `bottom-end` melemparnya
+                keluar tepi kiri layar lalu terpotong `overflow-y-auto` panel. */}
+            <ThemeToggle placement="top-start" />
             <LanguageSwitcher />
           </div>
         </nav>

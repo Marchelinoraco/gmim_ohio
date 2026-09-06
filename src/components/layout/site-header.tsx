@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { Link, useLocation } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { getLocale, localizeHref } from '@/paraglide/runtime'
 import { Button } from '@/components/ui/button'
@@ -57,9 +57,39 @@ function CloseIcon() {
   )
 }
 
+/**
+ * Header transparan menyatu dengan hero — HANYA di beranda, satu-satunya
+ * halaman yang punya media full-bleed di belakangnya. Di halaman lain header
+ * tetap solid dalam alur normal; membuatnya transparan di sana hanya
+ * menghasilkan teks putih di atas latar putih.
+ *
+ * Saat overlay, header keluar dari alur (`fixed`) supaya hero benar-benar
+ * dimulai dari puncak viewport. Begitu digulir melewati ambang, ia memadat jadi
+ * solid + bayangan agar teksnya tetap terbaca di atas konten biasa.
+ */
+const SCROLL_SOLID_AFTER = 24
+
+function useOverlayHeader() {
+  const { pathname } = useLocation()
+  // Beranda saja: `/` dan varian ber-locale `/en`.
+  const isHome = pathname === '/' || pathname === '/en' || pathname === '/en/'
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    if (!isHome) return
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_SOLID_AFTER)
+    onScroll() // keadaan awal — penting saat pengguna memuat halaman di posisi tergulir
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [isHome])
+
+  return { overlay: isHome && !scrolled, fixed: isHome }
+}
+
 export function SiteHeader() {
   const locale = getLocale()
   const [open, setOpen] = useState(false)
+  const { overlay, fixed } = useOverlayHeader()
 
   const homeHref = localizeHref('/', { locale })
 
@@ -67,7 +97,10 @@ export function SiteHeader() {
     <a
       href={homeHref}
       aria-label={m.site_name()}
-      className="text-ink hover:text-primary flex min-h-11 shrink-0 items-center gap-2.5 transition-colors duration-150"
+      className={[
+        'flex min-h-11 shrink-0 items-center gap-2.5 transition-colors duration-150',
+        overlay ? 'text-white' : 'text-ink hover:text-primary',
+      ].join(' ')}
     >
       <Logo variant="full" size={40} />
       {/* Lockup dua baris yang DISENGAJA. Nama penuh dalam satu baris serif
@@ -78,7 +111,12 @@ export function SiteHeader() {
           Nama penuh tetap jadi nama aksesibel lewat `aria-label` di <a>. */}
       <span className="flex flex-col leading-none whitespace-nowrap">
         <span className="font-serif text-base font-semibold sm:text-lg">{m.site_name_short()}</span>
-        <span className="text-muted mt-0.5 text-[0.6875rem] font-medium tracking-[0.08em] uppercase">
+        <span
+          className={[
+            'mt-0.5 text-[0.6875rem] font-medium tracking-[0.08em] uppercase',
+            overlay ? 'text-white/75' : 'text-muted',
+          ].join(' ')}
+        >
           {m.site_location_short()}
         </span>
       </span>
@@ -109,7 +147,15 @@ export function SiteHeader() {
   const giveHref = localizeHref('/persembahan', { locale })
 
   return (
-    <header className="border-border bg-surface shadow-header sticky top-0 z-40 border-b">
+    <header
+      className={[
+        'z-40 border-b transition-colors duration-300',
+        fixed ? 'fixed inset-x-0 top-0' : 'sticky top-0',
+        overlay
+          ? 'border-transparent bg-transparent text-white'
+          : 'border-border bg-surface shadow-header',
+      ].join(' ')}
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         {brand}
 
@@ -119,7 +165,12 @@ export function SiteHeader() {
             <Link
               key={item.key}
               to={item.path}
-              className="text-ink hover:bg-surface-2 hover:text-primary inline-flex min-h-11 items-center rounded-md px-2.5 text-sm font-medium transition-colors duration-150"
+              className={[
+                'inline-flex min-h-11 items-center rounded-md px-2.5 text-sm font-medium transition-colors duration-150',
+                overlay
+                  ? 'text-white/90 hover:bg-white/15 hover:text-white'
+                  : 'text-ink hover:bg-surface-2 hover:text-primary',
+              ].join(' ')}
             >
               {item.label()}
             </Link>
@@ -139,7 +190,10 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="text-ink hover:bg-surface-2 inline-flex h-11 w-11 items-center justify-center rounded-md xl:hidden"
+          className={[
+            'inline-flex h-11 w-11 items-center justify-center rounded-md xl:hidden',
+            overlay ? 'text-white hover:bg-white/15' : 'text-ink hover:bg-surface-2',
+          ].join(' ')}
           aria-expanded={open}
           aria-controls="primary-nav-mobile"
           aria-label={m.nav_toggle_menu()}
@@ -154,7 +208,7 @@ export function SiteHeader() {
         <nav
           id="primary-nav-mobile"
           aria-label={m.nav_menu_label()}
-          className="border-border border-t px-4 py-3 xl:hidden"
+          className="border-border bg-surface text-ink border-t px-4 py-3 xl:hidden"
         >
           <ul className="flex flex-col">
             {NAV_ITEMS.map((item) => (

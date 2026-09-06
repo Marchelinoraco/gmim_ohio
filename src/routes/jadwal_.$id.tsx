@@ -198,7 +198,7 @@ function JadwalDetail() {
             <Link
               to="/jadwal"
               search={{ view: 'daftar' }}
-              className="text-primary text-sm font-medium hover:underline"
+              className="text-primary text-sm font-medium underline underline-offset-2"
             >
               {m.jadwal_back()}
             </Link>

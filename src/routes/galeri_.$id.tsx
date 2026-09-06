@@ -195,7 +195,10 @@ function GaleriAlbum() {
           </div>
 
           <div className="mt-10">
-            <Link to="/galeri" className="text-primary text-sm font-medium hover:underline">
+            <Link
+              to="/galeri"
+              className="text-primary text-sm font-medium underline underline-offset-2"
+            >
               {m.galeri_back()}
             </Link>
           </div>

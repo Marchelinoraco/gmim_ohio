@@ -87,7 +87,10 @@ function RenunganDetail() {
           {bodyHtml && <Prose html={bodyHtml} className="mt-6" />}
 
           <div className="mt-10">
-            <Link to="/renungan" className="text-primary text-sm font-medium hover:underline">
+            <Link
+              to="/renungan"
+              className="text-primary text-sm font-medium underline underline-offset-2"
+            >
               {m.renungan_back()}
             </Link>
           </div>

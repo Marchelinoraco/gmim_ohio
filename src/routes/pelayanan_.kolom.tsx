@@ -104,7 +104,7 @@ function PelayananKolom() {
                           <p>
                             <a
                               href={`tel:${coordinatorPhone.replace(/[^\d+]/g, '')}`}
-                              className="text-primary hover:underline"
+                              className="text-primary underline underline-offset-2"
                             >
                               {coordinatorPhone}
                             </a>
@@ -149,7 +149,10 @@ function PelayananKolom() {
         </Section>
 
         <Section>
-          <Link to="/pelayanan" className="text-primary text-sm font-medium hover:underline">
+          <Link
+            to="/pelayanan"
+            className="text-primary text-sm font-medium underline underline-offset-2"
+          >
             {m.pelayanan_back()}
           </Link>
         </Section>

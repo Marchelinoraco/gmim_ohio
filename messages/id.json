@@ -155,5 +155,12 @@
   "pelayanan_coordinator": "Kontak Koordinator",
   "pelayanan_kolom_intro": "Kolom adalah pembagian wilayah pelayanan berdasarkan tempat tinggal anggota jemaat, dipakai untuk menggilir ibadah rumah tangga dari satu rumah ke rumah lain dalam kolom yang sama. Setiap kolom memiliki jadwal ibadahnya sendiri; koordinator kolom (bila sudah ditunjuk) dapat dihubungi untuk informasi lebih lanjut.",
   "pelayanan_kolom_list_title": "Daftar Kolom",
-  "pelayanan_back": "Kembali ke Pelayanan"
+  "pelayanan_back": "Kembali ke Pelayanan",
+  "admin_login_title": "Masuk Dashboard",
+  "admin_login_subtitle": "Khusus pengurus GMIM Musafir.",
+  "admin_login_email": "Email",
+  "admin_login_password": "Kata sandi",
+  "admin_login_submit": "Masuk",
+  "admin_login_submitting": "Memproses…",
+  "admin_login_error": "Email atau kata sandi salah."
 }

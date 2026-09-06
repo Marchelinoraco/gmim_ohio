@@ -170,5 +170,12 @@
   "pelayanan_coordinator": "Coordinator Contact",
   "pelayanan_kolom_intro": "Kolom are neighborhood zones grouped by where members live, used to rotate household worship from one member's home to the next within the same zone. Each kolom keeps its own worship schedule; the kolom coordinator (once appointed) can be contacted for more information.",
   "pelayanan_kolom_list_title": "List of Kolom",
-  "pelayanan_back": "Back to Ministries"
+  "pelayanan_back": "Back to Ministries",
+  "admin_login_title": "Sign in to Dashboard",
+  "admin_login_subtitle": "For GMIM Musafir administrators only.",
+  "admin_login_email": "Email",
+  "admin_login_password": "Password",
+  "admin_login_submit": "Sign in",
+  "admin_login_submitting": "Signing in…",
+  "admin_login_error": "Incorrect email or password."
 }

@@ -3,15 +3,30 @@ import { galleryAlbums, galleryItems } from '@/db/schema'
 // `@/db` di-import lazy di dalam `seedGallery()` — lihat catatan di `categories.ts`.
 
 /**
- * Galeri placeholder — 1 album berisi 4 item (3 foto + 1 video YouTube). Semua
- * gambar sementara menunjuk ke `public/hero/hero-poster.jpg`; video memakai URL
- * contoh. Data riil diisi pengurus lewat dashboard (Rencana 3).
+ * Galeri — foto jemaat SUNGGUHAN dari `public/gallery/` (18 berkas), bukan
+ * placeholder.
+ *
+ * `albumDate` adalah tanggal PUBLIKASI, bukan tanggal acara. Berkasnya berasal
+ * dari unggahan Facebook jemaat yang EXIF-nya sudah dihapus, jadi tanggal
+ * pengambilan tidak bisa diketahui — dan mengarang tanggal acara untuk jemaat
+ * sungguhan adalah persis fabrikasi yang dilarang di proyek ini. Karena itu
+ * albumnya satu dan judulnya TIDAK mengklaim acara tertentu. Bila pengurus tahu
+ * tanggal aslinya, pecah jadi beberapa album lewat dashboard (Rencana 3).
+ *
+ * Caption dipakai sebagai teks alternatif gambar, jadi tidak boleh dikarang.
+ * Tiga rangkaian di bawah diberi caption spesifik karena isinya diperiksa
+ * langsung; satu rangkaian (`179275…`, 3 foto) belum sempat diperiksa sehingga
+ * captionnya sengaja netral — benar apa pun isinya.
+ *
+ * Tujuh berkas di rangkaian `179882…` hanya 414x414 (thumbnail Facebook). Wajar
+ * di grid, tampak lunak bila dibesarkan di lightbox — diterima sadar: foto
+ * jemaat yang nyata lebih berharga daripada ketajaman sempurna.
  */
 export const PLACEHOLDER_ALBUM = {
-  titleId: 'Ibadah Jemaat & Kegiatan',
-  titleEn: 'Worship Services & Activities',
-  albumDate: '2026-08-16',
-  coverImageUrl: '/hero/hero-poster.jpg',
+  titleId: 'Kebersamaan Jemaat',
+  titleEn: 'Congregation Life',
+  albumDate: '2026-09-06',
+  coverImageUrl: '/gallery/762676795_1774904053537393_4203003014146262855_n.jpg',
   sortOrder: 0,
   status: 'published',
 } as const
@@ -19,34 +34,148 @@ export const PLACEHOLDER_ALBUM = {
 export const PLACEHOLDER_ALBUM_ITEMS = [
   {
     type: 'image',
-    imageUrl: '/hero/hero-poster.jpg',
+    imageUrl: '/gallery/762676795_1774904053537393_4203003014146262855_n.jpg',
     youtubeUrl: null,
-    captionId: 'Ibadah Minggu di gedung gereja',
-    captionEn: 'Sunday service at the church building',
+    captionId: 'Ramah tamah jemaat di taman',
+    captionEn: 'Congregation fellowship at the park',
     sortOrder: 0,
   },
   {
     type: 'image',
-    imageUrl: '/hero/hero-poster.jpg',
+    imageUrl: '/gallery/761546284_1774904490204016_6530656974838765152_n.jpg',
     youtubeUrl: null,
-    captionId: 'Ramah tamah jemaat seusai ibadah',
-    captionEn: 'Fellowship after the service',
+    captionId: 'Ramah tamah jemaat di taman',
+    captionEn: 'Congregation fellowship at the park',
     sortOrder: 1,
   },
   {
     type: 'image',
-    imageUrl: '/hero/hero-poster.jpg',
+    imageUrl: '/gallery/761811544_1774904530204012_5383425075066311029_n.jpg',
     youtubeUrl: null,
-    captionId: 'Ibadah Syukur HUT Kemerdekaan RI',
-    captionEn: 'Indonesian Independence Day thanksgiving service',
+    captionId: 'Ramah tamah jemaat di taman',
+    captionEn: 'Congregation fellowship at the park',
     sortOrder: 2,
   },
-  // Item video sengaja TIDAK di-seed. Placeholder sebelumnya memakai video
-  // YouTube populer yang tak ada hubungannya dengan gereja (bercaption
-  // "Cuplikan ibadah Minggu") — di situs jemaat sungguhan itu terbaca sebagai
-  // lelucon atau kelalaian, bukan placeholder yang jujur. Tipe `youtube`
-  // tetap didukung komponen galeri; pengurus mengisinya lewat dashboard
-  // (Rencana 3) saat video ibadah sungguhan sudah ada.
+  {
+    type: 'image',
+    imageUrl: '/gallery/762082791_1774904416870690_3036812318472249267_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Ramah tamah jemaat di taman',
+    captionEn: 'Congregation fellowship at the park',
+    sortOrder: 3,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/762566796_1774904086870723_5047499250338732125_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Ramah tamah jemaat di taman',
+    captionEn: 'Congregation fellowship at the park',
+    sortOrder: 4,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/775995783_1787695685591563_1554595913002947083_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Ibadah Minggu di gedung gereja',
+    captionEn: 'Sunday service at the church building',
+    sortOrder: 5,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/776586526_1787695658924899_8780970688726208330_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Ibadah Minggu di gedung gereja',
+    captionEn: 'Sunday service at the church building',
+    sortOrder: 6,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/778816763_1792757641752034_5246157175915069274_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kebersamaan jemaat GMIM Musafir',
+    captionEn: 'GMIM Musafir congregation together',
+    sortOrder: 7,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/780501231_1792759538418511_1801571666564199968_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kebersamaan jemaat GMIM Musafir',
+    captionEn: 'GMIM Musafir congregation together',
+    sortOrder: 8,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/780981729_1792759575085174_6871526939715110517_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kebersamaan jemaat GMIM Musafir',
+    captionEn: 'GMIM Musafir congregation together',
+    sortOrder: 9,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/777851661_1798824924478639_1339761123375355166_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kegiatan bersama jemaat di aula',
+    captionEn: 'Congregation activity in the hall',
+    sortOrder: 10,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/783727908_1798824957811969_7541717977865179310_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kegiatan bersama jemaat di aula',
+    captionEn: 'Congregation activity in the hall',
+    sortOrder: 11,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/784251895_1798824781145320_2023819866779381703_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kegiatan bersama jemaat di aula',
+    captionEn: 'Congregation activity in the hall',
+    sortOrder: 12,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/786352933_1798823921145406_2162773084630993206_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kegiatan bersama jemaat di aula',
+    captionEn: 'Congregation activity in the hall',
+    sortOrder: 13,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/786811246_1798824214478710_5797195767360273187_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kegiatan bersama jemaat di aula',
+    captionEn: 'Congregation activity in the hall',
+    sortOrder: 14,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/788758535_1798824807811984_2395970786723915722_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kegiatan bersama jemaat di aula',
+    captionEn: 'Congregation activity in the hall',
+    sortOrder: 15,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/789216602_1798824631145335_6012517010743133903_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kegiatan bersama jemaat di aula',
+    captionEn: 'Congregation activity in the hall',
+    sortOrder: 16,
+  },
+  {
+    type: 'image',
+    imageUrl: '/gallery/789490298_1798823971145401_7778904209668799238_n.jpg',
+    youtubeUrl: null,
+    captionId: 'Kegiatan bersama jemaat di aula',
+    captionEn: 'Congregation activity in the hall',
+    sortOrder: 17,
+  },
 ] as const
 
 /**

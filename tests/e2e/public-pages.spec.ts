@@ -130,9 +130,21 @@ test('/galeri: album → tile pertama buka lightbox, ArrowRight maju, Escape tut
   await albumLink.click()
   await expect(page).toHaveURL(new RegExp(`/galeri/${UUID}$`))
 
-  // Tile foto = <button> membungkus <img alt="<caption>">. Caption seed item 0.
-  const firstTile = page.getByRole('button', { name: 'Ibadah Minggu di gedung gereja' })
+  // Tile foto = <button> membungkus <img>. Target dipilih SECARA POSISIONAL,
+  // bukan lewat caption: caption seed dikelompokkan per acara sehingga beberapa
+  // foto sengaja berbagi teks yang sama, dan mencocokkan nama akan kena strict
+  // mode. Asersi di bawah juga diturunkan dari tile yang benar-benar ada, bukan
+  // dari isi seed tertentu — supaya test ini tidak patah tiap galeri diperbarui.
+  const tiles = page.locator('main button:has(img)')
+  // `count()` TIDAK auto-wait seperti asersi Playwright lain — tanpa menunggu
+  // tile pertama terlihat lebih dulu, hitungannya diambil sebelum grid dirender
+  // dan selalu 0.
+  const firstTile = tiles.first()
   await expect(firstTile).toBeVisible()
+  const tileCount = await tiles.count()
+  expect(tileCount).toBeGreaterThan(1) // butuh ≥2 untuk menguji ArrowRight
+  const firstAlt = await firstTile.locator('img').getAttribute('alt')
+  const secondSrc = await tiles.nth(1).locator('img').getAttribute('src')
 
   // Buka lightbox — klik bisa mendahului hidrasi handler onClick — ulang sampai
   // dialog muncul (pola anti-flake `theme.spec.ts` `openThemeMenu`).
@@ -143,7 +155,8 @@ test('/galeri: album → tile pertama buka lightbox, ArrowRight maju, Escape tut
   }).toPass({ timeout: 15000 })
 
   // Gambar aktif = item 0 (tile pertama → index 0).
-  await expect(dialog.getByRole('img', { name: 'Ibadah Minggu di gedung gereja' })).toBeVisible()
+  await expect(dialog.getByRole('img', { name: firstAlt ?? '' })).toBeVisible()
+  await expect(dialog.getByText(`1 / ${tileCount}`)).toBeVisible()
 
   // ArrowRight → item 1. `<Lightbox>` memasang listener `keydown` window-level di
   // `useEffect`, jadi ada jendela di mana dialog sudah terlihat tapi listener
@@ -156,9 +169,11 @@ test('/galeri: album → tile pertama buka lightbox, ArrowRight maju, Escape tut
     await firstTile.click()
     await expect(dialog).toBeVisible({ timeout: 1000 })
     await page.keyboard.press('ArrowRight')
-    await expect(dialog.getByText('2 / 3')).toBeVisible({ timeout: 1000 })
+    await expect(dialog.getByText(`2 / ${tileCount}`)).toBeVisible({ timeout: 1000 })
   }).toPass({ timeout: 15000 })
-  await expect(dialog.getByRole('img', { name: 'Ramah tamah jemaat seusai ibadah' })).toBeVisible()
+  // Gambar yang tampil setelah maju memang milik tile ke-2 — dicocokkan lewat
+  // `src`, yang unik per foto (caption bisa berulang, src tidak).
+  await expect(dialog.locator(`img[src="${secondSrc}"]`)).toBeVisible()
 
   // Escape ditangani Radix Dialog → tutup.
   await page.keyboard.press('Escape')

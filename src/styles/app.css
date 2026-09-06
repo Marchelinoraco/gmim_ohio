@@ -21,6 +21,10 @@
   --color-destructive: #b91c1c;
   --color-destructive-foreground: #ffffff;
 
+  /* Warna teks di atas tombol primary & accent — putih untuk contrast optimal */
+  --color-primary-foreground: #ffffff;
+  --color-accent-foreground: #ffffff;
+
   /* Netral HANGAT, bukan berpigmen ungu. Ungu disimpan untuk aksi & aksen
      saja; netral yang ikut keunguan membuat ungu terasa ada di mana-mana dan
      halaman jadi ramai. Rasio di bawah dihitung, bukan diperkirakan. */
@@ -94,6 +98,11 @@
   /* 6.45:1 di --dark-surface. Sengaja lebih jenuh daripada --dark-cat-jemaat
      (#fca5a5) supaya tombol hapus tidak terbaca seperti badge kategori. */
   --dark-destructive: #f87171;
+  --dark-destructive-foreground: #000000;
+
+  /* Warna teks di atas tombol primary & accent di dark mode — kontras cukup */
+  --dark-primary-foreground: #1a1714;
+  --dark-accent-foreground: #1a1714;
 
   /* Netral gelap ikut dihangatkan supaya kedua tema terasa satu keluarga.
      `--dark-primary` (#a78bfa) di atas --dark-surface baru = 6.56:1. */
@@ -129,10 +138,13 @@
   :root:not([data-theme='light']) {
     --color-primary: var(--dark-primary);
     --color-primary-hover: var(--dark-primary-hover);
+    --color-primary-foreground: var(--dark-primary-foreground);
     --color-secondary: var(--dark-secondary);
     --color-secondary-hover: var(--dark-secondary-hover);
     --color-accent: var(--dark-accent);
+    --color-accent-foreground: var(--dark-accent-foreground);
     --color-destructive: var(--dark-destructive);
+    --color-destructive-foreground: var(--dark-destructive-foreground);
     --color-surface: var(--dark-surface);
     --color-surface-2: var(--dark-surface-2);
     --color-border: var(--dark-border);
@@ -156,10 +168,13 @@
 :root[data-theme='dark'] {
   --color-primary: var(--dark-primary);
   --color-primary-hover: var(--dark-primary-hover);
+  --color-primary-foreground: var(--dark-primary-foreground);
   --color-secondary: var(--dark-secondary);
   --color-secondary-hover: var(--dark-secondary-hover);
   --color-accent: var(--dark-accent);
+  --color-accent-foreground: var(--dark-accent-foreground);
   --color-destructive: var(--dark-destructive);
+  --color-destructive-foreground: var(--dark-destructive-foreground);
   --color-surface: var(--dark-surface);
   --color-surface-2: var(--dark-surface-2);
   --color-border: var(--dark-border);
@@ -186,9 +201,11 @@
 @theme inline {
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
+  --color-primary-foreground: var(--color-primary-foreground);
   --color-secondary: var(--color-secondary);
   --color-secondary-hover: var(--color-secondary-hover);
   --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
   --color-surface: var(--color-surface);
   --color-surface-2: var(--color-surface-2);
   --color-border: var(--color-border);

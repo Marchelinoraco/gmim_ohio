@@ -226,6 +226,8 @@ describe('alias token shadcn', () => {
     'color-ring',
     'color-destructive',
     'color-destructive-foreground',
+    'color-primary-foreground',
+    'color-accent-foreground',
   ])('--%s terdefinisi', (name) => {
     expect(() => aliasTarget(name)).not.toThrow()
   })

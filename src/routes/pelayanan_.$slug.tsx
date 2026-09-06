@@ -119,7 +119,7 @@ function PelayananSlug() {
                   {/* href hanya digit & `+`; teks tetap string rapi dari settings — pola sama dengan `/kunjungi`. */}
                   <a
                     href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`}
-                    className="text-primary hover:underline"
+                    className="text-primary underline underline-offset-2"
                   >
                     {contactPhone}
                   </a>
@@ -130,7 +130,10 @@ function PelayananSlug() {
         ) : null}
 
         <Section>
-          <Link to="/pelayanan" className="text-primary text-sm font-medium hover:underline">
+          <Link
+            to="/pelayanan"
+            className="text-primary text-sm font-medium underline underline-offset-2"
+          >
             {m.pelayanan_back()}
           </Link>
         </Section>

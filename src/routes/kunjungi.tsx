@@ -109,7 +109,7 @@ function Kunjungi() {
                     {/* href hanya digit & `+`; teks tetap string rapi dari settings. */}
                     <a
                       href={`tel:${phone.replace(/[^\d+]/g, '')}`}
-                      className="text-primary hover:underline"
+                      className="text-primary underline underline-offset-2"
                     >
                       {phone}
                     </a>
@@ -117,7 +117,10 @@ function Kunjungi() {
                 ) : null}
                 {email ? (
                   <li>
-                    <a href={`mailto:${email}`} className="text-primary hover:underline">
+                    <a
+                      href={`mailto:${email}`}
+                      className="text-primary underline underline-offset-2"
+                    >
                       {email}
                     </a>
                   </li>

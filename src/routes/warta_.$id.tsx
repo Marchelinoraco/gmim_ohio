@@ -67,7 +67,10 @@ function WartaDetail() {
           )}
 
           <div className="mt-10">
-            <Link to="/warta" className="text-primary text-sm font-medium hover:underline">
+            <Link
+              to="/warta"
+              className="text-primary text-sm font-medium underline underline-offset-2"
+            >
               {m.warta_back()}
             </Link>
           </div>

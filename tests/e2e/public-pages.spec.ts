@@ -272,3 +272,29 @@ test('/sitemap.xml: 200, content-type xml, daftar lengkap path publik', async ({
   const locCount = (body.match(/<loc>/g) ?? []).length
   expect(locCount).toBeGreaterThanOrEqual(10)
 })
+
+/**
+ * Link dalam prosa ter-underline permanen, bukan hanya saat hover.
+ *
+ * WCAG 1.4.1 menuntut link dibedakan dari teks sekitarnya oleh sesuatu selain
+ * warna, kecuali kontras antara keduanya ≥ 3:1. Situs ini tak pernah memenuhi
+ * syarat itu — link vs teks terukur 2.41:1 di light dan 2.38:1 di dark — dan
+ * setelah warna aksi dark jadi netral krem, angka dark-nya turun ke 1.05:1:
+ * link praktis tak terlihat sebagai link. Underline permanen menutup keduanya.
+ */
+test('detail warta: link "Kembali" ter-underline tanpa perlu hover', async ({ page }) => {
+  // Link kontak `/kunjungi` akan jadi target yang lebih langsung, tapi keduanya
+  // dirender hanya bila `contact_info.phone/email` terisi — dan di seed keduanya
+  // string kosong, jadi test yang menargetkannya akan gagal karena datanya, bukan
+  // karena gaya link. "Kembali" pada detail warta selalu ada.
+  await page.goto('/warta')
+  await page.locator('main a[href^="/warta/"]').first().click()
+  await expect(page).toHaveURL(new RegExp(`/warta/${UUID}$`))
+
+  const back = page.locator('main a[href="/warta"]').first()
+  await expect(back).toBeVisible()
+  // `textDecorationLine` terkomputasi, bukan nama class: yang dijaga adalah
+  // garis yang benar-benar terlihat pengunjung.
+  const decoration = await back.evaluate((el) => getComputedStyle(el).textDecorationLine)
+  expect(decoration).toContain('underline')
+})

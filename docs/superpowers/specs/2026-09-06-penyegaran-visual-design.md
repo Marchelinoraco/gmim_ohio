@@ -27,6 +27,7 @@ Diambil bersama pemilik proyek sebelum implementasi:
 
 - Tidak mengganti font. Fraunces + Inter sudah pasangan yang baik.
 - Tidak mengganti warna ungu aksi (`--color-primary/secondary/accent`) maupun keenam warna kategori — semuanya sudah tervalidasi WCAG dan mengganti hanya menambah risiko tanpa menjawab keluhan.
+  - **Direvisi 2026-09-06 (lihat "Dark mode tanpa ungu" di bawah).** Non-goal ini masih berlaku penuh untuk LIGHT; untuk DARK ia dicabut atas permintaan pemilik proyek.
 - Tidak menyentuh konten, seed, query, atau skema.
 - Tidak membongkar arsitektur token. Perubahan bekerja **di dalam** pola `--dark-*` yang sudah ada.
 
@@ -130,3 +131,69 @@ Semua constraint Rencana 2b tetap berlaku dan tidak boleh dilanggar:
 - E2E yang menjaga invarian hero (`autoplay` tak ada di SSR; tidak autoplay saat reduced-motion) **tidak boleh dilonggarkan** — hero berubah tampilan, bukan perilakunya.
 - Tambahan: test untuk kontrol suara yang dipulihkan (label bercabang menurut reduced-motion), sejajar test yang dulu ada di `coming-soon.spec.ts`.
 - Verifikasi manual di kedua tema dan kedua locale, plus lebar 1280px dan mobile — header tidak boleh membungkus di lebar mana pun.
+
+---
+
+## Dark mode tanpa ungu (addendum, 2026-09-06)
+
+**Status:** disetujui & diimplementasikan. Mencabut sebagian non-goal "tidak mengganti warna ungu aksi" — **hanya untuk dark**.
+
+Permintaan pemilik proyek: hilangkan ungu dari dark mode. Light tetap ungu + putih; itu identitas GMIM dan tidak disentuh.
+
+**Alasan teknisnya sejalan.** Di atas permukaan gelap, ungu harus dicerahkan sampai nyaris pastel (`#a78bfa`) untuk lolos kontras — dan pada titik itu ia berhenti terbaca sebagai warna brand, hanya menyisakan rona keunguan di seluruh halaman. Persis keluhan "ungu terasa ada di mana-mana" yang sudah dijawab di sisi netral pada fase 1.
+
+### Keputusan
+
+| Pertanyaan | Keputusan |
+|---|---|
+| Ungu aksi diganti apa | Netral krem hangat — bukan warna lain. Emas bentrok dengan kategori Sekolah Minggu, biru dengan kategori Bapa |
+| Badge kategori | Tiga yang keunguan (Jemaat, Kaum Ibu, Kolom) ikut diganti |
+| Cakupan | Dark saja; light tidak disentuh |
+
+### Nilai
+
+Aksi — rasio terhadap `--dark-surface`; teks di atas tombol solid memakai warna yang sama:
+
+| Token | Lama | Baru | Kontras |
+|---|---|---|---|
+| `--dark-primary` | `#a78bfa` | `#f0e9df` | 14.81:1 |
+| `--dark-primary-hover` | `#c4b5fd` | `#ffffff` | 17.4:1 |
+| `--dark-secondary` | `#9575f4` | `#cbb99a` | 9.30:1 |
+| `--dark-secondary-hover` | `#b39dfb` | `#e0d7c9` | 12.52:1 |
+| `--dark-accent` | `#c4b5fd` | `#e0d7c9` | 12.52:1 |
+
+Kategori — tiga diganti, tiga tetap:
+
+| Kategori | Lama | Baru | Kontras | Hue |
+|---|---|---|---|---|
+| Jemaat | `#c4b5fd` | `#fca5a5` | 9.40:1 | 0° |
+| Kaum Ibu | `#f0abfc` | `#86efac` | 12.71:1 | 142° |
+| Kolom | `#d8b4fe` | `#bef264` | 13.66:1 | 82° |
+| Bapa | — | `#93c5fd` (tetap) | 9.90:1 | 212° |
+| Pemuda | — | `#5eead4` (tetap) | 12.07:1 | 171° |
+| Sekolah Minggu | — | `#fcd34d` (tetap) | 12.38:1 | 46° |
+
+Penggantian ini sekalian menutup cacat lama: Jemaat `#c4b5fd` dan Kolom `#d8b4fe` hanya berjarak **16.7° hue** — dua ungu yang praktis sewarna pada badge sekecil itu. Enam warna sekarang tersebar dengan jarak terdekat 29°.
+
+### Link mendapat underline permanen
+
+Konsekuensi yang tidak terduga dari warna aksi netral, dan ia membuka masalah yang sudah ada:
+
+```
+LIGHT  link #6d28d9 vs teks #1f1b16  → 2.41:1
+DARK   link #a78bfa vs teks #f4efe8  → 2.38:1
+DARK   link krem    vs teks #f4efe8  → 1.05:1
+```
+
+WCAG 1.4.1 menuntut ≥3:1 bila link dibedakan **hanya** oleh warna. Situs ini tidak pernah memenuhinya di tema mana pun; krem mengubah dark dari "kurang" jadi "tidak ada sama sekali". Sepuluh link prosa karena itu berpindah dari `hover:underline` ke `underline` permanen — berlaku di kedua tema, dan mengikuti preseden yang sudah ada di `service-card.tsx`.
+
+### Pengujian
+
+`tests/unit/dark-palette.test.ts` (27 test) membaca palet **langsung dari `app.css`**, bukan dari salinan — nilai yang disalin akan drift diam-diam. Yang dijaga:
+
+- kontras tiap token aksi & kategori terhadap kedua permukaan gelap
+- tak ada token dark yang berhue ungu (260°–330°), dengan warna aksi dinilai lewat **chroma**, bukan saturasi HSL (HSL melebih-lebihkan warna sangat terang: krem terbaca 0.36 padahal channel-nya hanya berjarak 0.07)
+- jarak hue antar keenam kategori ≥25°
+- palet **light** tetap ungu — menahan perubahan dark agar tidak merembet
+
+Plus satu e2e yang memastikan link prosa ter-underline tanpa hover.

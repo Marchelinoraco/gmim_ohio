@@ -120,6 +120,35 @@ test('/warta: klik kartu pertama → /warta/<uuid> + body tersanitasi tampil', a
   await expect(prose.getByText('Tema Ibadah: Hidup dalam Syukur')).toBeVisible()
 })
 
+/**
+ * Grid galeri di Beranda (`listRecentGalleryPhotos`).
+ *
+ * Hitungan diasersi TEPAT 6 — bukan "lebih dari 0" — karena di situlah letak
+ * bug yang dicegah komentar di `gallery.ts`: kalau query kembali memakai
+ * `db.query.*` + saring album draft SETELAH fetch, `limit` diterapkan sebelum
+ * penyaringan dan section ini diam-diam menampilkan lebih sedikit dari 6 tanpa
+ * error apa pun. Seed punya jauh lebih dari 6 foto terbit, jadi kurang dari 6
+ * berarti regresi, bukan kekurangan data.
+ */
+test('/ : grid galeri menampilkan 6 foto terbaru dan menaut ke albumnya', async ({ page }) => {
+  await page.goto('/')
+
+  const tiles = page.locator('#galeri-sekilas a[href^="/galeri/"]')
+  await expect(tiles.first()).toBeVisible()
+  await expect(tiles).toHaveCount(6)
+
+  // Grid khusus `type = 'image'`; item youtube tak punya imageUrl dan akan
+  // tampil sebagai kotak kosong, jadi tiap tile wajib membawa src sungguhan.
+  for (const src of await tiles
+    .locator('img')
+    .evaluateAll((els) => els.map((el) => (el as HTMLImageElement).getAttribute('src')))) {
+    expect(src).toBeTruthy()
+  }
+
+  await tiles.first().click()
+  await expect(page).toHaveURL(new RegExp(`/galeri/${UUID}$`))
+})
+
 test('/galeri: album → tile pertama buka lightbox, ArrowRight maju, Escape tutup', async ({
   page,
 }) => {

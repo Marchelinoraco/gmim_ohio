@@ -198,8 +198,10 @@ export function BerandaHero({
     toggleIcon = playing ? <PauseIcon /> : <PlayIcon />
   }
 
+  // Setinggi viewport penuh: header kini menimpanya (transparan di puncak
+  // beranda), jadi hero tak perlu lagi menyisakan ruang untuk header.
   return (
-    <section className="bg-primary relative flex min-h-[calc(100svh-4.5rem)] flex-col overflow-hidden">
+    <section className="bg-primary relative flex min-h-[100svh] flex-col overflow-hidden">
       <HeroMedia
         poster={SITE.hero.poster}
         sources={hasVideo ? SITE.hero.sources : []}

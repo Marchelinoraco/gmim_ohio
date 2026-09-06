@@ -40,6 +40,57 @@ export const listGalleryAlbums = createServerFn({ method: 'GET' }).handler(
 )
 
 /**
+ * Foto galeri untuk section Beranda — hanya kolom yang benar-benar dipakai
+ * (`createdAt`/`updatedAt` tidak), plus `albumId` untuk menaut ke albumnya.
+ */
+export type RecentGalleryPhoto = Pick<
+  GalleryItem,
+  'id' | 'albumId' | 'type' | 'imageUrl' | 'youtubeUrl' | 'captionId' | 'captionEn' | 'sortOrder'
+>
+
+/**
+ * Foto terbaru lintas album terbit, untuk section galeri di Beranda.
+ *
+ * HANYA `type = 'image'` — beranda menampilkan grid foto, dan item `youtube`
+ * tak punya `imageUrl` sehingga akan jadi kotak kosong.
+ *
+ * Diurut album terbaru dulu (`albumDate` desc), lalu `sortOrder` di dalam
+ * album, sehingga urutan kurasi pengurus tetap dihormati. `limit` dibatasi di
+ * query, bukan setelah fetch, supaya tidak menarik seluruh galeri hanya untuk
+ * membuang sebagian besarnya.
+ */
+export const listRecentGalleryPhotos = createServerFn({ method: 'GET' })
+  .validator((limit: number = 6) => limit)
+  .handler(async ({ data: limit }): Promise<RecentGalleryPhoto[]> => {
+    const { db } = await import('@/db')
+    const { galleryAlbums: albums, galleryItems: items } = await import('@/db/schema')
+    const { and, asc, desc, eq } = await import('drizzle-orm')
+
+    // JOIN, bukan `db.query.*` + filter setelah fetch: query relasional Drizzle
+    // tak bisa memfilter berdasarkan kolom relasi, sehingga `limit` akan
+    // diterapkan SEBELUM album draft tersaring dan section ini diam-diam
+    // menampilkan foto lebih sedikit dari yang diminta.
+    const rows = await db
+      .select({
+        id: items.id,
+        albumId: items.albumId,
+        type: items.type,
+        imageUrl: items.imageUrl,
+        youtubeUrl: items.youtubeUrl,
+        captionId: items.captionId,
+        captionEn: items.captionEn,
+        sortOrder: items.sortOrder,
+      })
+      .from(items)
+      .innerJoin(albums, eq(items.albumId, albums.id))
+      .where(and(eq(albums.status, 'published'), eq(items.type, 'image')))
+      .orderBy(desc(albums.albumDate), asc(items.sortOrder))
+      .limit(limit)
+
+    return rows
+  })
+
+/**
  * Satu album terbit + item-itemnya (urut `sortOrder` asc); `null` bila album
  * tidak ada / belum terbit.
  */

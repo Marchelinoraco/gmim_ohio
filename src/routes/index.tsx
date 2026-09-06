@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getLocale } from '@/paraglide/runtime'
 import { listBulletins } from '@/features/content/bulletins'
+import { listRecentGalleryPhotos } from '@/features/content/gallery'
 import { listServices } from '@/features/schedule/services'
 import { getSiteSettings } from '@/features/content/site-settings'
 import { addDays, todayEastern } from '@/lib/datetime'
@@ -32,6 +33,7 @@ export const Route = createFileRoute('/')({
       getSiteSettings(),
       listBulletins(),
       listServices({ data: { from, to: addDays(from, 6) } }),
+      listRecentGalleryPhotos({ data: 6 }),
     ])
   },
   head: () =>
@@ -49,6 +51,6 @@ export const Route = createFileRoute('/')({
 })
 
 function Home() {
-  const [settings, bulletins, services] = Route.useLoaderData()
-  return <Beranda settings={settings} bulletins={bulletins} services={services} />
+  const [settings, bulletins, services, photos] = Route.useLoaderData()
+  return <Beranda settings={settings} bulletins={bulletins} services={services} photos={photos} />
 }

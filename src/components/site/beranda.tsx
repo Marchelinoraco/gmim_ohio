@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { getLocale } from '@/paraglide/runtime'
 import type { BulletinSummary } from '@/features/content/bulletins'
+import type { RecentGalleryPhoto } from '@/features/content/gallery'
 import type { SiteSettings } from '@/features/content/site-settings'
 import type { UpcomingService } from '@/features/schedule/services'
 import { Button } from '@/components/ui/button'
@@ -27,7 +28,8 @@ import { ServiceCard } from '@/components/schedule/service-card'
  * Section: Hero (video/scrim, teks dari `hero.*` settings) → strip jam ibadah →
  * "Ibadah Minggu Ini" (kartu `<ServiceCard>` bersama, data nyata sejak Rencana 2b;
  * disembunyikan bila `services` kosong — TANPA <EmptyState>) → "Tentang ringkas" →
- * "Warta Terbaru" (3 terbaru; disembunyikan bila kosong).
+ * "Sekilas Kebersamaan" (6 foto terbaru lintas album terbit; disembunyikan bila
+ * kosong) → "Warta Terbaru" (3 terbaru; disembunyikan bila kosong).
  *
  * Teks & tombol hero berada di atas scrim gelap paksa — pengecualian warna yang
  * disengaja untuk keterbacaan di atas video/gambar hero.
@@ -37,9 +39,10 @@ type BerandaProps = {
   settings: SiteSettings
   bulletins: BulletinSummary[]
   services: UpcomingService[]
+  photos: RecentGalleryPhoto[]
 }
 
-export function Beranda({ settings, bulletins, services }: BerandaProps) {
+export function Beranda({ settings, bulletins, services, photos }: BerandaProps) {
   const locale = getLocale()
   const { hero, serviceTimes } = settings
 
@@ -84,6 +87,39 @@ export function Beranda({ settings, bulletins, services }: BerandaProps) {
             </div>
           </Section>
         </Reveal>
+
+        {photos.length > 0 && (
+          <Reveal>
+            <Section id="galeri-sekilas">
+              <SectionTitle>{m.home_gallery_title()}</SectionTitle>
+              {/* Grid rapat tanpa kartu: fotonya sendiri yang jadi kontennya.
+                  `aspect-square` + `object-cover` menyamakan tinggi baris walau
+                  rasio aslinya campur potret & lanskap. */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                {photos.map((photo) => (
+                  <Link
+                    key={photo.id}
+                    to="/galeri/$id"
+                    params={{ id: photo.albumId }}
+                    className="focus-visible:ring-secondary/60 focus-visible:ring-offset-surface group block overflow-hidden rounded outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  >
+                    <img
+                      src={photo.imageUrl ?? ''}
+                      alt={(locale === 'id' ? photo.captionId : photo.captionEn) ?? ''}
+                      loading="lazy"
+                      className="aspect-square w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+                    />
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-8">
+                <Button asChild variant="outline" className="h-11">
+                  <Link to="/galeri">{m.home_gallery_cta()}</Link>
+                </Button>
+              </div>
+            </Section>
+          </Reveal>
+        )}
 
         {latestBulletins.length > 0 && (
           <Reveal>

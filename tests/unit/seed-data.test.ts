@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, it, expect } from 'vitest'
 import { PLACEHOLDER_BULLETINS } from '@/db/seed/bulletins'
 import { WORSHIP_CATEGORIES } from '@/db/seed/categories'
@@ -186,17 +188,31 @@ describe('SCHEDULE_TEMPLATES', () => {
   })
 })
 
-describe('galeri placeholder', () => {
-  it('1 album published dengan cover, 3 item image urut 0..2', () => {
+describe('galeri', () => {
+  it('1 album published dengan cover yang benar-benar ada', () => {
     expect(PLACEHOLDER_ALBUM.status).toBe('published')
-    expect(PLACEHOLDER_ALBUM.coverImageUrl).toBe('/hero/hero-poster.jpg')
+    expect(PLACEHOLDER_ALBUM.coverImageUrl).toMatch(/^\/gallery\/.+\.jpg$/)
+    expect(existsSync(join('public', PLACEHOLDER_ALBUM.coverImageUrl!))).toBe(true)
+  })
 
-    expect(PLACEHOLDER_ALBUM_ITEMS).toHaveLength(3)
-    expect(PLACEHOLDER_ALBUM_ITEMS.map((i) => i.sortOrder)).toEqual([0, 1, 2])
+  it('semua item foto nyata, unik, dan berkasnya ada di disk', () => {
+    expect(PLACEHOLDER_ALBUM_ITEMS.length).toBeGreaterThanOrEqual(10)
+    expect(PLACEHOLDER_ALBUM_ITEMS.map((i) => i.sortOrder)).toEqual(
+      PLACEHOLDER_ALBUM_ITEMS.map((_, idx) => idx),
+    )
+
+    const urls = PLACEHOLDER_ALBUM_ITEMS.map((i) => i.imageUrl)
+    // Placeholder lama menunjuk berkas yang SAMA berkali-kali; keunikan di sini
+    // mengunci bahwa galeri berisi foto sungguhan yang berbeda-beda.
+    expect(new Set(urls).size).toBe(urls.length)
 
     for (const i of PLACEHOLDER_ALBUM_ITEMS) {
-      expect(i.imageUrl).toBe('/hero/hero-poster.jpg')
+      expect(i.type).toBe('image')
       expect(i.youtubeUrl).toBeNull()
+      expect(i.imageUrl).toMatch(/^\/gallery\/.+\.jpg$/)
+      // Rujukan ke berkas yang tak ada = gambar rusak di situs live.
+      expect(existsSync(join('public', i.imageUrl!))).toBe(true)
+      // Caption dipakai sebagai teks alternatif — tak boleh kosong.
       expect((i.captionId ?? '').length).toBeGreaterThan(0)
       expect((i.captionEn ?? '').length).toBeGreaterThan(0)
     }
@@ -211,10 +227,6 @@ describe('galeri placeholder', () => {
   })
 })
 
-// Invarian integritas konten yang sudah GAGAL tiga kali di proyek ini (nama
-// pelayan, nama tuan rumah, atribusi renungan): seed TIDAK PERNAH mengarang
-// data tentang orang sungguhan. `buildService` diekspor khusus supaya invarian
-// itu dikunci test, bukan sekadar prosa di docblock.
 describe('buildService — tanpa fabrikasi orang', () => {
   type Args = Parameters<typeof buildService>[0]
   const cat = { id: 'cat-1' } as Args['cat']

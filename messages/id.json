@@ -162,5 +162,15 @@
   "admin_login_password": "Kata sandi",
   "admin_login_submit": "Masuk",
   "admin_login_submitting": "Memproses…",
-  "admin_login_error": "Email atau kata sandi salah."
+  "admin_login_error": "Email atau kata sandi salah.",
+  "admin_nav_home": "Beranda",
+  "admin_nav_schedule": "Jadwal",
+  "admin_nav_bulletins": "Warta",
+  "admin_nav_devotionals": "Renungan",
+  "admin_nav_gallery": "Galeri",
+  "admin_nav_master": "Master Data",
+  "admin_nav_messages": "Pesan",
+  "admin_nav_label": "Navigasi dashboard",
+  "admin_sign_out": "Keluar",
+  "admin_open_menu": "Buka atau tutup menu dashboard"
 }

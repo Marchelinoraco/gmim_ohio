@@ -177,5 +177,15 @@
   "admin_login_password": "Password",
   "admin_login_submit": "Sign in",
   "admin_login_submitting": "Signing in…",
-  "admin_login_error": "Incorrect email or password."
+  "admin_login_error": "Incorrect email or password.",
+  "admin_nav_home": "Home",
+  "admin_nav_schedule": "Schedule",
+  "admin_nav_bulletins": "Bulletins",
+  "admin_nav_devotionals": "Devotionals",
+  "admin_nav_gallery": "Gallery",
+  "admin_nav_master": "Master Data",
+  "admin_nav_messages": "Messages",
+  "admin_nav_label": "Dashboard navigation",
+  "admin_sign_out": "Sign out",
+  "admin_open_menu": "Toggle dashboard menu"
 }

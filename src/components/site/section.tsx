@@ -4,12 +4,13 @@ import { cn } from '@/lib/utils'
 
 /**
  * Blok isi halaman dengan ritme vertikal seragam. `id` diteruskan supaya
- * halaman bisa di-deep-link (mis. `/tentang#sejarah`); `scroll-mt-20`
- * memberi ruang di atas target anchor untuk header sticky di masa depan.
+ * halaman bisa di-deep-link (mis. `/tentang#sejarah`); `scroll-mt-24` memberi
+ * ruang di atas target anchor untuk `SiteHeader` yang kini benar-benar sticky
+ * (tingginya ~68px) — tanpa itu, judul section tertutup header saat di-anchor.
  */
 export function Section({ children, className, id, ...props }: React.ComponentProps<'section'>) {
   return (
-    <section id={id} className={cn('scroll-mt-20 py-12 sm:py-16', className)} {...props}>
+    <section id={id} className={cn('scroll-mt-24 py-10 sm:py-14', className)} {...props}>
       {children}
     </section>
   )

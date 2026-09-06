@@ -10,10 +10,11 @@ import { test, expect } from '@playwright/test'
  *     URL `?kategori=kaum-ibu` + setiap badge kategori yang tampil berbunyi
  *     "Wanita/Kaum Ibu" (nama seed `kaum_ibu`, `src/db/seed/categories.ts`).
  *  3. Toggle Kalender — URL `?view=kalender`, grid muncul; klik tanggal ibadah
- *     KEDUA (beda dari tanggal yang di-pre-select SSR) → judul panel berpindah
- *     ke tanggal itu (bukti `onSelectDate` benar-benar hidup), panel berisi
- *     kartu. Tahan batas bulan: maju ke bulan berikutnya bila bulan berjalan
- *     punya <2 hari ibadah.
+ *     yang BERBEDA dari yang sedang terpilih → judul panel berpindah ke tanggal
+ *     itu (bukti `onSelectDate` benar-benar hidup), panel berisi kartu. Tahan
+ *     batas bulan (maju sebulan bila bulan berjalan punya <2 hari ibadah) dan
+ *     tahan seed yang tidak dijalankan hari ini (target dipilih relatif terhadap
+ *     isi panel, bukan diasumsikan sebagai tombol pertama).
  *  4. `/jadwal` → klik kartu pertama → `/jadwal/<uuid>` → tema (h1) + badge
  *     kategori tampil.
  *  5. `/jadwal/bukan-uuid` → 404 (guard `UUID_RE` di `jadwal_.$id.tsx`, bukan
@@ -110,25 +111,37 @@ test('/jadwal: toggle Kalender → klik tanggal ibadah ke-2 → judul panel berp
   }
   await expect(dayButtons.nth(1)).toBeVisible({ timeout: 15000 })
 
-  // Route meng-inisialisasi `selectedDate` di SSR ke tanggal ibadah PALING AWAL
-  // di bulan itu (`src/routes/jadwal.tsx`), dan sel dirender kronologis — jadi
-  // tombol PERTAMA = tanggal yang SUDAH terpilih sejak SSR & panel di bawah
-  // sudah menampilkan kartunya sebelum klik apa pun. Untuk benar-benar menguji
-  // `onSelectDate` (bukan asersi vakum): klik tombol KEDUA (tanggal berbeda) &
-  // buktikan judul panel BERPINDAH ke tanggal itu.
+  // Untuk membuktikan `onSelectDate` benar-benar hidup (bukan asersi vakum),
+  // klik tanggal yang BERBEDA dari yang sedang terpilih, lalu pastikan judul
+  // panel berpindah ke sana.
+  //
+  // Target TIDAK boleh diasumsikan sebagai "tombol pertama". Panel mewarisi
+  // `selectedDate` dari tampilan daftar (`from = hari ini`), sedangkan kalender
+  // memuat SEBULAN PENUH (`from = tanggal-01`) — jadi bila seed dijalankan pada
+  // hari sebelumnya, tombol pertama adalah tanggal lampau sementara panel masih
+  // menunjuk hari ini, dan asersi "panel = tombol pertama" gagal padahal aplikasi
+  // benar. Karena itu target dipilih relatif terhadap isi panel saat ini.
   const stripCount = (label: string | null) => (label ?? '').replace(/, \d+ ibadah$/, '')
-  const firstDate = stripCount(await dayButtons.first().getAttribute('aria-label'))
-  const secondDate = stripCount(await dayButtons.nth(1).getAttribute('aria-label'))
-  expect(secondDate).not.toBe('')
-  expect(secondDate).not.toBe(firstDate)
 
   // Panel tanggal terpilih = <SectionTitle> → <h2> berisi
   // `formatDateLong(selectedGroup.date, locale)` (`jadwal.tsx`) — string dengan
   // FORMAT SAMA dengan bagian tanggal `aria-label` tombol kalender.
   const panelHeading = page.locator('main').getByRole('heading', { level: 2 })
-  await expect(panelHeading).toHaveText(firstDate) // mulai di tanggal SSR paling awal
-  await dayButtons.nth(1).click()
-  await expect(panelHeading).toHaveText(secondDate) // klik → panel berpindah ke tanggal ke-2
+  const selectedBefore = ((await panelHeading.textContent()) ?? '').trim()
+  expect(selectedBefore).not.toBe('')
+
+  const labels = await dayButtons.evaluateAll((els) =>
+    els.map((el) => el.getAttribute('aria-label')),
+  )
+  const targetIndex = labels.findIndex((l) => stripCount(l) !== selectedBefore)
+  expect(
+    targetIndex,
+    'butuh minimal satu tanggal ibadah selain yang sedang terpilih',
+  ).toBeGreaterThanOrEqual(0)
+  const targetDate = stripCount(labels[targetIndex] ?? null)
+
+  await dayButtons.nth(targetIndex).click()
+  await expect(panelHeading).toHaveText(targetDate) // klik → panel berpindah
 
   // Panel tanggal terpilih memang berisi kartu ibadah.
   await expect(page.locator('main a[href^="/jadwal/"]').first()).toBeVisible()

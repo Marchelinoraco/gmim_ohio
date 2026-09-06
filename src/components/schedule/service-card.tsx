@@ -68,7 +68,7 @@ export function ServiceCard({
         : m.home_location_tba()
 
   const card = (
-    <Card className="h-full">
+    <Card className={linkToDetail ? 'hover:shadow-card-hover h-full' : 'h-full'}>
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CategoryBadge category={service.category} locale={locale} />
@@ -79,6 +79,10 @@ export function ServiceCard({
       </CardHeader>
       <CardContent className="flex flex-col gap-3 text-sm">
         <p className="text-ink font-medium">{location}</p>
+        {/* Ibadah kolom: empat baris pada tanggal & jam yang SAMA hanya
+            dibedakan oleh kolomnya. Tanpa baris ini keempat kartu tampak
+            kembar dan pembaca tak tahu kolom mana yang mana. */}
+        {service.kolom && <p className="text-muted">{service.kolom.name}</p>}
 
         <dl className="space-y-2">
           {theme && (

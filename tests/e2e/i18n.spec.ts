@@ -21,7 +21,7 @@ test('beranda /en menampilkan teks Inggris', async ({ page }) => {
 test('language switcher pindah ke /en', async ({ page }) => {
   await page.goto('/')
   // Sejak Task 6 ada LanguageSwitcher di header DAN footer — scope ke header.
-  await page.getByRole('banner').getByRole('link', { name: 'English' }).click()
+  await page.getByRole('banner').getByRole('link', { name: 'EN — English' }).click()
   await expect(page).toHaveURL(/\/en$/)
   await expect(page.getByText(HERO_TAGLINE_EN)).toBeVisible()
 })
@@ -29,8 +29,10 @@ test('language switcher pindah ke /en', async ({ page }) => {
 test('dari /en bisa balik ke Indonesia (tidak terjebak cookie)', async ({ page }) => {
   await page.goto('/en')
   await expect(page.getByText(HERO_TAGLINE_EN)).toBeVisible()
-  // Klik "Indonesia" — harus sampai di / dengan konten id, tanpa 307 balik ke /en.
-  await page.getByRole('banner').getByRole('link', { name: 'Indonesia' }).click()
+  // Klik pemilih bahasa Indonesia — harus sampai di / dengan konten id, tanpa 307
+  // balik ke /en. Nama aksesibelnya memuat kode yang terlihat ("ID") demi WCAG
+  // 2.5.3 Label in Name; teksnya sendiri ringkas supaya header tak meluap.
+  await page.getByRole('banner').getByRole('link', { name: 'ID — Bahasa Indonesia' }).click()
   await expect(page).toHaveURL(/localhost:\d+\/$/)
   await expect(page.getByText(HERO_TAGLINE_ID)).toBeVisible()
   // Muat ulang / lagi — tetap Indonesia (tidak ada cookie yang membelokkan).

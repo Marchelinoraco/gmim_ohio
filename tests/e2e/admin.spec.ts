@@ -1,4 +1,21 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type APIRequestContext } from '@playwright/test'
+
+/**
+ * Helper untuk memanaskan endpoint auth sebelum form submission.
+ *
+ * Hit PERTAMA ke `/api/auth/*` pada dev server baru menyala memicu transform
+ * on-demand ~1.5 MB (better-auth + drizzle), dan bisa timeout di runner dingin.
+ * Pemanasan ini memastikan graf auth siap sebelum test submit form.
+ *
+ * Pola ini sudah dipakai di auth-smoke.spec.ts; lihat docblock-nya untuk detail.
+ * Ini artefak dev server saja — build produksi tidak punya transform on-demand.
+ */
+async function warmAuthEndpoint(request: APIRequestContext) {
+  await expect(async () => {
+    const res = await request.get('/api/auth/ok')
+    expect(res.status()).toBe(200)
+  }).toPass({ timeout: 20_000 })
+}
 
 /**
  * Gerbang `/admin/*`.
@@ -48,8 +65,11 @@ test('halaman admin ber-noindex', async ({ page }) => {
   expect(html).toMatch(/name="robots"[^>]*content="noindex"/)
 })
 
-test('masuk dengan kredensial benar → sampai di dashboard', async ({ page }) => {
+test('masuk dengan kredensial benar → sampai di dashboard', async ({ page, request }) => {
   test.skip(!EMAIL || !PASSWORD, 'SEED_ADMIN_EMAIL/PASSWORD tidak di-set')
+
+  // Panaskan endpoint auth sebelum submit form. Lihat komentar warmAuthEndpoint.
+  await warmAuthEndpoint(request)
 
   await page.goto('/admin/login')
   // Tunggu hidrasi selesai sebelum submit. React form handler belum aktif saat
@@ -65,7 +85,10 @@ test('masuk dengan kredensial benar → sampai di dashboard', async ({ page }) =
   await expect(page.getByRole('navigation', { name: /navigasi dashboard|dashboard navigation/i })).toBeVisible()
 })
 
-test('kredensial salah → tetap di halaman masuk dengan pesan galat', async ({ page }) => {
+test('kredensial salah → tetap di halaman masuk dengan pesan galat', async ({ page, request }) => {
+  // Panaskan endpoint auth sebelum submit form. Lihat komentar warmAuthEndpoint.
+  await warmAuthEndpoint(request)
+
   await page.goto('/admin/login')
   // Tunggu hidrasi selesai sebelum submit (lihat komentar di test sebelumnya).
   // Tanpa ini, form ter-submit sebelum React hydrate, handler tidak dipanggil,

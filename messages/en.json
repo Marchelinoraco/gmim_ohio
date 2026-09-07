@@ -187,5 +187,12 @@
   "admin_nav_messages": "Messages",
   "admin_nav_label": "Dashboard navigation",
   "admin_sign_out": "Sign out",
-  "admin_open_menu": "Toggle dashboard menu"
+  "admin_open_menu": "Toggle dashboard menu",
+  "admin_home_title": "Overview",
+  "admin_summary_draft": "draft",
+  "admin_schedule_filled_until": "Schedule filled until",
+  "admin_schedule_days_left": "days left",
+  "admin_schedule_expired": "Schedule has run out — the /jadwal page is empty.",
+  "admin_schedule_none": "No schedule at all yet.",
+  "admin_messages_new": "new messages"
 }

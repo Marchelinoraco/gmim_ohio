@@ -172,5 +172,12 @@
   "admin_nav_messages": "Pesan",
   "admin_nav_label": "Navigasi dashboard",
   "admin_sign_out": "Keluar",
-  "admin_open_menu": "Buka atau tutup menu dashboard"
+  "admin_open_menu": "Buka atau tutup menu dashboard",
+  "admin_home_title": "Ringkasan",
+  "admin_summary_draft": "draf",
+  "admin_schedule_filled_until": "Jadwal terisi sampai",
+  "admin_schedule_days_left": "hari lagi",
+  "admin_schedule_expired": "Jadwal sudah habis — halaman /jadwal kosong.",
+  "admin_schedule_none": "Belum ada jadwal sama sekali.",
+  "admin_messages_new": "pesan baru"
 }

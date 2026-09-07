@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useRouter } from '@tanstack/react-router'
+import { useRouter, Link } from '@tanstack/react-router'
 import {
   CalendarDays,
   FileText,
@@ -55,12 +55,31 @@ export function AdminShell({ email, children }: { email: string; children: React
     <nav aria-label={m.admin_nav_label()} className="flex flex-col gap-0.5 p-3">
       {NAV.map((item) => {
         const Icon = item.icon
+        const className =
+          'text-ink hover:bg-surface-2 data-[status=active]:bg-surface-2 data-[status=active]:text-primary flex min-h-11 items-center gap-2.5 rounded-md px-3 text-sm font-medium'
+
+        // Item /admin menggunakan <Link> karena route-nya sudah ada; yang lain tetap <a>
+        if (item.href === '/admin') {
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
+              activeOptions={{ exact: true }}
+              onClick={() => setOpen(false)}
+              className={className}
+            >
+              <Icon aria-hidden="true" className="size-4 shrink-0" />
+              {item.label()}
+            </Link>
+          )
+        }
+
         return (
           <a
             key={item.href}
             href={item.href}
             onClick={() => setOpen(false)}
-            className="text-ink hover:bg-surface-2 data-[status=active]:bg-surface-2 data-[status=active]:text-primary flex min-h-11 items-center gap-2.5 rounded-md px-3 text-sm font-medium"
+            className={className}
           >
             <Icon aria-hidden="true" className="size-4 shrink-0" />
             {item.label()}

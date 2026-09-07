@@ -1,3 +1,9 @@
+// Muat .env agar test yang butuh sesi bisa baca SEED_ADMIN_EMAIL/PASSWORD.
+// Tanpa ini, process.env.SEED_ADMIN_* selalu undefined di test, menyebabkan
+// test.skip() selalu true dan alur login tidak pernah dibuktikan (hanya terlihat
+// seperti cakupan). Di CI env tidak di-set, jadi skip di sana benar dan disengaja.
+import 'dotenv/config'
+
 import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({

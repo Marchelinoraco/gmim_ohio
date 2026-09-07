@@ -16,9 +16,13 @@ import { test, expect } from '@playwright/test'
  * 2. Memanggil `ensureAdmin()` di loadernya
  * 3. Ditambahkan ke daftar test gerbang di bawah
  *
- * Kredensial diambil dari env yang sama dengan `pnpm seed:admin`. Di CI keduanya
- * tidak di-set, jadi test yang butuh sesi dilewati — gerbangnya sendiri tetap
- * diuji, dan itu bagian yang tak boleh rusak.
+ * Kredensial diambil dari env yang sama dengan `pnpm seed:admin`.
+ * - **Lokal:** SEED_ADMIN_* ada di .env, test yang butuh sesi JALAN dan membuktikan
+ *   alur login lengkap (dari form submit sampai dashboard). Tanpa ini, hanya skip
+ *   terlihat seperti cakupan.
+ * - **CI:** SEED_ADMIN_* tidak di-set, test yang butuh sesi dilewati dengan sengaja
+ *   — gerbang itu sendiri tetap diuji dan tidak boleh rusak (bukan login yang
+ *   diuji, tapi gate redirect).
  */
 const EMAIL = process.env.SEED_ADMIN_EMAIL
 const PASSWORD = process.env.SEED_ADMIN_PASSWORD

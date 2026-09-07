@@ -65,7 +65,13 @@ test('halaman admin ber-noindex', async ({ page }) => {
   expect(html).toMatch(/name="robots"[^>]*content="noindex"/)
 })
 
-test('masuk dengan kredensial benar → sampai di dashboard', async ({ page, request }) => {
+test('masuk dengan kredensial benar → sampai di dashboard', async ({ page, request }, testInfo) => {
+  // Project reduced-motion ada untuk validasi perilaku animasi (hero tidak autoplay, dll).
+  // Form login tidak punya animasi — menjalankan alur login di sana tidak menambah
+  // informasi, hanya menggandakan beban pada endpoint auth sensitif urutan. Test gerbang
+  // yang murah (cek redirect) tetap jalan di kedua project; yang dibatasi hanya
+  // sign-in sungguhan.
+  test.skip(testInfo.project.name !== 'chromium', 'alur login hanya di chromium')
   test.skip(!EMAIL || !PASSWORD, 'SEED_ADMIN_EMAIL/PASSWORD tidak di-set')
 
   // Panaskan endpoint auth sebelum submit form. Lihat komentar warmAuthEndpoint.
@@ -85,7 +91,10 @@ test('masuk dengan kredensial benar → sampai di dashboard', async ({ page, req
   await expect(page.getByRole('navigation', { name: /navigasi dashboard|dashboard navigation/i })).toBeVisible()
 })
 
-test('kredensial salah → tetap di halaman masuk dengan pesan galat', async ({ page, request }) => {
+test('kredensial salah → tetap di halaman masuk dengan pesan galat', async ({ page, request }, testInfo) => {
+  // Batasi ke chromium saja (lihat komentar di test sebelumnya).
+  test.skip(testInfo.project.name !== 'chromium', 'alur login hanya di chromium')
+
   // Panaskan endpoint auth sebelum submit form. Lihat komentar warmAuthEndpoint.
   await warmAuthEndpoint(request)
 

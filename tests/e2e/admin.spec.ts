@@ -3,9 +3,18 @@ import { test, expect } from '@playwright/test'
 /**
  * Gerbang `/admin/*`.
  *
- * Test pertama adalah yang paling penting di file ini: ia gagal begitu sebuah
- * halaman admin baru diletakkan di luar pathless layout `admin._app`, yang
- * membuat gerbangnya bocor tanpa gejala lain apa pun.
+ * Test gerbang `/admin` membuktikan bahwa route tidak dapat diakses tanpa sesi
+ * valid. Perlindungannya berlapis: layout pathless `admin._app` mencegah render,
+ * dan server fn `ensureAdmin()` di loader mencegah akses langsung ke API. Dual
+ * layer ini disengaja — layout untuk UX, server fn untuk keamanan. Test tidak
+ * mengisolasi satu lapisan saja (tidak perlu: nilainya tidak sebanding dengan
+ * kerumitannya).
+ *
+ * Rencana berikutnya (3b–3d) akan menambahkan route admin baru (/jadwal, /warta,
+ * /galeri, dll). Setiap route baru WAJIB:
+ * 1. Dideklarasikan sebagai `admin._app.<nama>.tsx` (anak layout ber-gerbang)
+ * 2. Memanggil `ensureAdmin()` di loadernya
+ * 3. Ditambahkan ke daftar test gerbang di bawah
  *
  * Kredensial diambil dari env yang sama dengan `pnpm seed:admin`. Di CI keduanya
  * tidak di-set, jadi test yang butuh sesi dilewati — gerbangnya sendiri tetap
@@ -14,7 +23,9 @@ import { test, expect } from '@playwright/test'
 const EMAIL = process.env.SEED_ADMIN_EMAIL
 const PASSWORD = process.env.SEED_ADMIN_PASSWORD
 
-for (const path of ['/admin', '/admin/jadwal', '/admin/warta', '/admin/galeri']) {
+// Daftar route admin yang harus dijaga gerbang. Tambahkan path baru saat route
+// baru lahir di rencana berikutnya.
+for (const path of ['/admin']) {
   test(`${path} tanpa sesi → dialihkan ke /admin/login`, async ({ page }) => {
     await page.goto(path)
     await expect(page).toHaveURL(/\/admin\/login$/)
@@ -37,6 +48,11 @@ test('masuk dengan kredensial benar → sampai di dashboard', async ({ page }) =
   test.skip(!EMAIL || !PASSWORD, 'SEED_ADMIN_EMAIL/PASSWORD tidak di-set')
 
   await page.goto('/admin/login')
+  // Tunggu hidrasi selesai sebelum submit. React form handler belum aktif saat
+  // SSR selesai — tanpa wait ini, form ter-submit secara native (tidak melalui
+  // handler React) dan request tidak pernah terjadi. Pola ini sejalan dengan
+  // openThemeMenu di theme.spec.ts, di mana aksi diulang sampai efeknya terlihat.
+  await page.waitForLoadState('networkidle')
   await page.getByLabel(/email/i).fill(EMAIL!)
   await page.getByLabel(/kata sandi|password/i).fill(PASSWORD!)
   await page.getByRole('button', { name: /masuk|sign in/i }).click()
@@ -47,6 +63,10 @@ test('masuk dengan kredensial benar → sampai di dashboard', async ({ page }) =
 
 test('kredensial salah → tetap di halaman masuk dengan pesan galat', async ({ page }) => {
   await page.goto('/admin/login')
+  // Tunggu hidrasi selesai sebelum submit (lihat komentar di test sebelumnya).
+  // Tanpa ini, form ter-submit sebelum React hydrate, handler tidak dipanggil,
+  // dan error message tidak muncul.
+  await page.waitForLoadState('networkidle')
   await page.getByLabel(/email/i).fill('bukan@siapa-siapa.test')
   await page.getByLabel(/kata sandi|password/i).fill('salah-sekali-123')
   await page.getByRole('button', { name: /masuk|sign in/i }).click()

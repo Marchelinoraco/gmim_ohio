@@ -25,14 +25,51 @@ function token(name: string): string {
 }
 
 /**
+ * Ekstrak isi satu blok top-level `selector { ... }` dari sumber CSS. Non-greedy
+ * sampai `\n}` pertama — cukup selama blok itu daftar deklarasi datar tanpa
+ * aturan bersarang yang juga menutup rata kolom-0, yang memang bentuk `:root`
+ * dan `@theme inline` di app.css.
+ */
+function block(css: string, selector: string): string {
+  const found = css.match(new RegExp(`${selector}\\s*\\{([\\s\\S]*?)\\n\\}`))
+  const content = found?.[1]
+  if (content === undefined) throw new Error(`blok "${selector}" tidak ditemukan di app.css`)
+  return content
+}
+
+/**
  * Alias menunjuk token lain (`var(--color-surface)`), bukan hex — jadi `token()`
- * yang mencari `#rrggbb` tidak menemukannya. Helper ini hanya memastikan
- * deklarasinya ADA; nilainya sudah diuji lewat token yang ditunjuknya.
+ * yang mencari `#rrggbb` tidak menemukannya. Helper ini memastikan deklarasinya
+ * ADA.
+ *
+ * HARUS dicari di dalam blok `@theme inline`, bukan lewat `CSS.match()` atas
+ * seluruh file: hanya alias di `@theme inline` yang membuat Tailwind meng-emit
+ * utility class sungguhan (`bg-background`, `border-input`, dst) — deklarasi
+ * yang sama di `:root` cuma membuat variabelnya terbaca saat runtime, tidak
+ * membuat class-nya valid (Ruling 6 proyek ini). Karena tiap alias
+ * dideklarasikan di `:root` LEBIH DULU dalam file, mencari lewat seluruh `CSS`
+ * selalu menemukan kecocokan di `:root` duluan dan tak pernah gagal walau
+ * seluruh blok `@theme inline` dihapus — versi lama helper ini punya cacat
+ * persis itu, dan 13 dari 13 test alias tetap lulus tanpa `@theme inline`.
+ *
+ * Ruling 6 juga menetapkan kedua blok memang wajib berisi alias yang sama
+ * (satu untuk keterbacaan runtime, satu untuk validitas class Tailwind), jadi
+ * helper ini mengasersi alias ada di KEDUANYA, bukan cuma salah satu.
  */
 function aliasTarget(name: string): string {
-  const found = CSS.match(new RegExp(`--${name}:\\s*(var\\(--[a-z0-9-]+\\)|#[0-9a-fA-F]{6})`))
-  if (!found?.[1]) throw new Error(`alias --${name} tidak ditemukan di app.css`)
-  return found[1]
+  const pattern = new RegExp(`--${name}:\\s*(var\\(--[a-z0-9-]+\\)|#[0-9a-fA-F]{6})`)
+
+  const inThemeInline = block(CSS, '@theme inline').match(pattern)
+  if (!inThemeInline?.[1]) {
+    throw new Error(`alias --${name} tidak ditemukan di blok @theme inline app.css`)
+  }
+
+  const inRoot = block(CSS, ':root').match(pattern)
+  if (!inRoot?.[1]) {
+    throw new Error(`alias --${name} tidak ditemukan di blok :root app.css`)
+  }
+
+  return inThemeInline[1]
 }
 
 /** Tuple, bukan `number[]`: destructuring array biasa memberi `number | undefined`. */

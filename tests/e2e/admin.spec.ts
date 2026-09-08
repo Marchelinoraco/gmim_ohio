@@ -18,6 +18,40 @@ async function warmAuthEndpoint(request: APIRequestContext) {
 }
 
 /**
+ * Helper untuk memanaskan route `/admin` sebelum navigation setelah login.
+ *
+ * Hit PERTAMA ke route `/admin` pada dev server baru menyala memicu transform
+ * on-demand seluruh graf layoutnya (admin._app + children), dan bisa timeout di
+ * runner dingin saat suite penuh berjalan dengan parallelisasi. Pemanasan ini
+ * memastikan modul ter-transform sebelum test navigation dimulai.
+ *
+ * Panggilan tanpa sesi → akan redirect ke `/admin/login` (status 200 + Location),
+ * cukup untuk transform; kita tidak butuh render halaman `/admin` itu sendiri.
+ *
+ * Pemanasan saja TIDAK cukup, dan timeout saja juga tidak — keduanya menangani
+ * biaya yang berbeda, dan test ini butuh dua-duanya:
+ *   - pemanasan di sini menghapus transform on-demand Vite (hit pertama ke graf
+ *     modul admin), yang tidak bisa ditunggu berapa lama pun tanpa membuat test
+ *     lambat gagal saat aplikasinya benar-benar rusak;
+ *   - timeout longgar di asersi navigasi (lihat test "masuk dengan kredensial
+ *     benar") menampung latensi SSR full-page di dev server yang melayani empat
+ *     worker sekaligus — biaya yang tetap ada meski modulnya sudah panas.
+ *
+ * Pola pemanasannya sejalan dengan warmAuthEndpoint() dan docblock
+ * auth-smoke.spec.ts.
+ *
+ * Artefak dev server saja; build produksi tidak punya transform on-demand.
+ */
+async function warmAdminRoute(request: APIRequestContext) {
+  await expect(async () => {
+    const res = await request.get('/admin')
+    // Tanpa sesi, server redirect ke /admin/login (300-series + Location header).
+    // Kita tidak check status = 200, cukup request terselesaikan tanpa timeout.
+    expect([200, 300, 301, 302, 303, 307, 308]).toContain(res.status())
+  }).toPass({ timeout: 20_000 })
+}
+
+/**
  * Gerbang `/admin/*`.
  *
  * Test gerbang `/admin` membuktikan bahwa route tidak dapat diakses tanpa sesi
@@ -77,6 +111,11 @@ test('masuk dengan kredensial benar → sampai di dashboard', async ({ page, req
   // Panaskan endpoint auth sebelum submit form. Lihat komentar warmAuthEndpoint.
   await warmAuthEndpoint(request)
 
+  // Panaskan route /admin sebelum navigasi setelah login. Lihat komentar
+  // warmAdminRoute — ia menjelaskan pembagian tugas antara pemanasan ini dan
+  // timeout longgar di asersi navigasi di bawah.
+  await warmAdminRoute(request)
+
   await page.goto('/admin/login')
   // Tunggu hidrasi selesai sebelum submit. React form handler belum aktif saat
   // SSR selesai — tanpa wait ini, form ter-submit secara native (tidak melalui
@@ -87,11 +126,25 @@ test('masuk dengan kredensial benar → sampai di dashboard', async ({ page, req
   await page.getByLabel(/kata sandi|password/i).fill(PASSWORD!)
   await page.getByRole('button', { name: /masuk|sign in/i }).click()
 
-  await expect(page).toHaveURL(/\/admin$/)
-  await expect(page.getByRole('navigation', { name: /navigasi dashboard|dashboard navigation/i })).toBeVisible()
+  // Navigasi ke /admin: sign-in berhasil, browser mulai SSR render full-page
+  // (bukan hidrasi). Di dev server sibuk (4 worker parallel), ini butuh 10–15 detik:
+  // - SSR render layout + children + data fetches
+  // - Kirim HTML via network
+  // - Browser parse + hidrasi React
+  // Pemanasan warmAdminRoute() di atas menghapus biaya transform on-demand Vite
+  // (~1.5 MB), tapi tidak memperpendek bagian ini. Timeout 15 detik menampung
+  // latensi itu. Angka ini hanya relevan di dev dengan transform on-demand —
+  // produksi build tidak punya transform on-demand, jadi tidak berlaku di sana.
+  await expect(page).toHaveURL(/\/admin$/, { timeout: 15_000 })
+  await expect(
+    page.getByRole('navigation', { name: /navigasi dashboard|dashboard navigation/i }),
+  ).toBeVisible()
 })
 
-test('kredensial salah → tetap di halaman masuk dengan pesan galat', async ({ page, request }, testInfo) => {
+test('kredensial salah → tetap di halaman masuk dengan pesan galat', async ({
+  page,
+  request,
+}, testInfo) => {
   // Batasi ke chromium saja (lihat komentar di test sebelumnya).
   test.skip(testInfo.project.name !== 'chromium', 'alur login hanya di chromium')
 

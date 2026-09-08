@@ -135,8 +135,9 @@ Sekali dipasang, komponen shadcn berikutnya bisa ditarik CLI dan langsung benar 
 |---|---|---|
 | `--color-destructive` (light) | `#b91c1c` | putih di atasnya 6.47:1 |
 | `--dark-destructive` | `#f87171` | 6.45:1 di `--dark-surface` |
+| `--dark-destructive-foreground` | `#1a1714` | 6.45:1 di `--dark-destructive` |
 
-Versi dark sengaja lebih jenuh daripada `--dark-cat-jemaat` (`#fca5a5`, 9.40:1) supaya tombol hapus tidak terbaca seperti badge kategori. Keduanya masuk `tests/unit/dark-palette.test.ts` seperti token lain.
+Versi dark sengaja lebih jenuh daripada `--dark-cat-jemaat` (`#fca5a5`, 9.40:1) supaya tombol hapus tidak terbaca seperti badge kategori. Teks di atas tombol hapus dark memakai ink gelap, bukan putih: putih di atas `#f87171` hanya 2.77:1 dan gagal AA. Keduanya masuk `tests/unit/dark-palette.test.ts` seperti token lain.
 
 **3. Ikon.** `components.json` menyebut lucide tapi paketnya tak pernah dipasang; tujuh ikon yang ada ditulis tangan sebagai SVG inline. Dashboard ini butuh puluhan, jadi `lucide-react` ditambahkan sebagai dependency. Ikon yang sudah ada dibiarkan — menggantinya tak memberi apa pun dan menyentuh komponen publik yang sudah stabil.
 

@@ -471,7 +471,7 @@ Di **kedua** blok dark (`@media (prefers-color-scheme: dark) :root:not([data-the
   --color-destructive: var(--dark-destructive);
 ```
 
-`--color-destructive-foreground` tetap `#ffffff` di kedua tema: teks putih di atas `#f87171` = 6.45:1, lolos AA.
+> **KOREKSI (pasca-implementasi).** Baris ini semula berbunyi "`--color-destructive-foreground` tetap `#ffffff` di kedua tema: teks putih di atas `#f87171` = 6.45:1, lolos AA" — dan itu SALAH. Angka 6.45:1 adalah kontras `#f87171` terhadap `--dark-surface`, bukan terhadap teks di atasnya. Putih di atas `#f87171` sebenarnya hanya **2.77:1 dan GAGAL AA**. Implementer menangkapnya saat mengerjakan task ini dan menambahkan `--dark-destructive-foreground: #1a1714` (6.45:1, lolos), konsisten dengan `--dark-primary-foreground` dan `--dark-accent-foreground` yang juga memakai ink gelap. Yang terpasang di `app.css` adalah nilai yang benar itu, bukan yang tertulis di sini semula.
 
 - [ ] **Step 5: Tambahkan lapisan alias di `@theme inline`**
 

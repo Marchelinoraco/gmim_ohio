@@ -17,6 +17,14 @@
   --color-secondary-hover: #6d28d9;
   --color-accent: #9333ea; /* badge "live", highlight (hemat) — putih 5.38:1 */
 
+  /* Aksi merusak (hapus) di dashboard admin. Putih di atasnya 6.47:1. */
+  --color-destructive: #b91c1c;
+  --color-destructive-foreground: #ffffff;
+
+  /* Warna teks di atas tombol primary & accent — putih untuk contrast optimal */
+  --color-primary-foreground: #ffffff;
+  --color-accent-foreground: #ffffff;
+
   /* Netral HANGAT, bukan berpigmen ungu. Ungu disimpan untuk aksi & aksen
      saja; netral yang ikut keunguan membuat ungu terasa ada di mana-mana dan
      halaman jadi ramai. Rasio di bawah dihitung, bukan diperkirakan. */
@@ -33,6 +41,19 @@
   --color-cat-pemuda: #0f766e;
   --color-cat-sekolah-minggu: #b45309;
   --color-cat-kolom: #6d28d9;
+
+  /* --- Alias nama shadcn -> token GMIM ---------------------------------
+     Lapisan pemetaan supaya komponen shadcn yang ditarik CLI tidak perlu
+     adaptasi tangan. Semua menunjuk token yang sudah dideclare di atas. */
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+  --color-muted-foreground: var(--color-muted);
+  --color-input: var(--color-border);
+  --color-ring: var(--color-secondary);
 
   --radius: 0.625rem;
 
@@ -74,6 +95,15 @@
   --dark-secondary-hover: #e0d7c9;
   --dark-accent: #e0d7c9;
 
+  /* 6.45:1 di --dark-surface. Sengaja lebih jenuh daripada --dark-cat-jemaat
+     (#fca5a5) supaya tombol hapus tidak terbaca seperti badge kategori. */
+  --dark-destructive: #f87171;
+  --dark-destructive-foreground: #1a1714;
+
+  /* Warna teks di atas tombol primary & accent di dark mode — kontras cukup */
+  --dark-primary-foreground: #1a1714;
+  --dark-accent-foreground: #1a1714;
+
   /* Netral gelap ikut dihangatkan supaya kedua tema terasa satu keluarga.
      `--dark-primary` (#a78bfa) di atas --dark-surface baru = 6.56:1. */
   --dark-surface: #1a1714;
@@ -108,9 +138,13 @@
   :root:not([data-theme='light']) {
     --color-primary: var(--dark-primary);
     --color-primary-hover: var(--dark-primary-hover);
+    --color-primary-foreground: var(--dark-primary-foreground);
     --color-secondary: var(--dark-secondary);
     --color-secondary-hover: var(--dark-secondary-hover);
     --color-accent: var(--dark-accent);
+    --color-accent-foreground: var(--dark-accent-foreground);
+    --color-destructive: var(--dark-destructive);
+    --color-destructive-foreground: var(--dark-destructive-foreground);
     --color-surface: var(--dark-surface);
     --color-surface-2: var(--dark-surface-2);
     --color-border: var(--dark-border);
@@ -134,9 +168,13 @@
 :root[data-theme='dark'] {
   --color-primary: var(--dark-primary);
   --color-primary-hover: var(--dark-primary-hover);
+  --color-primary-foreground: var(--dark-primary-foreground);
   --color-secondary: var(--dark-secondary);
   --color-secondary-hover: var(--dark-secondary-hover);
   --color-accent: var(--dark-accent);
+  --color-accent-foreground: var(--dark-accent-foreground);
+  --color-destructive: var(--dark-destructive);
+  --color-destructive-foreground: var(--dark-destructive-foreground);
   --color-surface: var(--dark-surface);
   --color-surface-2: var(--dark-surface-2);
   --color-border: var(--dark-border);
@@ -163,14 +201,35 @@
 @theme inline {
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
+  --color-primary-foreground: var(--color-primary-foreground);
   --color-secondary: var(--color-secondary);
   --color-secondary-hover: var(--color-secondary-hover);
   --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
   --color-surface: var(--color-surface);
   --color-surface-2: var(--color-surface-2);
   --color-border: var(--color-border);
   --color-ink: var(--color-ink);
   --color-muted: var(--color-muted);
+  /* --- Alias nama shadcn -> token GMIM ---------------------------------
+     Komponen yang ditarik `npx shadcn add` memakai nama-nama di bawah. Tanpa
+     lapisan ini, class seperti `bg-background` atau `border-input` tidak
+     menghasilkan apa pun dan komponennya tampil tanpa warna — gagal diam-diam,
+     karena Tailwind tidak mengeluh atas class tak dikenal.
+
+     Semuanya menunjuk token yang sudah ada, jadi nol nilai warna diduplikasi
+     dan dark mode ikut otomatis lewat swap `:root` yang sama. */
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+  --color-muted-foreground: var(--color-muted);
+  --color-input: var(--color-border);
+  --color-ring: var(--color-secondary);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
   --font-serif: 'Fraunces Variable', ui-serif, Georgia, serif;
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --shadow-card: var(--shadow-card);

@@ -173,17 +173,19 @@ export function buildService({
  * `pnpm db:seed` dijalankan. `+56` akan membuat rentang 57 hari, memberi hari
  * yang sama dengan `from` sendiri kemunculan ke-9 sementara hari lain tetap 8.
  *
- * Soal index unik `ws_template_date_uq` pada `(templateId, serviceDate)`:
- * kategori `kolom` butuh SATU ibadah per kolom aktif per tanggal (4 baris,
- * tanggal sama, template sama) — kalau `templateId` diisi, baris ke-2 dst.
- * akan bentrok index unik itu. Karena idempotensi seed ini sudah dijamin
+ * Soal index unik `ws_template_date_uq` — sejak migrasi 0002 bentuknya
+ * `(templateId, serviceDate, kolomId)`, bukan lagi `(templateId, serviceDate)`
+ * seperti semula. `kolomId` membedakan 4 baris kategori `kolom` pada tanggal &
+ * template yang sama, jadi fan-out kategori itu sudah tertutup oleh index itu
+ * sendiri. Untuk lima kategori lain (`kolomId` selalu NULL) index ini TIDAK
+ * memberi proteksi apa pun — Postgres menganggap NULL distinct, jadi dua baris
+ * dengan `templateId` + `serviceDate` sama tetap lolos index selama
+ * `kolomId`-nya sama-sama NULL. Karena idempotensi seed ini sudah dijamin
  * penuh oleh guard "tabel kosong" di atas (bukan oleh index), `templateId`
  * pada SEMUA baris yang di-generate sengaja dibiarkan NULL — konsisten di
- * lintas kategori, dan cocok dengan desain index-nya sendiri (NULL dianggap
- * distinct oleh Postgres, jadi baris manual/generator tidak pernah bentrok).
- * `scheduleTemplates` tetap dibuat dan disimpan sebagai catatan pola jadwal
- * mingguan untuk dashboard (Rencana 3), hanya saja tidak dirujuk balik dari
- * `worship_services` yang dihasilkan generator ini.
+ * lintas kategori. `scheduleTemplates` tetap dibuat dan disimpan sebagai
+ * catatan pola jadwal mingguan untuk dashboard (Rencana 3), hanya saja tidak
+ * dirujuk balik dari `worship_services` yang dihasilkan generator ini.
  *
  * Insert `scheduleTemplates` + `worshipServices` dibungkus SATU transaksi:
  * tanpa itu, proses yang mati persis di antara kedua insert (mis. koneksi

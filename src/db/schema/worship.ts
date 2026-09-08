@@ -88,9 +88,12 @@ export const worshipServices = pgTable(
     index('ws_service_date_idx').on(t.serviceDate),
     index('ws_category_date_idx').on(t.categoryId, t.serviceDate),
     index('ws_status_date_idx').on(t.status, t.serviceDate),
-    // templateId nullable → NULL distinct di Postgres, jadi entri manual tak bentrok.
-    // Idempotensi hanya untuk output generator jadwal.
-    uniqueIndex('ws_template_date_uq').on(t.templateId, t.serviceDate),
+    // Unique WAJIB mencakup kolomId: kategori `kolom` menghasilkan satu ibadah
+    // per kolom aktif pada tanggal & template yang sama — empat baris yang, tanpa
+    // kolomId di sini, saling bentrok. Rencana 2b menghindarinya dengan menyetel
+    // templateId = NULL di semua baris hasil generate (NULL distinct di Postgres),
+    // dan membayarnya dengan hilangnya keterhubungan template -> ibadah.
+    uniqueIndex('ws_template_date_uq').on(t.templateId, t.serviceDate, t.kolomId),
   ],
 )
 

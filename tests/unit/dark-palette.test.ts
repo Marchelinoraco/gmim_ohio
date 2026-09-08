@@ -24,6 +24,54 @@ function token(name: string): string {
   return hex.toLowerCase()
 }
 
+/**
+ * Ekstrak isi satu blok top-level `selector { ... }` dari sumber CSS. Non-greedy
+ * sampai `\n}` pertama — cukup selama blok itu daftar deklarasi datar tanpa
+ * aturan bersarang yang juga menutup rata kolom-0, yang memang bentuk `:root`
+ * dan `@theme inline` di app.css.
+ */
+function block(css: string, selector: string): string {
+  const found = css.match(new RegExp(`${selector}\\s*\\{([\\s\\S]*?)\\n\\}`))
+  const content = found?.[1]
+  if (content === undefined) throw new Error(`blok "${selector}" tidak ditemukan di app.css`)
+  return content
+}
+
+/**
+ * Alias menunjuk token lain (`var(--color-surface)`), bukan hex — jadi `token()`
+ * yang mencari `#rrggbb` tidak menemukannya. Helper ini memastikan deklarasinya
+ * ADA.
+ *
+ * HARUS dicari di dalam blok `@theme inline`, bukan lewat `CSS.match()` atas
+ * seluruh file: hanya alias di `@theme inline` yang membuat Tailwind meng-emit
+ * utility class sungguhan (`bg-background`, `border-input`, dst) — deklarasi
+ * yang sama di `:root` cuma membuat variabelnya terbaca saat runtime, tidak
+ * membuat class-nya valid (Ruling 6 proyek ini). Karena tiap alias
+ * dideklarasikan di `:root` LEBIH DULU dalam file, mencari lewat seluruh `CSS`
+ * selalu menemukan kecocokan di `:root` duluan dan tak pernah gagal walau
+ * seluruh blok `@theme inline` dihapus — versi lama helper ini punya cacat
+ * persis itu, dan 13 dari 13 test alias tetap lulus tanpa `@theme inline`.
+ *
+ * Ruling 6 juga menetapkan kedua blok memang wajib berisi alias yang sama
+ * (satu untuk keterbacaan runtime, satu untuk validitas class Tailwind), jadi
+ * helper ini mengasersi alias ada di KEDUANYA, bukan cuma salah satu.
+ */
+function aliasTarget(name: string): string {
+  const pattern = new RegExp(`--${name}:\\s*(var\\(--[a-z0-9-]+\\)|#[0-9a-fA-F]{6})`)
+
+  const inThemeInline = block(CSS, '@theme inline').match(pattern)
+  if (!inThemeInline?.[1]) {
+    throw new Error(`alias --${name} tidak ditemukan di blok @theme inline app.css`)
+  }
+
+  const inRoot = block(CSS, ':root').match(pattern)
+  if (!inRoot?.[1]) {
+    throw new Error(`alias --${name} tidak ditemukan di blok :root app.css`)
+  }
+
+  return inThemeInline[1]
+}
+
 /** Tuple, bukan `number[]`: destructuring array biasa memberi `number | undefined`. */
 function channels(hex: string): [number, number, number] {
   const c = hex.replace('#', '')
@@ -172,4 +220,52 @@ describe('palet light tidak ikut berubah', () => {
   function UNGU_LIGHT(h: number) {
     return h >= 260 && h <= 330
   }
+})
+
+describe('warna destructive — aksi hapus di admin', () => {
+  it('light: teks putih di atasnya lolos AA', () => {
+    expect(contrast(token('color-destructive'), '#ffffff')).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('dark: lolos AA di kedua permukaan gelap', () => {
+    expect(contrast(token('dark-destructive'), SURFACE())).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(token('dark-destructive'), SURFACE_2())).toBeGreaterThanOrEqual(4.5)
+  })
+
+  it('dark: tetap bukan ungu', () => {
+    const hex = token('dark-destructive')
+    if (chroma(hex) < 0.12) return
+    expect(hue(hex) >= 260 && hue(hex) <= 330).toBe(false)
+  })
+
+  // Badge kategori Jemaat juga merah. Keduanya tak pernah berdampingan (satu di
+  // halaman publik, satu di tombol hapus admin), tapi jaraknya tetap dijaga
+  // supaya tombol hapus tidak terbaca seperti badge.
+  it('dark: cukup berbeda terang dari cat-jemaat', () => {
+    const beda = contrast(token('dark-destructive'), token('dark-cat-jemaat'))
+    expect(beda).toBeGreaterThanOrEqual(1.3)
+  })
+})
+
+describe('alias token shadcn', () => {
+  // Komponen shadcn yang ditarik CLI memakai nama-nama ini. Kalau salah satu
+  // hilang, komponennya tampil tanpa warna — dan tak ada yang merah tanpa test
+  // ini, karena class Tailwind yang tak dikenal gagal diam-diam.
+  it.each([
+    'color-background',
+    'color-foreground',
+    'color-card',
+    'color-card-foreground',
+    'color-popover',
+    'color-popover-foreground',
+    'color-muted-foreground',
+    'color-input',
+    'color-ring',
+    'color-destructive',
+    'color-destructive-foreground',
+    'color-primary-foreground',
+    'color-accent-foreground',
+  ])('--%s terdefinisi', (name) => {
+    expect(() => aliasTarget(name)).not.toThrow()
+  })
 })

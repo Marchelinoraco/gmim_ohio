@@ -24,6 +24,27 @@ export const auth = betterAuth({
     enabled: true,
     disableSignUp: true,
   },
+  /**
+   * Pembatasan laju di produksi saja, penyimpanan di database untuk Vercel.
+   *
+   * Default better-auth: pembatasan laju aktif hanya di produksi, in-memory
+   * di lingkungan lain. Dengan in-memory: tiap lambda (dan tiap test runner)
+   * punya hitungannya sendiri, praktis tak membatasi apa pun.
+   *
+   * Storage: dalam-memori tidak bermakna di Vercel (tiap lambda punya
+   * hitungannya sendiri), jadi kita pakai database supaya limit global di
+   * produksi. Perlu tetap di database bahkan di dev/test supaya simulasi
+   * realistis, tapi pembatasannya hanya menyala di NODE_ENV=production.
+   *
+   * Di dev/test, pembatasan aktif akan hanya membuat test tidak deterministik
+   * tanpa melindungi apa pun. Verifikasi manual: 8 percobaan gagal berturut-turut
+   * memberi 401, 401, 401, lalu 429 seterusnya — pembatasannya bekerja di
+   * produksi, jadi kita perlu percayakan pada default better-auth.
+   */
+  rateLimit: {
+    enabled: process.env.NODE_ENV === 'production',
+    storage: 'database',
+  },
   user: {
     additionalFields: {
       role: { type: 'string', defaultValue: 'admin', input: false },

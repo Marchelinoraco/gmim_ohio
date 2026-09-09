@@ -80,7 +80,12 @@ const PASSWORD = process.env.SEED_ADMIN_PASSWORD
 
 // Daftar route admin yang harus dijaga gerbang. Tambahkan path baru saat route
 // baru lahir di rencana berikutnya.
-for (const path of ['/admin']) {
+for (const path of [
+  '/admin',
+  '/admin/jadwal',
+  '/admin/jadwal/baru',
+  '/admin/jadwal/generator',
+]) {
   test(`${path} tanpa sesi → dialihkan ke /admin/login`, async ({ page }) => {
     await page.goto(path)
     await expect(page).toHaveURL(/\/admin\/login$/)

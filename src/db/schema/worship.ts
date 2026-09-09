@@ -8,7 +8,7 @@ import {
   pgTable,
   text,
   time,
-  uniqueIndex,
+  unique,
   uuid,
 } from 'drizzle-orm/pg-core'
 import { idPk, timestamps } from './_helpers'
@@ -88,12 +88,17 @@ export const worshipServices = pgTable(
     index('ws_service_date_idx').on(t.serviceDate),
     index('ws_category_date_idx').on(t.categoryId, t.serviceDate),
     index('ws_status_date_idx').on(t.status, t.serviceDate),
-    // Unique WAJIB mencakup kolomId: kategori `kolom` menghasilkan satu ibadah
-    // per kolom aktif pada tanggal & template yang sama — empat baris yang, tanpa
-    // kolomId di sini, saling bentrok. Rencana 2b menghindarinya dengan menyetel
-    // templateId = NULL di semua baris hasil generate (NULL distinct di Postgres),
-    // dan membayarnya dengan hilangnya keterhubungan template -> ibadah.
-    uniqueIndex('ws_template_date_uq').on(t.templateId, t.serviceDate, t.kolomId),
+    // Unique WAJIB mencakup kolomId DAN memperlakukan NULL sebagai sama.
+    //
+    // kolomId membedakan empat ibadah kategori `kolom` pada tanggal & template
+    // yang sama. Tapi kolomId NULL untuk lima kategori lain, dan Postgres
+    // menganggap NULL distinct secara default — artinya tanpa nullsNotDistinct,
+    // constraint ini nol proteksi justru untuk mayoritas baris, dan generator
+    // yang menjalankan rentang tumpang tindih akan menduplikasi diam-diam.
+    //
+    // `unique()`, bukan `uniqueIndex()`: di drizzle-orm 0.45 `.nullsNotDistinct()`
+    // hanya ada di UniqueConstraintBuilder.
+    unique('ws_template_date_uq').on(t.templateId, t.serviceDate, t.kolomId).nullsNotDistinct(),
   ],
 )
 
@@ -112,4 +117,16 @@ export const worshipServicesRelations = relations(worshipServices, ({ one }) => 
     fields: [worshipServices.templateId],
     references: [scheduleTemplates.id],
   }),
+}))
+
+// Sisi `one` dari relasi template -> kategori. `worshipCategoriesRelations` di
+// atas sudah mendeklarasikan sisi `many`-nya, tapi tanpa pasangan ini generator
+// tidak bisa membaca `categoryKey` lewat relational query — dan ia butuh kunci
+// itu untuk tahu template mana yang harus fan-out ke tiap kolom aktif.
+export const scheduleTemplatesRelations = relations(scheduleTemplates, ({ one }) => ({
+  category: one(worshipCategories, {
+    fields: [scheduleTemplates.categoryId],
+    references: [worshipCategories.id],
+  }),
+  kolom: one(kolom, { fields: [scheduleTemplates.kolomId], references: [kolom.id] }),
 }))

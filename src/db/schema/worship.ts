@@ -118,3 +118,15 @@ export const worshipServicesRelations = relations(worshipServices, ({ one }) => 
     references: [scheduleTemplates.id],
   }),
 }))
+
+// Sisi `one` dari relasi template -> kategori. `worshipCategoriesRelations` di
+// atas sudah mendeklarasikan sisi `many`-nya, tapi tanpa pasangan ini generator
+// tidak bisa membaca `categoryKey` lewat relational query — dan ia butuh kunci
+// itu untuk tahu template mana yang harus fan-out ke tiap kolom aktif.
+export const scheduleTemplatesRelations = relations(scheduleTemplates, ({ one }) => ({
+  category: one(worshipCategories, {
+    fields: [scheduleTemplates.categoryId],
+    references: [worshipCategories.id],
+  }),
+  kolom: one(kolom, { fields: [scheduleTemplates.kolomId], references: [kolom.id] }),
+}))

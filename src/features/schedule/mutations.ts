@@ -67,15 +67,40 @@ export const serviceInputSchema = z
 
 export type ServiceInput = z.infer<typeof serviceInputSchema>
 
+/**
+ * Kode galat yang dikenali form, bukan pesan siap-tampil.
+ *
+ * Server fn tidak tahu bahasa yang sedang dipakai pengunjung, jadi ia melempar
+ * kode dan form yang menerjemahkannya. Tanpa ini, pelanggaran unique tayang ke
+ * pengurus sebagai dump SQL utuh — terverifikasi saat menulis alur e2e-nya.
+ */
+export const DUPLICATE_SERVICE = 'DUPLICATE_SERVICE'
+
+/** Postgres unique_violation. Di sini artinya ws_template_date_uq. */
+function adalahDuplikat(e: unknown): boolean {
+  const kode =
+    (e as { cause?: { code?: string }; code?: string })?.cause?.code ??
+    (e as { code?: string })?.code
+  return kode === '23505'
+}
+
 export const createService = createServerFn({ method: 'POST' })
   .validator((d: unknown) => serviceInputSchema.parse(d))
   .handler(async ({ data }): Promise<{ id: string }> => {
     await ensureAdmin()
     const { db } = await import('@/db')
     const { worshipServices } = await import('@/db/schema')
-    const [row] = await db.insert(worshipServices).values(data).returning({ id: worshipServices.id })
-    if (!row) throw new Error('Gagal menyimpan ibadah')
-    return { id: row.id }
+    try {
+      const [row] = await db
+        .insert(worshipServices)
+        .values(data)
+        .returning({ id: worshipServices.id })
+      if (!row) throw new Error('Gagal menyimpan ibadah')
+      return { id: row.id }
+    } catch (e) {
+      if (adalahDuplikat(e)) throw new Error(DUPLICATE_SERVICE, { cause: e })
+      throw e
+    }
   })
 
 export const updateService = createServerFn({ method: 'POST' })

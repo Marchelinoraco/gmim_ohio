@@ -224,5 +224,6 @@
   "admin_schedule_generator_apply": "Buat sebagai draf",
   "admin_schedule_generator_result": "ibadah dibuat sebagai draf.",
   "admin_schedule_generator_none": "Tidak ada yang perlu dibuat — semuanya sudah ada.",
-  "admin_schedule_generator_note": "Semua ibadah dibuat sebagai draf. Tinjau dulu sebelum diterbitkan."
+  "admin_schedule_generator_note": "Semua ibadah dibuat sebagai draf. Tinjau dulu sebelum diterbitkan.",
+  "admin_service_duplicate": "Sudah ada ibadah dengan pola, tanggal, dan kolom yang sama."
 }

@@ -3,7 +3,7 @@ import * as m from '@/paraglide/messages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { ServiceInput } from '@/features/schedule/mutations'
+import { DUPLICATE_SERVICE, type ServiceInput } from '@/features/schedule/mutations'
 import type { AdminServiceDetail } from '@/features/schedule/admin-queries'
 
 export type KategoriPilihan = { id: string; key: string; nameId: string }
@@ -84,7 +84,11 @@ export function ServiceForm({ kategori, kolom, awal, onSubmit, onCancel }: Props
         status,
       } as ServiceInput)
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      // Server melempar KODE, bukan kalimat siap-tampil: ia tak tahu bahasa yang
+      // sedang dipakai. Tanpa pemetaan ini, pelanggaran unique tayang ke pengurus
+      // sebagai dump SQL utuh.
+      const pesan = err instanceof Error ? err.message : String(err)
+      setError(pesan.includes(DUPLICATE_SERVICE) ? m.admin_service_duplicate() : pesan)
       setSending(false)
     }
   }

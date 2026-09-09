@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import * as m from '@/paraglide/messages'
 import { listCategories, listKolom } from '@/features/schedule/taxonomy'
 import { createService } from '@/features/schedule/mutations'
@@ -14,6 +14,7 @@ export const Route = createFileRoute('/admin/_app/jadwal/baru')({
 
 function JadwalBaru() {
   const { kategori, kolom } = Route.useLoaderData()
+  const router = useRouter()
 
   return (
     <div className="flex flex-col gap-6">
@@ -23,12 +24,9 @@ function JadwalBaru() {
         kolom={kolom}
         onSubmit={async (data) => {
           await createService({ data })
-          // TODO Task 8: naikkan ke router.navigate setelah route /admin/jadwal ada.
-          window.location.href = '/admin/jadwal'
+          await router.navigate({ to: '/admin/jadwal' })
         }}
-        onCancel={() => {
-          window.location.href = '/admin/jadwal'
-        }}
+        onCancel={() => router.navigate({ to: '/admin/jadwal' })}
       />
     </div>
   )

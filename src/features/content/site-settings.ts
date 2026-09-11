@@ -89,8 +89,13 @@ export type SiteSettings = {
  * key→schema didefinisikan; `parseSiteSettings` (ketat) dan `parseSiteSettingsSafe`
  * (tahan-banting) sama-sama membacanya lewat `buildSiteSettings` — jadi tak ada
  * dua salinan literal objek yang bisa lepas sinkron.
+ *
+ * Diekspor supaya jalur TULIS dashboard memakai schema yang sama persis dengan
+ * jalur baca. Kalau keduanya disalin terpisah, form bisa menyimpan bentuk yang
+ * lolos validasinya sendiri tapi ditolak saat dibaca halaman publik — dan
+ * kerusakannya baru terlihat oleh pengunjung, bukan oleh pengurus.
  */
-const SCHEMAS = {
+export const SETTING_SCHEMAS = {
   hero: heroSchema,
   service_times: serviceTimesSchema,
   contact_info: contactInfoSchema,
@@ -101,11 +106,11 @@ const SCHEMAS = {
 } satisfies Record<SiteSettingsKey, z.ZodType>
 
 /** `SiteSettings` di-key ulang memakai key DB (snake_case) — untuk builder internal. */
-type SiteSettingsByDbKey = { [K in SiteSettingsKey]: z.infer<(typeof SCHEMAS)[K]> }
+type SiteSettingsByDbKey = { [K in SiteSettingsKey]: z.infer<(typeof SETTING_SCHEMAS)[K]> }
 
 /**
  * Builder bersama kedua varian parser. Untuk tiap key: ambil value baris (atau
- * `DEFAULT_SETTINGS` bila baris tak ada), lalu validasi lewat `SCHEMAS[key]`.
+ * `DEFAULT_SETTINGS` bila baris tak ada), lalu validasi lewat `SETTING_SCHEMAS[key]`.
  * - `strict` → `schema.parse` (throw bila bentuk salah).
  * - non-strict → `schema.safeParse`; bila gagal → `console.error` (nama key saja,
  *   tanpa dump value) dan key itu jatuh ke `DEFAULT_SETTINGS`.
@@ -116,8 +121,8 @@ function buildSiteSettings(rows: { key: string; value: unknown }[], strict: bool
   const resolve = <K extends SiteSettingsKey>(dbKey: K): SiteSettingsByDbKey[K] => {
     // `SiteSettingsByDbKey[K]` untuk `K` generik dilihat TS sebagai irisan semua
     // varian value — `.parse` per-schema tak comparable ke sana tanpa lewat
-    // `unknown`. Cast di sini aman: `SCHEMAS[dbKey]` memang schema untuk `dbKey`.
-    const schema = SCHEMAS[dbKey] as unknown as z.ZodType<SiteSettingsByDbKey[K]>
+    // `unknown`. Cast di sini aman: `SETTING_SCHEMAS[dbKey]` memang schema untuk `dbKey`.
+    const schema = SETTING_SCHEMAS[dbKey] as unknown as z.ZodType<SiteSettingsByDbKey[K]>
     const raw = byKey.has(dbKey) ? byKey.get(dbKey) : DEFAULT_SETTINGS[dbKey]
     if (strict) return schema.parse(raw)
 

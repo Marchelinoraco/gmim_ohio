@@ -401,4 +401,30 @@ h4 {
   .prose-gmim :where(strong) {
     font-weight: 600;
   }
+
+  /* Isi editor rich text. Cukup untuk membedakan heading, daftar, dan kutipan
+     saat mengetik — bukan tiruan persis tampilan publik, karena menyamakan
+     keduanya menjanjikan WYSIWYG yang tidak bisa ditepati (halaman publik punya
+     lebar, latar, dan skala tipografi yang berbeda). */
+  .prose-admin h2 {
+    @apply font-serif text-xl font-semibold;
+  }
+  .prose-admin h3 {
+    @apply font-serif text-lg font-semibold;
+  }
+  .prose-admin p {
+    @apply my-2;
+  }
+  .prose-admin ul {
+    @apply my-2 list-disc pl-5;
+  }
+  .prose-admin ol {
+    @apply my-2 list-decimal pl-5;
+  }
+  .prose-admin blockquote {
+    @apply border-border text-muted my-2 border-l-2 pl-3;
+  }
+  .prose-admin a {
+    @apply text-primary underline underline-offset-2;
+  }
 }

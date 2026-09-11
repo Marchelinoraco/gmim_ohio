@@ -240,5 +240,15 @@
   "admin_schedule_generator_result": "services created as drafts.",
   "admin_schedule_generator_none": "Nothing to create — everything already exists.",
   "admin_schedule_generator_note": "Everything is created as a draft. Review before publishing.",
-  "admin_service_duplicate": "A service with the same template, date, and kolom already exists."
+  "admin_service_duplicate": "A service with the same template, date, and kolom already exists.",
+  "editor_bold": "Bold",
+  "editor_italic": "Italic",
+  "editor_h2": "Heading",
+  "editor_h3": "Subheading",
+  "editor_bullet": "Bullet list",
+  "editor_ordered": "Numbered list",
+  "editor_quote": "Quote",
+  "editor_link": "Link",
+  "editor_link_prompt": "Link address (http/https/mailto):",
+  "editor_unlink": "Remove link"
 }

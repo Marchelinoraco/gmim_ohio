@@ -225,5 +225,15 @@
   "admin_schedule_generator_result": "ibadah dibuat sebagai draf.",
   "admin_schedule_generator_none": "Tidak ada yang perlu dibuat — semuanya sudah ada.",
   "admin_schedule_generator_note": "Semua ibadah dibuat sebagai draf. Tinjau dulu sebelum diterbitkan.",
-  "admin_service_duplicate": "Sudah ada ibadah dengan pola, tanggal, dan kolom yang sama."
+  "admin_service_duplicate": "Sudah ada ibadah dengan pola, tanggal, dan kolom yang sama.",
+  "editor_bold": "Tebal",
+  "editor_italic": "Miring",
+  "editor_h2": "Judul",
+  "editor_h3": "Subjudul",
+  "editor_bullet": "Daftar berpoin",
+  "editor_ordered": "Daftar bernomor",
+  "editor_quote": "Kutipan",
+  "editor_link": "Tautan",
+  "editor_link_prompt": "Alamat tautan (http/https/mailto):",
+  "editor_unlink": "Hapus tautan"
 }

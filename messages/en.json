@@ -337,5 +337,18 @@
   "admin_settings_account_add": "Add account",
   "admin_settings_row_remove": "Remove row",
   "admin_settings_note_id": "Note (Indonesian)",
-  "admin_settings_note_en": "Note (English)"
+  "admin_settings_note_en": "Note (English)",
+  "admin_messages_title": "Messages",
+  "admin_messages_empty": "No messages yet.",
+  "admin_messages_from": "From",
+  "admin_messages_message": "Message",
+  "admin_messages_received": "Received",
+  "admin_messages_status": "Status",
+  "admin_messages_status_new": "New",
+  "admin_messages_status_read": "Read",
+  "admin_messages_status_done": "Done",
+  "admin_messages_mark_read": "Mark as read",
+  "admin_messages_mark_done": "Mark as done",
+  "admin_messages_read_full": "Read full message",
+  "admin_messages_delete_confirm": "Delete this message? This cannot be undone."
 }

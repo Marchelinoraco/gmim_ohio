@@ -72,7 +72,8 @@ export function AdminShell({ email, children }: { email: string; children: React
           item.href === '/admin/warta' ||
           item.href === '/admin/renungan' ||
           item.href === '/admin/master' ||
-          item.href === '/admin/pengaturan'
+          item.href === '/admin/pengaturan' ||
+          item.href === '/admin/pesan'
         ) {
           return (
             <Link

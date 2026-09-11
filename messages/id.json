@@ -322,5 +322,18 @@
   "admin_settings_account_add": "Tambah rekening",
   "admin_settings_row_remove": "Hapus baris",
   "admin_settings_note_id": "Catatan (Indonesia)",
-  "admin_settings_note_en": "Catatan (Inggris)"
+  "admin_settings_note_en": "Catatan (Inggris)",
+  "admin_messages_title": "Pesan Masuk",
+  "admin_messages_empty": "Belum ada pesan masuk.",
+  "admin_messages_from": "Pengirim",
+  "admin_messages_message": "Pesan",
+  "admin_messages_received": "Diterima",
+  "admin_messages_status": "Status",
+  "admin_messages_status_new": "Baru",
+  "admin_messages_status_read": "Dibaca",
+  "admin_messages_status_done": "Selesai",
+  "admin_messages_mark_read": "Tandai dibaca",
+  "admin_messages_mark_done": "Tandai selesai",
+  "admin_messages_read_full": "Baca selengkapnya",
+  "admin_messages_delete_confirm": "Hapus pesan ini? Tindakan ini tidak bisa dibatalkan."
 }

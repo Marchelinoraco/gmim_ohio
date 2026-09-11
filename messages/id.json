@@ -235,5 +235,20 @@
   "editor_quote": "Kutipan",
   "editor_link": "Tautan",
   "editor_link_prompt": "Alamat tautan (http/https/mailto):",
-  "editor_unlink": "Hapus tautan"
+  "editor_unlink": "Hapus tautan",
+  "admin_bulletin_title": "Warta Jemaat",
+  "admin_bulletin_new": "Tambah Warta",
+  "admin_bulletin_empty": "Belum ada warta.",
+  "admin_bulletin_week": "Minggu",
+  "admin_bulletin_has_pdf": "PDF",
+  "admin_bulletin_new_title": "Tambah Warta",
+  "admin_bulletin_edit_title": "Ubah Warta",
+  "admin_bulletin_title_id": "Judul (Indonesia)",
+  "admin_bulletin_title_en": "Judul (Inggris)",
+  "admin_bulletin_summary_id": "Ringkasan (Indonesia)",
+  "admin_bulletin_summary_en": "Ringkasan (Inggris)",
+  "admin_bulletin_body_id": "Isi (Indonesia)",
+  "admin_bulletin_body_en": "Isi (Inggris)",
+  "admin_bulletin_pdf": "Alamat berkas PDF (opsional)",
+  "admin_bulletin_delete_confirm": "Hapus warta ini? Tindakan ini tidak bisa dibatalkan."
 }

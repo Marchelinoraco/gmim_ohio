@@ -61,7 +61,7 @@ export function AdminShell({ email, children }: { email: string; children: React
         // Route yang sudah ada memakai <Link> (navigasi klien, tanpa muat ulang);
         // sisanya tetap <a> sampai route-nya lahir di rencana berikutnya —
         // `Link` TanStack bertipe ketat dan menolak path yang belum terdaftar.
-        if (item.href === '/admin' || item.href === '/admin/jadwal') {
+        if (item.href === '/admin' || item.href === '/admin/jadwal' || item.href === '/admin/warta') {
           return (
             <Link
               key={item.href}

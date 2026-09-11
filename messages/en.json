@@ -250,5 +250,20 @@
   "editor_quote": "Quote",
   "editor_link": "Link",
   "editor_link_prompt": "Link address (http/https/mailto):",
-  "editor_unlink": "Remove link"
+  "editor_unlink": "Remove link",
+  "admin_bulletin_title": "Bulletins",
+  "admin_bulletin_new": "Add Bulletin",
+  "admin_bulletin_empty": "No bulletins yet.",
+  "admin_bulletin_week": "Week",
+  "admin_bulletin_has_pdf": "PDF",
+  "admin_bulletin_new_title": "Add Bulletin",
+  "admin_bulletin_edit_title": "Edit Bulletin",
+  "admin_bulletin_title_id": "Title (Indonesian)",
+  "admin_bulletin_title_en": "Title (English)",
+  "admin_bulletin_summary_id": "Summary (Indonesian)",
+  "admin_bulletin_summary_en": "Summary (English)",
+  "admin_bulletin_body_id": "Body (Indonesian)",
+  "admin_bulletin_body_en": "Body (English)",
+  "admin_bulletin_pdf": "PDF file address (optional)",
+  "admin_bulletin_delete_confirm": "Delete this bulletin? This cannot be undone."
 }

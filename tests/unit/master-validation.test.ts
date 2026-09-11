@@ -3,7 +3,11 @@ import { fileURLToPath } from 'node:url'
 import { describe, it, expect } from 'vitest'
 import { SETTING_SCHEMAS, SITE_SETTINGS_KEYS } from '@/features/content/site-settings'
 import { CATEGORY_COLOR_TOKENS } from '@/db/schema/worship'
-import { categoryInputSchema, kolomInputSchema } from '@/features/master/mutations'
+import {
+  categoryInputSchema,
+  kolomInputSchema,
+  settingInputSchema,
+} from '@/features/master/mutations'
 
 const CSS = readFileSync(fileURLToPath(new URL('../../src/styles/app.css', import.meta.url)), 'utf8')
 
@@ -122,5 +126,34 @@ describe('kolomInputSchema', () => {
     const r = kolomInputSchema.safeParse({ ...kolomBaru, coordinatorName: '  ' })
     expect(r.success).toBe(true)
     if (r.success) expect(r.data.coordinatorName).toBeNull()
+  })
+})
+
+describe('settingInputSchema', () => {
+  it('menerima key yang dikenal dengan nilai berbentuk benar', () => {
+    const r = settingInputSchema.safeParse({
+      key: 'social_links',
+      value: { facebook: 'https://fb.test', instagram: '', youtube: '' },
+    })
+    expect(r.success, JSON.stringify(r.error?.issues)).toBe(true)
+  })
+
+  it('menolak key yang tidak dikenal', () => {
+    expect(settingInputSchema.safeParse({ key: 'ngawur', value: {} }).success).toBe(false)
+  })
+
+  // Nilai divalidasi memakai schema yang SAMA dengan jalur baca. Tanpa ini,
+  // form bisa menyimpan bentuk yang nanti ditolak halaman publik — dan
+  // kerusakannya baru terlihat oleh pengunjung.
+  it('menolak nilai yang bentuknya salah untuk key-nya', () => {
+    expect(
+      settingInputSchema.safeParse({ key: 'social_links', value: { facebook: 123 } }).success,
+    ).toBe(false)
+  })
+
+  it('menolak nilai yang kekurangan field', () => {
+    expect(settingInputSchema.safeParse({ key: 'service_times', value: { id: 'x' } }).success).toBe(
+      false,
+    )
   })
 })

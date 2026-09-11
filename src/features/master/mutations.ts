@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 import { ensureAdmin } from '@/lib/auth.functions'
 import { CATEGORY_COLOR_TOKENS } from '@/db/schema/worship'
+import { SETTING_SCHEMAS, SITE_SETTINGS_KEYS } from '@/features/content/site-settings'
 
 const wajibIsi = z.string().trim().min(1, 'Wajib diisi')
 
@@ -109,4 +110,72 @@ export const deleteKolom = createServerFn({ method: 'POST' })
 
     await db.delete(kolom).where(eq(kolom.id, id))
     return { ok: true, dipakai: 0 }
+  })
+
+/**
+ * Satu setting, divalidasi memakai schema jalur BACA.
+ *
+ * `superRefine` memilih schema berdasarkan `key`, jadi bentuk yang disimpan
+ * dijamin bentuk yang bisa dibaca halaman publik. Kalau validasinya disalin
+ * terpisah, form bisa menyimpan sesuatu yang lolos di sini tapi ditolak saat
+ * dibaca — dan kerusakannya baru terlihat oleh pengunjung.
+ *
+ * Isu dari schema anak diteruskan apa adanya dengan path diawali `value`,
+ * supaya form bisa menunjuk field mana yang salah alih-alih hanya bilang
+ * "nilai tidak valid".
+ */
+export const settingInputSchema = z
+  .object({
+    key: z.enum(SITE_SETTINGS_KEYS),
+    value: z.unknown(),
+  })
+  .superRefine((v, ctx) => {
+    const hasil = SETTING_SCHEMAS[v.key].safeParse(v.value)
+    if (hasil.success) return
+    for (const issue of hasil.error.issues) {
+      ctx.addIssue({ code: 'custom', path: ['value', ...issue.path], message: issue.message })
+    }
+  })
+
+export const updateSetting = createServerFn({ method: 'POST' })
+  .validator((d: unknown) => settingInputSchema.parse(d))
+  .handler(async ({ data }): Promise<{ ok: true }> => {
+    const { user } = await ensureAdmin()
+    const { db } = await import('@/db')
+    const { siteSettings } = await import('@/db/schema')
+    const { eq } = await import('drizzle-orm')
+    // `updatedBy` kolomnya sudah ada sejak Rencana 1 dan sudah FK ke `user`,
+    // tapi belum pernah diisi — tanpa ini tak ada jejak siapa mengubah apa.
+    await db
+      .update(siteSettings)
+      .set({ value: data.value, updatedBy: user.id, updatedAt: new Date() })
+      .where(eq(siteSettings.key, data.key))
+    return { ok: true }
+  })
+
+export const setMessageStatus = createServerFn({ method: 'POST' })
+  .validator((d: unknown) =>
+    z.object({ id: z.uuid(), status: z.enum(['new', 'read', 'done']) }).parse(d),
+  )
+  .handler(async ({ data }): Promise<{ ok: true }> => {
+    await ensureAdmin()
+    const { db } = await import('@/db')
+    const { contactMessages } = await import('@/db/schema')
+    const { eq } = await import('drizzle-orm')
+    await db
+      .update(contactMessages)
+      .set({ status: data.status, updatedAt: new Date() })
+      .where(eq(contactMessages.id, data.id))
+    return { ok: true }
+  })
+
+export const deleteMessage = createServerFn({ method: 'POST' })
+  .validator((id: unknown) => z.uuid().parse(id))
+  .handler(async ({ data: id }): Promise<{ ok: true }> => {
+    await ensureAdmin()
+    const { db } = await import('@/db')
+    const { contactMessages } = await import('@/db/schema')
+    const { eq } = await import('drizzle-orm')
+    await db.delete(contactMessages).where(eq(contactMessages.id, id))
+    return { ok: true }
   })

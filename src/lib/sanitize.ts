@@ -13,8 +13,32 @@ export type SanitizedHtml = string & { readonly __brand: 'SanitizedHtml' }
  * tak dikenal seperti <marquee>. Atribut `<a>` dibatasi ke `href` dengan skema
  * http/https/mailto saja; `transformTags` memaksa rel + target aman.
  */
+/**
+ * Tag yang boleh lolos sanitizer — dan karenanya satu-satunya tag yang boleh
+ * dihasilkan editor.
+ *
+ * Diekspor supaya editor rich text bisa membatasi ekstensinya ke daftar yang
+ * SAMA. Kalau keduanya menyimpang, pengurus akan mengetik sesuatu yang terlihat
+ * benar di editor lalu melihat formatnya hilang setelah simpan, tanpa pesan
+ * galat apa pun — kegagalan diam yang mahal dilacak.
+ */
+export const ALLOWED_TAGS = [
+  'h2',
+  'h3',
+  'h4',
+  'p',
+  'ul',
+  'ol',
+  'li',
+  'strong',
+  'em',
+  'a',
+  'br',
+  'blockquote',
+] as const
+
 const OPTIONS: sanitizeHtml.IOptions = {
-  allowedTags: ['h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'blockquote'],
+  allowedTags: [...ALLOWED_TAGS],
   allowedAttributes: { a: ['href', 'rel', 'target'] },
   allowedSchemes: ['http', 'https', 'mailto'],
   transformTags: {

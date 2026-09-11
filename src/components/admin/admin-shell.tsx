@@ -1,6 +1,17 @@
 import { useState } from 'react'
 import { useRouter, Link } from '@tanstack/react-router'
-import { CalendarDays, FileText, Home, Images, LogOut, Mail, Menu, Settings, X } from 'lucide-react'
+import {
+  CalendarDays,
+  FileText,
+  Home,
+  Images,
+  Layers,
+  LogOut,
+  Mail,
+  Menu,
+  Settings,
+  X,
+} from 'lucide-react'
 import * as m from '@/paraglide/messages'
 import { signOut } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
@@ -28,7 +39,8 @@ const NAV = [
   { href: '/admin/warta', label: () => m.admin_nav_bulletins(), icon: FileText, exact: false },
   { href: '/admin/renungan', label: () => m.admin_nav_devotionals(), icon: FileText, exact: false },
   { href: '/admin/galeri', label: () => m.admin_nav_gallery(), icon: Images, exact: false },
-  { href: '/admin/master', label: () => m.admin_nav_master(), icon: Settings, exact: false },
+  { href: '/admin/master', label: () => m.admin_nav_master(), icon: Layers, exact: false },
+  { href: '/admin/pengaturan', label: () => m.admin_nav_settings(), icon: Settings, exact: false },
   { href: '/admin/pesan', label: () => m.admin_nav_messages(), icon: Mail, exact: false },
 ] as const
 
@@ -58,7 +70,8 @@ export function AdminShell({ email, children }: { email: string; children: React
           item.href === '/admin' ||
           item.href === '/admin/jadwal' ||
           item.href === '/admin/warta' ||
-          item.href === '/admin/renungan'
+          item.href === '/admin/renungan' ||
+          item.href === '/admin/master'
         ) {
           return (
             <Link

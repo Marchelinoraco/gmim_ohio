@@ -89,6 +89,7 @@ for (const path of [
   '/admin/warta/baru',
   '/admin/renungan',
   '/admin/renungan/baru',
+  '/admin/master',
 ]) {
   test(`${path} tanpa sesi → dialihkan ke /admin/login`, async ({ page }) => {
     await page.goto(path)

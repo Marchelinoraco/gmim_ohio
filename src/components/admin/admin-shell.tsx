@@ -1,16 +1,6 @@
 import { useState } from 'react'
 import { useRouter, Link } from '@tanstack/react-router'
-import {
-  CalendarDays,
-  FileText,
-  Home,
-  Images,
-  LogOut,
-  Mail,
-  Menu,
-  Settings,
-  X,
-} from 'lucide-react'
+import { CalendarDays, FileText, Home, Images, LogOut, Mail, Menu, Settings, X } from 'lucide-react'
 import * as m from '@/paraglide/messages'
 import { signOut } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
@@ -61,7 +51,15 @@ export function AdminShell({ email, children }: { email: string; children: React
         // Route yang sudah ada memakai <Link> (navigasi klien, tanpa muat ulang);
         // sisanya tetap <a> sampai route-nya lahir di rencana berikutnya —
         // `Link` TanStack bertipe ketat dan menolak path yang belum terdaftar.
-        if (item.href === '/admin' || item.href === '/admin/jadwal' || item.href === '/admin/warta') {
+        // Perbandingan eksplisit, bukan `daftar.includes(...)`: `includes`
+        // mengembalikan boolean biasa dan tidak menyempitkan tipe `item.href`,
+        // sehingga `<Link to>` menolaknya. Rantai `===` adalah type guard.
+        if (
+          item.href === '/admin' ||
+          item.href === '/admin/jadwal' ||
+          item.href === '/admin/warta' ||
+          item.href === '/admin/renungan'
+        ) {
           return (
             <Link
               key={item.href}
@@ -77,12 +75,7 @@ export function AdminShell({ email, children }: { email: string; children: React
         }
 
         return (
-          <a
-            key={item.href}
-            href={item.href}
-            onClick={() => setOpen(false)}
-            className={className}
-          >
+          <a key={item.href} href={item.href} onClick={() => setOpen(false)} className={className}>
             <Icon aria-hidden="true" className="size-4 shrink-0" />
             {item.label()}
           </a>
@@ -111,7 +104,11 @@ export function AdminShell({ email, children }: { email: string; children: React
             aria-label={m.admin_open_menu()}
             onClick={() => setOpen((v) => !v)}
           >
-            {open ? <X aria-hidden="true" className="size-5" /> : <Menu aria-hidden="true" className="size-5" />}
+            {open ? (
+              <X aria-hidden="true" className="size-5" />
+            ) : (
+              <Menu aria-hidden="true" className="size-5" />
+            )}
           </button>
 
           <span className="text-muted truncate text-sm">{email}</span>
@@ -123,9 +120,7 @@ export function AdminShell({ email, children }: { email: string; children: React
         </header>
 
         {/* Drawer mobile — hanya dirender saat terbuka, seperti panel nav situs publik. */}
-        {open && (
-          <div className="border-border bg-surface border-b lg:hidden">{nav}</div>
-        )}
+        {open && <div className="border-border bg-surface border-b lg:hidden">{nav}</div>}
 
         <main className="min-w-0 flex-1 p-4 lg:p-6">{children}</main>
       </div>

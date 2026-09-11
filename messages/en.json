@@ -265,5 +265,19 @@
   "admin_bulletin_body_id": "Body (Indonesian)",
   "admin_bulletin_body_en": "Body (English)",
   "admin_bulletin_pdf": "PDF file address (optional)",
-  "admin_bulletin_delete_confirm": "Delete this bulletin? This cannot be undone."
+  "admin_bulletin_delete_confirm": "Delete this bulletin? This cannot be undone.",
+  "admin_devotional_title": "Devotionals",
+  "admin_devotional_new": "Add Devotional",
+  "admin_devotional_empty": "No devotionals yet.",
+  "admin_devotional_new_title": "Add Devotional",
+  "admin_devotional_edit_title": "Edit Devotional",
+  "admin_devotional_slug": "URL slug",
+  "admin_devotional_slug_hint": "Lowercase letters, numbers, and hyphens. Appears in the page address.",
+  "admin_devotional_author": "Author",
+  "admin_devotional_date": "Published date",
+  "admin_devotional_cover": "Cover image address (optional)",
+  "admin_devotional_excerpt_id": "Excerpt (Indonesian)",
+  "admin_devotional_excerpt_en": "Excerpt (English)",
+  "admin_devotional_duplicate": "That slug is already used by another devotional.",
+  "admin_devotional_delete_confirm": "Delete this devotional? This cannot be undone."
 }

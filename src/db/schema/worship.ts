@@ -21,6 +21,26 @@ export const worshipCategoryKey = pgEnum('worship_category_key', [
   'sekolah_minggu',
   'kolom',
 ])
+/**
+ * Token warna yang boleh disimpan di `worship_categories.color`.
+ *
+ * Kolom itu menyimpan NAMA TOKEN CSS, bukan hex — supaya badge kategori ikut
+ * bertukar warna saat tema berganti. Menyimpan hex ke sana memutus tema gelap
+ * secara diam-diam: badge tetap memakai warna terang di atas latar gelap.
+ *
+ * Urutannya sejajar `worshipCategoryKey` di atas. Dipakai form admin sebagai
+ * daftar pilihan, jadi token yang tidak ada di sini tidak akan pernah bisa
+ * dipilih — lebih kuat daripada memvalidasi teks bebas setelahnya.
+ */
+export const CATEGORY_COLOR_TOKENS = [
+  'var(--color-cat-jemaat)',
+  'var(--color-cat-bapa)',
+  'var(--color-cat-ibu)',
+  'var(--color-cat-pemuda)',
+  'var(--color-cat-sekolah-minggu)',
+  'var(--color-cat-kolom)',
+] as const
+
 export const locationType = pgEnum('location_type', ['gedung_gereja', 'rumah'])
 export const publishStatus = pgEnum('publish_status', ['draft', 'published'])
 

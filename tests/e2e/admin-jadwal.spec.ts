@@ -133,7 +133,13 @@ test('alur jadwal: buat draf → terbitkan → hapus', async ({ page, request },
   await page.goto('/admin/jadwal')
   await page.waitForLoadState('networkidle')
   await baris.getByRole('button', { name: /terbitkan|^publish$/i }).click()
-  await expect(baris).toContainText(/terbit|published/i, { timeout: 15_000 })
+  // Muat ulang dari server sebelum memeriksa publik — alasan sama dengan langkah
+  // hapus di bawah: tabel yang diperbarui `router.invalidate()` bisa membuat
+  // asersi lulus sebelum mutasinya tersimpan.
+  await page.goto(`/admin/jadwal?_t=${Date.now()}`, { waitUntil: 'networkidle' })
+  await expect(page.getByRole('row').filter({ hasText: TEMA })).toContainText(/terbit|published/i, {
+    timeout: 15_000,
+  })
   await bukaJadwalPublik(page)
   await expect(page.getByText(TEMA).first()).toBeVisible({ timeout: 15_000 })
 
@@ -145,6 +151,11 @@ test('alur jadwal: buat draf → terbitkan → hapus', async ({ page, request },
     .getByRole('dialog')
     .getByRole('button', { name: /^hapus$|^delete$/i })
     .click()
+  // Muat ulang daftar dari server, bukan mengandalkan tabel yang diperbarui
+  // `router.invalidate()`: selagi loader itu berjalan tabelnya kosong sesaat,
+  // sehingga `toHaveCount(0)` bisa lulus SEBELUM mutasi hapusnya tersimpan — dan
+  // asersi halaman publik berikutnya lalu membaca baris yang masih ada.
+  await page.goto(`/admin/jadwal?_t=${Date.now()}`, { waitUntil: 'networkidle' })
   await expect(page.getByRole('row').filter({ hasText: TEMA })).toHaveCount(0, { timeout: 15_000 })
   await bukaJadwalPublik(page)
   await expect(page.getByText(TEMA)).toHaveCount(0, { timeout: 15_000 })

@@ -7,6 +7,7 @@ import { PLACEHOLDER_DEVOTIONALS } from '@/db/seed/devotionals'
 import { PLACEHOLDER_ALBUM, PLACEHOLDER_ALBUM_ITEMS } from '@/db/seed/gallery'
 import { PLACEHOLDER_KOLOM } from '@/db/seed/kolom'
 import { buildService, SCHEDULE_TEMPLATES } from '@/db/seed/schedule'
+import { addDays, datesForWeekday, todayEastern } from '@/lib/datetime'
 import { DEFAULT_SETTINGS } from '@/db/seed/settings'
 
 // Tag yang diizinkan sanitizer rich-text (`src/lib/sanitize.ts`). Body warta &
@@ -185,6 +186,48 @@ describe('SCHEDULE_TEMPLATES', () => {
   it('kategori kolom memakai lokasi rumah', () => {
     const kolomTpl = SCHEDULE_TEMPLATES.find((t) => t.categoryKey === 'kolom')
     expect(kolomTpl?.defaultLocationType).toBe('rumah')
+  })
+
+  /**
+   * Seed harus lolos `ws_template_date_uq`.
+   *
+   * Sejak migrasi 0005 batasan itu `UNIQUE NULLS NOT DISTINCT(template_id,
+   * service_date, kolom_id)` — Postgres tidak lagi menganggap dua NULL berbeda.
+   * `ibadah_jemaat` dan `sekolah_minggu` sama-sama hari Minggu, jadi kalau seed
+   * menulis `template_id` NULL keduanya bertabrakan pada tanggal yang sama dan
+   * `pnpm db:seed` gagal di database yang benar-benar baru.
+   *
+   * Kegagalannya TIDAK terlihat di database yang sudah terisi: guard "tabel
+   * kosong" membuat seed langsung keluar tanpa menulis apa pun. Hanya CI dan
+   * lingkungan baru yang terkena — persis yang terjadi.
+   */
+  it('tidak menghasilkan dua ibadah dengan (templateId, tanggal, kolomId) sama', () => {
+    const from = todayEastern()
+    const to = addDays(from, 55)
+    // Kolom disimulasikan empat baris, sama seperti `PLACEHOLDER_KOLOM`.
+    const kolomRows = PLACEHOLDER_KOLOM.map((k, i) => ({ ...k, id: `kolom-${i}` }))
+
+    const kunci: string[] = []
+    for (const [i, t] of SCHEDULE_TEMPLATES.entries()) {
+      const tpl = { ...t, id: `tpl-${i}`, categoryId: `cat-${t.categoryKey}` }
+      const cat = { id: tpl.categoryId, key: t.categoryKey }
+      for (const date of datesForWeekday(from, to, t.dayOfWeek)) {
+        const targets = t.categoryKey === 'kolom' ? kolomRows : [null]
+        for (const k of targets) {
+          const row = buildService({
+            tpl: tpl as never,
+            cat: cat as never,
+            kolomRow: k as never,
+            date,
+            seq: kunci.length,
+          })
+          kunci.push(`${row.templateId ?? 'NULL'}|${row.serviceDate}|${row.kolomId ?? 'NULL'}`)
+        }
+      }
+    }
+
+    const kembar = kunci.filter((k, i) => kunci.indexOf(k) !== i)
+    expect(kembar.slice(0, 3), `ada ${kembar.length} baris kembar`).toEqual([])
   })
 })
 

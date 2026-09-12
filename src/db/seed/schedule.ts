@@ -117,8 +117,8 @@ interface TemplateRow {
  * ("Lokasi menyusul"), dan JSON-LD `Event` melewatkan `location` sama sekali.
  * Pengurus mengisi tuan rumah sungguhan lewat dashboard (Rencana 3).
  *
- * `templateId` SENGAJA tidak diisi (selalu NULL) — lihat catatan di
- * `seedSchedule()` soal index unik `ws_template_date_uq`.
+ * `templateId` DIISI dengan template asalnya — lihat catatan di `seedSchedule()`
+ * soal batasan unik `ws_template_date_uq`.
  */
 export function buildService({
   tpl,
@@ -140,7 +140,7 @@ export function buildService({
   return {
     categoryId: cat.id,
     kolomId: kolomRow?.id ?? null,
-    templateId: null,
+    templateId: tpl.id,
     serviceDate: date,
     startTime: tpl.startTime,
     endTime: tpl.endTime,
@@ -173,19 +173,24 @@ export function buildService({
  * `pnpm db:seed` dijalankan. `+56` akan membuat rentang 57 hari, memberi hari
  * yang sama dengan `from` sendiri kemunculan ke-9 sementara hari lain tetap 8.
  *
- * Soal index unik `ws_template_date_uq` — sejak migrasi 0002 bentuknya
- * `(templateId, serviceDate, kolomId)`, bukan lagi `(templateId, serviceDate)`
- * seperti semula. `kolomId` membedakan 4 baris kategori `kolom` pada tanggal &
- * template yang sama, jadi fan-out kategori itu sudah tertutup oleh index itu
- * sendiri. Untuk lima kategori lain (`kolomId` selalu NULL) index ini TIDAK
- * memberi proteksi apa pun — Postgres menganggap NULL distinct, jadi dua baris
- * dengan `templateId` + `serviceDate` sama tetap lolos index selama
- * `kolomId`-nya sama-sama NULL. Karena idempotensi seed ini sudah dijamin
- * penuh oleh guard "tabel kosong" di atas (bukan oleh index), `templateId`
- * pada SEMUA baris yang di-generate sengaja dibiarkan NULL — konsisten di
- * lintas kategori. `scheduleTemplates` tetap dibuat dan disimpan sebagai
- * catatan pola jadwal mingguan untuk dashboard (Rencana 3), hanya saja tidak
- * dirujuk balik dari `worship_services` yang dihasilkan generator ini.
+ * Soal batasan unik `ws_template_date_uq` — bentuknya
+ * `(templateId, serviceDate, kolomId)`, dan sejak migrasi 0005 ia
+ * `NULLS NOT DISTINCT`.
+ *
+ * Sebelum 0005, seed ini menulis `templateId` NULL pada SEMUA baris: Postgres
+ * menganggap tiap NULL berbeda, jadi batasannya tidak memberi proteksi apa pun
+ * untuk lima kategori non-kolom dan idempotensi sepenuhnya bersandar pada guard
+ * "tabel kosong" di atas. Migrasi 0005 membalik asumsi itu. `ibadah_jemaat` dan
+ * `sekolah_minggu` sama-sama hari Minggu, jadi dua baris NULL pada tanggal yang
+ * sama kini BERTABRAKAN dan seed gagal — tapi hanya di database yang benar-benar
+ * baru, karena di database terisi guard "tabel kosong" membuat seed keluar lebih
+ * dulu tanpa menulis apa pun. Kegagalannya muncul di CI, bukan di lokal.
+ *
+ * Karena itu tiap baris sekarang merujuk template asalnya. Batasannya jadi
+ * bermakna: satu template menghasilkan tepat satu ibadah per tanggal (atau satu
+ * per kolom aktif untuk kategori `kolom`), yang memang persis aturannya. Ini
+ * juga menyamakan hasil seed dengan database live, yang sudah diisi `template_id`
+ * oleh backfill migrasi 0004.
  *
  * Insert `scheduleTemplates` + `worshipServices` dibungkus SATU transaksi:
  * tanpa itu, proses yang mati persis di antara kedua insert (mis. koneksi

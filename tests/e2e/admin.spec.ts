@@ -100,6 +100,25 @@ for (const path of [
   })
 }
 
+/**
+ * Gerbang penerbit token unggah.
+ *
+ * Berkas unggahan TIDAK melewati server — browser mengirimnya langsung ke Blob.
+ * Jadi satu-satunya gerbang adalah penerbitan token di `/api/blob/upload`, dan
+ * kalau ia bocor, endpoint itu jadi penyimpanan berkas gratis untuk siapa pun
+ * yang menemukannya. Tak ada test lain yang menyentuhnya.
+ */
+test('/api/blob/upload tanpa sesi → tidak menerbitkan token', async ({ request }) => {
+  const res = await request.post('/api/blob/upload', {
+    data: {
+      type: 'blob.generate-client-token',
+      payload: { pathname: 'uji.jpg', callbackUrl: '', multipart: false },
+    },
+  })
+  expect(res.status()).not.toBe(200)
+  expect(await res.text()).not.toContain('clientToken')
+})
+
 test('/admin/login tidak dijaga — kalau ikut dijaga, redirect-nya jadi loop', async ({ page }) => {
   const res = await page.goto('/admin/login')
   expect(res?.status()).toBe(200)

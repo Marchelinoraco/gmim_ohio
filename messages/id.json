@@ -335,5 +335,19 @@
   "admin_messages_mark_read": "Tandai dibaca",
   "admin_messages_mark_done": "Tandai selesai",
   "admin_messages_read_full": "Baca selengkapnya",
-  "admin_messages_delete_confirm": "Hapus pesan ini? Tindakan ini tidak bisa dibatalkan."
+  "admin_messages_delete_confirm": "Hapus pesan ini? Tindakan ini tidak bisa dibatalkan.",
+  "admin_nav_password": "Ubah Kata Sandi",
+  "admin_password_title": "Ubah Kata Sandi",
+  "admin_password_intro": "Kata sandi ini dipakai untuk masuk ke dashboard. Setelah diganti, sesi di perangkat lain akan berakhir dan harus masuk ulang.",
+  "admin_password_current": "Kata sandi sekarang",
+  "admin_password_new": "Kata sandi baru",
+  "admin_password_confirm": "Ulangi kata sandi baru",
+  "admin_password_hint": "Minimal 8 karakter.",
+  "admin_password_submit": "Ganti kata sandi",
+  "admin_password_saving": "Mengganti…",
+  "admin_password_ok": "Kata sandi berhasil diganti.",
+  "admin_password_wrong": "Kata sandi sekarang salah.",
+  "admin_password_same": "Kata sandi baru harus berbeda dari yang sekarang.",
+  "admin_password_short": "Kata sandi baru minimal 8 karakter.",
+  "admin_password_mismatch": "Ulangan kata sandi tidak sama."
 }

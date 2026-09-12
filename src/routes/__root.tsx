@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react'
-import { Outlet, createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
+import {
+  Outlet,
+  createRootRoute,
+  useRouterState,
+  HeadContent,
+  Scripts,
+} from '@tanstack/react-router'
 import appCss from '@/styles/app.css?url'
 import * as m from '@/paraglide/messages'
 import { getLocale, localizeHref } from '@/paraglide/runtime'
@@ -54,6 +60,36 @@ function NotFound() {
   )
 }
 
+/**
+ * Header & footer situs publik — tidak dirender di bawah `/admin`.
+ *
+ * Route yang aktif dikenali dari ID route yang cocok, BUKAN dari string URL:
+ * seluruh route admin ber-ID awalan `/admin` (`/admin/login`, `/admin/_app/...`),
+ * sementara URL-nya bisa berawalan locale (`/en/admin/login`) dan bisa berubah
+ * di kemudian hari. Mencocokkan pohon route membuat pemeriksaan ini tidak bisa
+ * dikelabui keduanya.
+ *
+ * Langganan `useRouterState` sengaja ditaruh di komponen KECIL ini, bukan di
+ * `RootDocument`. Memanggilnya di sana membuat `<html>` dan `<body>` ikut
+ * berlangganan perubahan router, sehingga kerangka dokumen di-render ulang saat
+ * hidrasi — dan handler React pada form `/admin/login` ikut lepas, membuat
+ * tombol Masuk tidak melakukan apa pun. Benar-benar terjadi saat perbaikan ini
+ * pertama ditulis; dijaga oleh `admin.spec.ts`.
+ */
+function useDiAdmin(): boolean {
+  return useRouterState({
+    select: (s) => s.matches.some((match) => match.routeId.startsWith('/admin')),
+  })
+}
+
+function HeaderPublik() {
+  return useDiAdmin() ? null : <SiteHeader />
+}
+
+function FooterPublik() {
+  return useDiAdmin() ? null : <SiteFooter />
+}
+
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang={getLocale()}>
@@ -73,9 +109,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body>
-        <SiteHeader />
+        <HeaderPublik />
         {children}
-        <SiteFooter />
+        <FooterPublik />
         {/* JSON-LD Church — sekali, semua halaman. String JSON via
             dangerouslySetInnerHTML (bukan objek di head.meta) sesuai kontrak
             `churchJsonLd(): string`. */}

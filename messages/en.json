@@ -350,5 +350,19 @@
   "admin_messages_mark_read": "Mark as read",
   "admin_messages_mark_done": "Mark as done",
   "admin_messages_read_full": "Read full message",
-  "admin_messages_delete_confirm": "Delete this message? This cannot be undone."
+  "admin_messages_delete_confirm": "Delete this message? This cannot be undone.",
+  "admin_nav_password": "Change Password",
+  "admin_password_title": "Change Password",
+  "admin_password_intro": "This password is used to sign in to the dashboard. After changing it, sessions on other devices end and will need to sign in again.",
+  "admin_password_current": "Current password",
+  "admin_password_new": "New password",
+  "admin_password_confirm": "Repeat new password",
+  "admin_password_hint": "At least 8 characters.",
+  "admin_password_submit": "Change password",
+  "admin_password_saving": "Changing…",
+  "admin_password_ok": "Password changed.",
+  "admin_password_wrong": "Current password is incorrect.",
+  "admin_password_same": "The new password must differ from the current one.",
+  "admin_password_short": "The new password must be at least 8 characters.",
+  "admin_password_mismatch": "The repeated password does not match."
 }

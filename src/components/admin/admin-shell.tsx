@@ -7,6 +7,7 @@ import {
   Images,
   Layers,
   LogOut,
+  KeyRound,
   Mail,
   Menu,
   Settings,
@@ -42,6 +43,7 @@ const NAV = [
   { href: '/admin/master', label: () => m.admin_nav_master(), icon: Layers, exact: false },
   { href: '/admin/pengaturan', label: () => m.admin_nav_settings(), icon: Settings, exact: false },
   { href: '/admin/pesan', label: () => m.admin_nav_messages(), icon: Mail, exact: false },
+  { href: '/admin/ubah-sandi', label: () => m.admin_nav_password(), icon: KeyRound, exact: false },
 ] as const
 
 export function AdminShell({ email, children }: { email: string; children: React.ReactNode }) {
@@ -73,7 +75,8 @@ export function AdminShell({ email, children }: { email: string; children: React
           item.href === '/admin/renungan' ||
           item.href === '/admin/master' ||
           item.href === '/admin/pengaturan' ||
-          item.href === '/admin/pesan'
+          item.href === '/admin/pesan' ||
+          item.href === '/admin/ubah-sandi'
         ) {
           return (
             <Link

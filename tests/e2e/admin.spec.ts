@@ -105,6 +105,28 @@ test('/admin/login tidak dijaga — kalau ikut dijaga, redirect-nya jadi loop', 
   await expect(page).toHaveURL(/\/admin\/login$/)
 })
 
+/**
+ * Navigasi situs publik tidak boleh ikut terender di dashboard.
+ *
+ * `__root.tsx` merender `<SiteHeader>`/`<SiteFooter>` di kerangka dokumen, jadi
+ * SETIAP route ikut mendapatkannya kecuali dikecualikan. Di halaman admin
+ * ber-shell hal itu cuma menumpuk dua navigasi; di `/admin/login` yang tak punya
+ * shell, navigasi publik muncul telanjang di atas kartu masuk — dan menawarkan
+ * jalan keluar ke situs publik tepat saat pengurus hendak masuk.
+ *
+ * Diperiksa lewat nama aksesibel `<nav>`-nya: "Navigasi" milik situs publik,
+ * "Navigasi dashboard" milik sidebar admin — jadi test ini tidak akan lulus
+ * secara kebetulan gara-gara sidebar admin ikut cocok.
+ */
+for (const path of ['/admin/login', '/admin']) {
+  test(`${path} tidak merender navigasi situs publik`, async ({ page }) => {
+    await page.goto(path)
+    await expect(
+      page.getByRole('navigation', { name: /^navigasi$|^navigation$/i }),
+    ).toHaveCount(0)
+  })
+}
+
 test('halaman admin ber-noindex', async ({ page }) => {
   const res = await page.goto('/admin/login')
   const html = (await res?.text()) ?? ''

@@ -364,5 +364,13 @@
   "admin_password_wrong": "Current password is incorrect.",
   "admin_password_same": "The new password must differ from the current one.",
   "admin_password_short": "The new password must be at least 8 characters.",
-  "admin_password_mismatch": "The repeated password does not match."
+  "admin_password_mismatch": "The repeated password does not match.",
+  "admin_upload_choose": "Choose image",
+  "admin_upload_replace": "Replace image",
+  "admin_upload_uploading": "Uploading… {persen}%",
+  "admin_upload_remove": "Remove image",
+  "admin_upload_too_large": "Image exceeds 10 MB. Shrink it first, then try again.",
+  "admin_upload_bad_type": "Unsupported format. Use JPEG, PNG, WebP, or AVIF.",
+  "admin_upload_failed": "Upload failed. Try again.",
+  "admin_upload_preview_alt": "Preview of the uploaded image"
 }

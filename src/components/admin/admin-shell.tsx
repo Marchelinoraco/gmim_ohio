@@ -29,10 +29,8 @@ import { Logo } from '@/components/layout/logo'
  * sepotong-sepotong.
  */
 /**
- * Struktur navigasi lengkap sejak awal. Item yang belum mempunyai route
- * menggunakan `<a href>` biasa; akan berubah jadi `<Link>` saat route-nya lahir
- * di rencana berikutnya. Ini menjaga kerangka navigasi tetap utuh dan mudah
- * diperbarui daripada tumbuh sepotong-sepotong.
+ * Struktur navigasi lengkap. Sejak Rencana 3e setiap item punya route sungguhan,
+ * jadi semuanya `<Link>` — tak ada lagi `<a href>` yang menuju 404.
  */
 const NAV = [
   { href: '/admin', label: () => m.admin_nav_home(), icon: Home, exact: true },
@@ -62,41 +60,22 @@ export function AdminShell({ email, children }: { email: string; children: React
         const className =
           'text-ink hover:bg-surface-2 data-[status=active]:bg-surface-2 data-[status=active]:text-primary flex min-h-11 items-center gap-2.5 rounded-md px-3 text-sm font-medium'
 
-        // Route yang sudah ada memakai <Link> (navigasi klien, tanpa muat ulang);
-        // sisanya tetap <a> sampai route-nya lahir di rencana berikutnya —
-        // `Link` TanStack bertipe ketat dan menolak path yang belum terdaftar.
-        // Perbandingan eksplisit, bukan `daftar.includes(...)`: `includes`
-        // mengembalikan boolean biasa dan tidak menyempitkan tipe `item.href`,
-        // sehingga `<Link to>` menolaknya. Rantai `===` adalah type guard.
-        if (
-          item.href === '/admin' ||
-          item.href === '/admin/jadwal' ||
-          item.href === '/admin/warta' ||
-          item.href === '/admin/renungan' ||
-          item.href === '/admin/master' ||
-          item.href === '/admin/pengaturan' ||
-          item.href === '/admin/pesan' ||
-          item.href === '/admin/ubah-sandi'
-        ) {
-          return (
-            <Link
-              key={item.href}
-              to={item.href}
-              activeOptions={{ exact: item.exact }}
-              onClick={() => setOpen(false)}
-              className={className}
-            >
-              <Icon aria-hidden="true" className="size-4 shrink-0" />
-              {item.label()}
-            </Link>
-          )
-        }
-
+        // Seluruh item kini punya route sungguhan, jadi semuanya <Link>
+        // (navigasi klien, tanpa muat ulang). Sampai Rencana 3e, sebagian masih
+        // <a href> biasa karena route-nya belum lahir dan `Link` TanStack
+        // bertipe ketat menolak path yang belum terdaftar — cabang itu sudah
+        // tidak terjangkau lagi, dan TypeScript yang menunjukkannya.
         return (
-          <a key={item.href} href={item.href} onClick={() => setOpen(false)} className={className}>
+          <Link
+            key={item.href}
+            to={item.href}
+            activeOptions={{ exact: item.exact }}
+            onClick={() => setOpen(false)}
+            className={className}
+          >
             <Icon aria-hidden="true" className="size-4 shrink-0" />
             {item.label()}
-          </a>
+          </Link>
         )
       })}
     </nav>

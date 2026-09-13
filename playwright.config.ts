@@ -11,6 +11,24 @@ export default defineConfig({
   timeout: 30_000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  /**
+   * Satu ulangan di lokal, dua di CI.
+   *
+   * BUKAN untuk menutupi kerapuhan aplikasi. Dev server TanStack Start
+   * sesekali menjawab permintaan server-fn bersamaan dengan
+   * `Body is unusable: Body has already been read` — galat tingkat fetch di
+   * `serverFnFetcher`, bukan asersi yang gagal. Ia hanya muncul saat beberapa
+   * berkas spec berjalan paralel; spec yang sama lulus konsisten saat
+   * dijalankan sendirian, dan build produksi tidak punya transform on-demand
+   * sama sekali.
+   *
+   * Tanpa ini, `trace: 'on-first-retry'` di bawah juga tak pernah bisa aktif —
+   * baris itu mengandaikan ulangan yang selama ini default-nya nol.
+   *
+   * Satu ulangan saja di lokal: test yang benar-benar rusak tetap gagal dua
+   * kali dan tidak lolos diam-diam.
+   */
+  retries: process.env.CI ? 2 : 1,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://localhost:3000',

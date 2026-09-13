@@ -89,6 +89,8 @@ for (const path of [
   '/admin/warta/baru',
   '/admin/renungan',
   '/admin/renungan/baru',
+  '/admin/galeri',
+  '/admin/galeri/baru',
   '/admin/master',
   '/admin/pengaturan',
   '/admin/pesan',

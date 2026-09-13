@@ -21,6 +21,15 @@ describe('albumInputSchema', () => {
     if (r.success) expect(r.data.coverImageUrl).toBeNull()
   })
 
+  // Form mengirim `null` saat sampul tidak dipilih — bukan `undefined`.
+  // Skema yang hanya menerima `undefined` menolak album tanpa sampul, dan
+  // galatnya muncul sebagai dump JSON Zod di layar pengurus.
+  it('menerima sampul null', () => {
+    const r = albumInputSchema.safeParse({ ...album, coverImageUrl: null })
+    expect(r.success, JSON.stringify(r.error?.issues)).toBe(true)
+    if (r.success) expect(r.data.coverImageUrl).toBeNull()
+  })
+
   it('menolak judul kosong', () => {
     expect(albumInputSchema.safeParse({ ...album, titleId: '  ' }).success).toBe(false)
     expect(albumInputSchema.safeParse({ ...album, titleEn: '' }).success).toBe(false)

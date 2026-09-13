@@ -6,11 +6,19 @@ import { adalahUrlBlob } from '@/lib/unggah'
 
 const wajibIsi = z.string().trim().min(1, 'Wajib diisi')
 
-/** Teks opsional: string kosong dan spasi belaka disimpan sebagai NULL. */
+/**
+ * Teks opsional: string kosong, spasi belaka, `undefined`, dan `null` semuanya
+ * disimpan sebagai NULL.
+ *
+ * `nullish()`, bukan `optional()`. Form mengirim `null` saat sampul atau caption
+ * dikosongkan — bukan `undefined` — dan skema yang hanya menerima `undefined`
+ * menolak album tanpa sampul, dengan galat yang muncul sebagai dump JSON Zod di
+ * layar pengurus.
+ */
 const opsional = z
   .string()
   .trim()
-  .optional()
+  .nullish()
   .transform((v) => (v ? v : null))
 
 export const albumInputSchema = z.object({
